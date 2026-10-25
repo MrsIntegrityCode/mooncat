@@ -1,0 +1,38 @@
+name: Daily Mooncat Release Sync
+
+on:
+  schedule:
+    # Runs daily at 04:00 UTC (midnight EST)
+    - cron: '0 4 * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub UI anytime
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run Mooncat Sync
+        run: |
+          python3 sync_new_releases.py
+
+      - name: Commit and Push Changes if New Releases Detected
+        run: |
+          git config --global user.name "Mooncat Bot"
+          git config --global user.email "bot@mooncat-vault.local"
+          git add mooncat_catalog.json catalog_data.js mooncat_colors_catalog.csv
+          if git diff --staged --quiet; then
+            echo "No new Mooncat releases detected today."
+          else
+            git commit -m "✨ Auto-sync: Added new Mooncat releases"
+            git push
+          fi

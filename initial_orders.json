@@ -1,0 +1,247 @@
+{
+  "inventory": {
+    "7895194796192": {
+      "qty": 1,
+      "orderDates": [
+        "Order 1"
+      ],
+      "notes": "Order 1",
+      "ordered_qty": 1
+    },
+    "10367960514720": {
+      "qty": 1,
+      "orderDates": [
+        "Order 1",
+        "MC381424394 - Jun 03, 2026"
+      ],
+      "notes": "Ordered 2x; 1 gifted away, 1 currently on hand",
+      "ordered_qty": 2
+    },
+    "15178414915744": {
+      "qty": 1,
+      "orderDates": [
+        "Order 1"
+      ],
+      "notes": "Order 1",
+      "ordered_qty": 1
+    },
+    "15178270736544": {
+      "qty": 1,
+      "orderDates": [
+        "Order 1"
+      ],
+      "notes": "Order 1",
+      "ordered_qty": 1
+    },
+    "15178405413024": {
+      "qty": 1,
+      "orderDates": [
+        "Order 1"
+      ],
+      "notes": "Order 1",
+      "ordered_qty": 1
+    },
+    "14597627838624": {
+      "qty": 1,
+      "orderDates": [
+        "MC381501799 - Aug 25, 2026"
+      ],
+      "notes": "MC381501799 - Aug 25, 2026",
+      "ordered_qty": 1
+    },
+    "8475902705824": {
+      "qty": 1,
+      "orderDates": [
+        "MC381501799 - Aug 25, 2026"
+      ],
+      "notes": "MC381501799 - Aug 25, 2026",
+      "ordered_qty": 1
+    },
+    "7585333412000": {
+      "qty": 1,
+      "orderDates": [
+        "MC381501799 - Aug 25, 2026"
+      ],
+      "notes": "MC381501799 - Aug 25, 2026",
+      "ordered_qty": 1
+    },
+    "15223108337824": {
+      "qty": 1,
+      "orderDates": [
+        "MC381501799 - Aug 25, 2026"
+      ],
+      "notes": "MC381501799 - Aug 25, 2026",
+      "ordered_qty": 1
+    },
+    "15827709690016": {
+      "qty": 1,
+      "orderDates": [
+        "MC381501799 - Aug 25, 2026"
+      ],
+      "notes": "MC381501799 - Aug 25, 2026",
+      "ordered_qty": 1
+    },
+    "7060344864928": {
+      "qty": 1,
+      "orderDates": [
+        "MC381369738 - Apr 27, 2026"
+      ],
+      "notes": "MC381369738 - Apr 27, 2026",
+      "ordered_qty": 1
+    },
+    "7060319142048": {
+      "qty": 1,
+      "orderDates": [
+        "MC381369738 - Apr 27, 2026"
+      ],
+      "notes": "MC381369738 - Apr 27, 2026",
+      "ordered_qty": 1
+    },
+    "7060230832288": {
+      "qty": 1,
+      "orderDates": [
+        "MC381369738 - Apr 27, 2026"
+      ],
+      "notes": "MC381369738 - Apr 27, 2026",
+      "ordered_qty": 1
+    },
+    "7468187320480": {
+      "qty": 1,
+      "orderDates": [
+        "MC381369738 - Apr 27, 2026"
+      ],
+      "notes": "MC381369738 - Apr 27, 2026",
+      "ordered_qty": 1
+    },
+    "15124828192928": {
+      "qty": 1,
+      "orderDates": [
+        "MC381369738 - Apr 27, 2026"
+      ],
+      "notes": "MC381369738 - Apr 27, 2026",
+      "ordered_qty": 1
+    },
+    "7629379174560": {
+      "qty": 1,
+      "orderDates": [
+        "MC381424394 - Jun 03, 2026"
+      ],
+      "notes": "MC381424394 - Jun 03, 2026",
+      "ordered_qty": 1
+    },
+    "15178422485152": {
+      "qty": 1,
+      "orderDates": [
+        "MC381424394 - Jun 03, 2026"
+      ],
+      "notes": "MC381424394 - Jun 03, 2026",
+      "ordered_qty": 1
+    },
+    "15658010345632": {
+      "qty": 1,
+      "orderDates": [
+        "MC381424394 - Jun 03, 2026"
+      ],
+      "notes": "MC381424394 - Jun 03, 2026",
+      "ordered_qty": 1
+    },
+    "15124827209888": {
+      "qty": 1,
+      "orderDates": [
+        "MC381424394 - Jun 03, 2026"
+      ],
+      "notes": "MC381424394 - Jun 03, 2026",
+      "ordered_qty": 1
+    },
+    "12394766368928": {
+      "qty": 1,
+      "orderDates": [
+        "Order - Jun 09, 2026"
+      ],
+      "notes": "Order - Jun 09, 2026",
+      "ordered_qty": 1
+    },
+    "15658015948960": {
+      "qty": 1,
+      "orderDates": [
+        "Order - Jun 09, 2026"
+      ],
+      "notes": "Order - Jun 09, 2026",
+      "ordered_qty": 1
+    },
+    "7059831980192": {
+      "qty": 1,
+      "orderDates": [
+        "Order - Jun 09, 2026"
+      ],
+      "notes": "Order - Jun 09, 2026",
+      "ordered_qty": 1
+    },
+    "12943670444192": {
+      "qty": 1,
+      "orderDates": [
+        "Order - Jun 09, 2026",
+        "MC381473985 - Jul 20, 2026"
+      ],
+      "notes": "Ordered 2x; 1 gifted away, 1 currently on hand",
+      "ordered_qty": 2
+    },
+    "15223096508576": {
+      "qty": 1,
+      "orderDates": [
+        "Order - Jun 09, 2026"
+      ],
+      "notes": "Order - Jun 09, 2026",
+      "ordered_qty": 1
+    },
+    "14643543572640": {
+      "qty": 1,
+      "orderDates": [
+        "Order - Jun 09, 2026"
+      ],
+      "notes": "Order - Jun 09, 2026",
+      "ordered_qty": 1
+    },
+    "15658013884576": {
+      "qty": 1,
+      "orderDates": [
+        "Order - Jun 09, 2026"
+      ],
+      "notes": "Order - Jun 09, 2026",
+      "ordered_qty": 1
+    },
+    "14643540525216": {
+      "qty": 1,
+      "orderDates": [
+        "Order - Jun 09, 2026"
+      ],
+      "notes": "Order - Jun 09, 2026",
+      "ordered_qty": 1
+    },
+    "11457831534752": {
+      "qty": 1,
+      "orderDates": [
+        "MC381473985 - Jul 20, 2026"
+      ],
+      "notes": "MC381473985 - Jul 20, 2026",
+      "ordered_qty": 1
+    },
+    "14597635702944": {
+      "qty": 1,
+      "orderDates": [
+        "MC381473985 - Jul 20, 2026"
+      ],
+      "notes": "MC381473985 - Jul 20, 2026",
+      "ordered_qty": 1
+    },
+    "7235475407008": {
+      "qty": 1,
+      "orderDates": [
+        "MC381473985 - Jul 20, 2026"
+      ],
+      "notes": "MC381473985 - Jul 20, 2026",
+      "ordered_qty": 1
+    }
+  },
+  "wishlist": []
+}

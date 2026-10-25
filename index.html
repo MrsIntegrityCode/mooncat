@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mooncat Lacquer Vault & Inventory</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand">
+        <span class="brand-glyph">✦</span>
+        <div class="brand-text">
+          <h1>MOONCAT <span class="brand-sub">VAULT</span></h1>
+          <p class="brand-tagline">Catalog, Inventory Tracker & Wishlist</p>
+        </div>
+      </div>
+      
+      <!-- Live Stats -->
+      <div class="header-stats">
+        <div class="stat-badge">
+          <span class="stat-label">CATALOG</span>
+          <span class="stat-value" id="stat-total-catalog">0</span>
+        </div>
+        <div class="stat-badge owned-badge">
+          <span class="stat-label">OWNED</span>
+          <span class="stat-value" id="stat-total-owned">0</span>
+        </div>
+        <div class="stat-badge wishlist-badge">
+          <span class="stat-label">WISHLIST</span>
+          <span class="stat-value" id="stat-total-wishlist">0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+      <button class="nav-tab active" data-tab="catalog">
+        <span class="tab-icon">✨</span> Main Catalog
+      </button>
+      <button class="nav-tab" data-tab="orders">
+        <span class="tab-icon">📦</span> My Orders & Inventory
+      </button>
+      <button class="nav-tab" data-tab="wishlist">
+        <span class="tab-icon">💫</span> Wishlist
+      </button>
+      <button class="nav-tab" data-tab="sync">
+        <span class="tab-icon">☁️</span> Sync & Online Access
+      </button>
+    </nav>
+  </header>
+
+  <main class="app-main">
+    <!-- TAB 1: MAIN CATALOG -->
+    <section id="tab-catalog" class="tab-content active">
+      <div class="toolbar">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="catalog-search" placeholder="Search by name, finish, color, keyword..." autocomplete="off">
+          <button id="search-clear" class="btn-clear" title="Clear search">✕</button>
+        </div>
+
+        <div class="filter-controls">
+          <div class="filter-group">
+            <label for="filter-finish">Finish / Type:</label>
+            <select id="filter-finish">
+              <option value="all">All Types</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="filter-color">Color:</label>
+            <select id="filter-color">
+              <option value="all">All Colors</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="filter-status">Status / Owned:</label>
+            <select id="filter-status">
+              <option value="all">All Lacquers</option>
+              <option value="owned">Owned Only (Y)</option>
+              <option value="unowned">Not Owned (N)</option>
+              <option value="wishlist">On Wishlist</option>
+              <option value="new">✨ New Releases Only</option>
+              <option value="in_stock">In Stock at Mooncat</option>
+            </select>
+          </div>
+
+          <div class="view-toggle">
+            <button class="btn-toggle active" data-view="grid" title="Cards View with Photos">🎴 Cards</button>
+            <button class="btn-toggle" data-view="table" title="Table View">📋 Table</button>
+          </div>
+
+          <div class="export-actions">
+            <button id="btn-sync-new-releases" class="btn-primary" style="background: linear-gradient(135deg, #06b6d4, #a855f7); border: none;" title="Check Mooncat for brand new releases">
+              ⚡ Check New Releases
+            </button>
+            <button id="btn-export-catalog-csv" class="btn-secondary" title="Export catalog as CSV">
+              ⬇ Download CSV
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="results-meta">
+        <span id="results-count">Showing 0 lacquers</span>
+        <span class="last-updated-hint">Official mooncat.com data synchronized with last updated dates</span>
+      </div>
+
+      <!-- Grid View (Cards with Pictures) -->
+      <div id="catalog-grid" class="catalog-grid"></div>
+
+      <!-- Table View -->
+      <div id="catalog-table-wrapper" class="catalog-table-wrapper hidden">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width: 60px;">Photo</th>
+              <th data-sort="name">Name ⬍</th>
+              <th data-sort="type">Type / Finish ⬍</th>
+              <th data-sort="color">Color Palette ⬍</th>
+              <th>Description</th>
+              <th data-sort="last_updated">Last Updated ⬍</th>
+              <th data-sort="owned">Owned? ⬍</th>
+              <th style="width: 140px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="catalog-table-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TAB 2: MY ORDERS & INVENTORY -->
+    <section id="tab-orders" class="tab-content">
+      <div class="section-banner">
+        <div>
+          <h2>My Ordered Mooncat Nail Colors</h2>
+          <p class="section-desc">Single unified list of all ordered Mooncat polishes sorted alphabetically by name, showing official type, color palette, and total number ordered (including duplicates).</p>
+        </div>
+        <div class="banner-buttons">
+          <button id="btn-open-order-import" class="btn-primary">
+            + Add / Import Orders
+          </button>
+          <button id="btn-export-orders-csv" class="btn-secondary">
+            ⬇ Export Orders CSV
+          </button>
+        </div>
+      </div>
+
+      <div class="orders-summary-bar">
+        <div class="summary-metric">
+          <span class="metric-num" id="orders-unique-count">0</span>
+          <span class="metric-title">Unique Shades</span>
+        </div>
+        <div class="summary-metric">
+          <span class="metric-num" id="orders-total-bottles">0</span>
+          <span class="metric-title">Total Bottles Ordered</span>
+        </div>
+        <div class="search-box small">
+          <input type="text" id="orders-search" placeholder="Filter ordered colors...">
+        </div>
+      </div>
+
+      <!-- Orders List Table -->
+      <div class="orders-table-wrapper">
+        <table class="data-table orders-table">
+          <thead>
+            <tr>
+              <th style="width: 70px;">Swatch</th>
+              <th>Name</th>
+              <th>Type (mooncat.com)</th>
+              <th>Color Palette</th>
+              <th style="width: 130px; text-align: center;">Total Ordered</th>
+              <th style="width: 130px; text-align: center;">On Hand</th>
+              <th style="width: 140px;">Notes / Status</th>
+              <th style="width: 100px; text-align: right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="orders-table-body">
+            <!-- Rendered dynamically -->
+          </tbody>
+        </table>
+        <div id="orders-empty-state" class="empty-state hidden">
+          <div class="empty-icon">📦</div>
+          <h3>No Orders Added Yet</h3>
+          <p>Click "Add / Import Orders" above to paste your order history, enter shades, or upload receipts. You can also click "+ Add to Owned" from the Main Catalog!</p>
+          <button class="btn-primary" onclick="document.getElementById('btn-open-order-import').click()">+ Add Your Ordered Colors</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 3: WISHLIST -->
+    <section id="tab-wishlist" class="tab-content">
+      <div class="section-banner">
+        <div>
+          <h2>My Mooncat Wishlist</h2>
+          <p class="section-desc">Keep track of dreamy shades to buy next. <em>Rule: You cannot add colors you already own. When purchased, shades automatically move to your inventory and remove from your wishlist.</em></p>
+        </div>
+        <div class="banner-buttons">
+          <button id="btn-export-wishlist-csv" class="btn-secondary">
+            ⬇ Export Wishlist CSV
+          </button>
+        </div>
+      </div>
+
+      <div id="wishlist-grid" class="catalog-grid"></div>
+
+      <div id="wishlist-empty-state" class="empty-state hidden">
+        <div class="empty-icon">💫</div>
+        <h3>Your Wishlist is Empty</h3>
+        <p>Explore the Main Catalog and click "✦ Wishlist" on any unowned shade you'd love to add to your collection!</p>
+        <button class="btn-primary" onclick="document.querySelector('[data-tab=catalog]').click()">Browse Main Catalog</button>
+      </div>
+    </section>
+
+    <!-- TAB 4: SYNC & ONLINE HOSTING -->
+    <section id="tab-sync" class="tab-content">
+      <div class="sync-container">
+        <h2>Access from Any Device & Online Hosting</h2>
+        <p class="section-desc">You can easily host this entire app online for free so you can access it from your iPhone, Android, iPad, or any computer, anytime.</p>
+
+        <div class="hosting-options-grid">
+          <div class="host-card">
+            <div class="host-badge">Option 1 • Instant & Free</div>
+            <h3>GitHub Pages</h3>
+            <p>100% free permanent hosting with your own custom link (e.g. <code>username.github.io/mooncat</code>).</p>
+            <ol>
+              <li>Create a new free repository on <a href="https://github.com" target="_blank" rel="noopener">GitHub</a> named <code>mooncat-vault</code>.</li>
+              <li>Push or upload these files (<code>index.html</code>, <code>style.css</code>, <code>app.js</code>, <code>catalog_data.js</code>).</li>
+              <li>Go to <strong>Settings &gt; Pages</strong> and enable GitHub Pages on branch <code>main</code>.</li>
+              <li>Your app is live online within seconds!</li>
+            </ol>
+          </div>
+
+          <div class="host-card">
+            <div class="host-badge">Option 2 • Drag & Drop</div>
+            <h3>Netlify or Vercel</h3>
+            <p>Drag this folder into Netlify Drop (<a href="https://app.netlify.com/drop" target="_blank" rel="noopener">app.netlify.com/drop</a>) to get an instant live website URL without needing git.</p>
+            <ul>
+              <li>Open your browser to <a href="https://app.netlify.com/drop" target="_blank" rel="noopener">netlify.com/drop</a>.</li>
+              <li>Drag the <code>/Users/melissaruth/Documents/Mooncat</code> folder onto the page.</li>
+              <li>Instantly receive a live shareable URL!</li>
+            </ul>
+          </div>
+
+          <div class="host-card">
+            <div class="host-badge">Option 3 • Firebase Hosting</div>
+            <h3>Google Firebase</h3>
+            <p>Deploy using Firebase Hosting CLI. We have pre-configured Firebase support in your project.</p>
+            <pre><code>firebase init hosting
+firebase deploy</code></pre>
+          </div>
+        </div>
+
+        <!-- Data Backup & Transfer -->
+        <div class="backup-card">
+          <h3>Data Backup & Cross-Device Transfer</h3>
+          <p>Your orders, inventory counts, and wishlist are saved in your browser. You can export a backup file anytime and restore it on your phone or other devices.</p>
+          <div class="backup-actions">
+            <button id="btn-export-backup" class="btn-primary">💾 Export All Data (JSON)</button>
+            <label class="btn-secondary file-upload-label">
+              📥 Import Backup (JSON)
+              <input type="file" id="file-import-backup" accept=".json" style="display: none;">
+            </label>
+            <button id="btn-reset-demo" class="btn-danger-outline">⚠️ Clear All User Data</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Detail Modal -->
+  <div id="detail-modal" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <button class="modal-close" id="modal-close-btn">&times;</button>
+      <div class="modal-content" id="modal-content">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Order Import Modal -->
+  <div id="import-modal" class="modal-backdrop hidden">
+    <div class="modal-card import-card">
+      <button class="modal-close" id="import-close-btn">&times;</button>
+      <h3>Add or Import Ordered Colors</h3>
+      <p class="modal-sub">Paste nail polish names, receipt text, or order list. Duplicates will be counted automatically and matched against Mooncat's official types and color palettes!</p>
+      
+      <div class="import-input-group">
+        <label for="import-text"><strong>Paste Orders or Color Names:</strong> (one per line, e.g. "House of Hades", or "2x Merkitten")</label>
+        <textarea id="import-text" rows="8" placeholder="Example:
+House of Hades
+House of Hades (duplicate example)
+2x Merkitten
+Ghosts of Hecate
+Am I Everything You Fear?
+Speed Demon Top Coat"></textarea>
+      </div>
+
+      <div class="import-preview-box hidden" id="import-preview-box">
+        <h4>Identified Shades (<span id="import-matched-count">0</span>):</h4>
+        <div id="import-preview-list" class="import-preview-list"></div>
+      </div>
+
+      <div class="modal-actions">
+        <button id="btn-parse-preview" class="btn-secondary">Preview Match</button>
+        <button id="btn-confirm-import" class="btn-primary">Add to My Orders</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- Scripts -->
+  <script src="catalog_data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
