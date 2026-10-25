@@ -21,19 +21,27 @@
         </div>
       </div>
       
-      <!-- Live Stats -->
-      <div class="header-stats">
-        <div class="stat-badge">
-          <span class="stat-label">CATALOG</span>
-          <span class="stat-value" id="stat-total-catalog">0</span>
+      <!-- Live Stats & Profile Selector -->
+      <div class="header-right-group">
+        <div class="profile-box">
+          <span class="profile-icon">👤</span>
+          <select id="select-active-profile" class="profile-dropdown" title="Active Inventory Profile"></select>
+          <button id="btn-new-profile" class="btn-new-profile" title="Create new private collection">+ New Profile</button>
         </div>
-        <div class="stat-badge owned-badge">
-          <span class="stat-label">OWNED</span>
-          <span class="stat-value" id="stat-total-owned">0</span>
-        </div>
-        <div class="stat-badge wishlist-badge">
-          <span class="stat-label">WISHLIST</span>
-          <span class="stat-value" id="stat-total-wishlist">0</span>
+
+        <div class="header-stats">
+          <div class="stat-badge">
+            <span class="stat-label">CATALOG</span>
+            <span class="stat-value" id="stat-total-catalog">0</span>
+          </div>
+          <div class="stat-badge owned-badge">
+            <span class="stat-label">OWNED</span>
+            <span class="stat-value" id="stat-total-owned">0</span>
+          </div>
+          <div class="stat-badge wishlist-badge">
+            <span class="stat-label">WISHLIST</span>
+            <span class="stat-value" id="stat-total-wishlist">0</span>
+          </div>
         </div>
       </div>
     </div>
@@ -88,6 +96,7 @@
               <option value="unowned">Not Owned (N)</option>
               <option value="wishlist">On Wishlist</option>
               <option value="new">✨ New Releases Only</option>
+              <option value="departed">⚰️ Dearly Departed (Discontinued)</option>
               <option value="in_stock">In Stock at Mooncat</option>
             </select>
           </div>

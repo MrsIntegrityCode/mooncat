@@ -33,7 +33,8 @@
       "lunar-sale",
       "magnetic-polish",
       "type:magnetic"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7701748449440,
@@ -71,7 +72,8 @@
       "nail-polish",
       "pink",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7382103949472,
@@ -110,7 +112,8 @@
       "pink",
       "shimmer",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 12943670444192,
@@ -147,7 +150,8 @@
       "lunar-sale",
       "multichrome",
       "shimmer"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7697182163104,
@@ -182,7 +186,8 @@
       "finish:creme",
       "lunar-sale",
       "product-bundle"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7060313931936,
@@ -195,7 +200,7 @@
     "last_updated": "2026-10-25",
     "price": "$15.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_evergreen_abandonedboardwalks_2_1.jpg?v=1732282641",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_evergreen_abandonedboardwalks_2_1.jpg?v=1732282641",
@@ -218,7 +223,8 @@
       "status:discontinued",
       "status:july26-purg",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 15276159041696,
@@ -246,7 +252,8 @@
       "loyalty:exclusive",
       "restrict:qty-limit-1",
       "reward:exclusive"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7212304924832,
@@ -284,7 +291,8 @@
       "green",
       "lunar-sale",
       "shimmer"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7279026897056,
@@ -316,7 +324,8 @@
       "lunar-sale",
       "orange",
       "technicolor-dreams-collection"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7480270946464,
@@ -329,7 +338,7 @@
     "last_updated": "2026-10-25",
     "price": "$14.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_KH_acidwashed_6copy.jpg?v=1660146337",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_KH_acidwashed_6copy.jpg?v=1660146337",
@@ -342,7 +351,8 @@
       "restrict:qty-limit-1",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 14597486411936,
@@ -377,7 +387,8 @@
       "color:purple",
       "finish:shimmer",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7127857201312,
@@ -390,7 +401,7 @@
     "last_updated": "2026-10-25",
     "price": "$15.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_AlienInvasion.jpg?v=1663680796",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_AlienInvasion.jpg?v=1663680796",
@@ -406,7 +417,8 @@
       "status:discontinued",
       "status:no-restock",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 15862885580960,
@@ -435,7 +447,8 @@
       "collection:whats-new",
       "color:brown",
       "finish:creme"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 12943690629280,
@@ -469,7 +482,8 @@
       "color:pink",
       "lunar-sale",
       "shimmer"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7235477897376,
@@ -482,7 +496,7 @@
     "last_updated": "2026-10-25",
     "price": "$17.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_anifragile_athira.jpg?v=1643985380",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_anifragile_athira.jpg?v=1643985380",
@@ -493,7 +507,8 @@
     "tags": [
       "heavy-is-the-crown-collection",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 7451632795808,
@@ -506,7 +521,7 @@
     "last_updated": "2026-10-25",
     "price": "$16.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_medusa_antivenom_1.jpg?v=1657852192",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_medusa_antivenom_1.jpg?v=1657852192",
@@ -518,7 +533,8 @@
     "tags": [
       "medusa-unleashed-set",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 7895061659808,
@@ -531,7 +547,7 @@
     "last_updated": "2026-10-25",
     "price": "$16.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mc_pdp_goddess_APHRODISIAC_Tamm1_edit_7.jpg?v=1677174165",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mc_pdp_goddess_APHRODISIAC_Tamm1_edit_7.jpg?v=1677174165",
@@ -544,7 +560,8 @@
       "collection:goddess-complex-set",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 7060341424288,
@@ -557,7 +574,7 @@
     "last_updated": "2026-10-25",
     "price": "$16.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/apollonew2.jpg?v=1652392768",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/apollonew2.jpg?v=1652392768",
@@ -569,7 +586,8 @@
       "restrict:qty-limit-1",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 7585313128608,
@@ -582,7 +600,7 @@
     "last_updated": "2026-10-25",
     "price": "$16.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_rotf_apparition1.jpg?v=1666379423",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_rotf_apparition1.jpg?v=1666379423",
@@ -599,7 +617,8 @@
       "status:discontinued",
       "status:no-restock",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 7895112089760,
@@ -640,7 +659,8 @@
       "shimmer",
       "type:nail-polish",
       "type:shimmer"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15621191925920,
@@ -674,7 +694,8 @@
       "lunar-sale",
       "metallic",
       "restrict:qty-limit-5"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7307087806624,
@@ -687,7 +708,7 @@
     "last_updated": "2026-10-25",
     "price": "$15.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/Copyoffolktalegrid_4x5in_2.png?v=1682020408",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/Copyoffolktalegrid_4x5in_2.png?v=1682020408",
@@ -703,7 +724,8 @@
       "status:discontinued",
       "status:no-restock",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 15625882534048,
@@ -733,7 +755,8 @@
       "collection:whats-new",
       "lunar-sale",
       "restrict:qty-limit-5"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15223124426912,
@@ -764,7 +787,8 @@
       "color:red",
       "finish:thermal",
       "restrict:us-ca-only"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15009093943456,
@@ -777,7 +801,7 @@
     "last_updated": "2026-10-25",
     "price": "$16.00",
     "available": true,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_BANQUETOFBREADCRUMBS_7.jpg?v=1739283996",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_BANQUETOFBREADCRUMBS_7.jpg?v=1739283996",
@@ -803,7 +827,8 @@
       "status:july26-purg",
       "status:no-restock",
       "type:shimmer"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 7739210858656,
@@ -844,7 +869,8 @@
       "type:nail-polish",
       "type:nail-tool",
       "type:top-coat"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7701770666144,
@@ -880,7 +906,8 @@
       "lunar-sale",
       "nail-polish",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 9004830163104,
@@ -893,7 +920,7 @@
     "last_updated": "2026-10-25",
     "price": "$14.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_BERMUDATriangle_6.jpg?v=1685022652",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_BERMUDATriangle_6.jpg?v=1685022652",
@@ -906,7 +933,8 @@
       "restrict:qty-limit-2",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 7482741260448,
@@ -919,7 +947,7 @@
     "last_updated": "2026-10-25",
     "price": "$14.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_KH_bestbud_michelle1.jpg?v=1659644494",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_KH_bestbud_michelle1.jpg?v=1659644494",
@@ -932,7 +960,8 @@
       "restrict:qty-limit-1",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 15683450306720,
@@ -963,7 +992,8 @@
       "collection:trending-now",
       "collection:whats-new",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7347910017184,
@@ -976,7 +1006,7 @@
     "last_updated": "2026-10-25",
     "price": "$16.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/IMG_4723.jpg?v=1651237597",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/IMG_4723.jpg?v=1651237597",
@@ -989,7 +1019,8 @@
       "restrict:qty-limit-1",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 15658015948960,
@@ -1022,7 +1053,8 @@
       "finish:magnetic",
       "lunar-sale",
       "magnetic-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7169164214432,
@@ -1060,7 +1092,8 @@
       "nail-polish",
       "toxic-stardust",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7060331561120,
@@ -1096,7 +1129,8 @@
       "lunar-sale",
       "ode-to-luna-collection",
       "red"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15223096508576,
@@ -1131,7 +1165,8 @@
       "finish:magnetic",
       "magnetic-polish",
       "restrict:us-ca-only"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15862886006944,
@@ -1160,7 +1195,8 @@
       "collection:whats-new",
       "color:red",
       "finish:creme"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15827724009632,
@@ -1192,7 +1228,8 @@
       "finish:flakie",
       "finish:magnetic",
       "magnetic-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7235475407008,
@@ -1230,7 +1267,8 @@
       "nail-polish",
       "neutral",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 10418765430944,
@@ -1267,7 +1305,8 @@
       "shimmer",
       "type:nail-polish",
       "type:shimmer"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 11681813069984,
@@ -1280,7 +1319,7 @@
     "last_updated": "2026-10-25",
     "price": "$16.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_innerapocalypse_bottledrage_11_NEW_1.jpg?v=1701899197",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_innerapocalypse_bottledrage_11_NEW_1.jpg?v=1701899197",
@@ -1295,7 +1334,8 @@
       "status:discontinued",
       "status:july26-purg",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 15223106076832,
@@ -1327,7 +1367,8 @@
       "color:white",
       "finish:thermal",
       "restrict:us-ca-only"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15008840876192,
@@ -1362,7 +1403,8 @@
       "finish:shimmer",
       "lunar-sale",
       "type:shimmer"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 9004946194592,
@@ -1375,7 +1417,7 @@
     "last_updated": "2026-10-25",
     "price": "$17.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_catfished_15.jpg?v=1685027071",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_catfished_15.jpg?v=1685027071",
@@ -1390,7 +1432,8 @@
       "restrict:qty-limit-3",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 12179779911840,
@@ -1403,7 +1446,7 @@
     "last_updated": "2026-10-25",
     "price": "$89.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_CHAOTICneutrals_SET.jpg?v=1705420502",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_CHAOTICneutrals_SET.jpg?v=1705420502",
@@ -1414,7 +1457,8 @@
     "tags": [
       "bundle:product",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 15178409443488,
@@ -1448,7 +1492,8 @@
       "finish:magnetic",
       "lunar-sale",
       "magnetic-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7482624540832,
@@ -1461,7 +1506,7 @@
     "last_updated": "2026-10-25",
     "price": "$16.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_KH_cosmiccowboy_michelle2.jpg?v=1659644636",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_KH_cosmiccowboy_michelle2.jpg?v=1659644636",
@@ -1475,7 +1520,8 @@
       "restrict:qty-limit-3",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 7059984416928,
@@ -1509,7 +1555,8 @@
       "holographic",
       "ls-reward-apr25",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7060067057824,
@@ -1522,7 +1569,7 @@
     "last_updated": "2026-10-25",
     "price": "$16.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/curosityspreysunlight.jpg?v=1663682431",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/curosityspreysunlight.jpg?v=1663682431",
@@ -1533,7 +1580,8 @@
     "product_url": "https://www.mooncat.com/products/curiositys-prey",
     "tags": [
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 14643543572640,
@@ -1546,7 +1594,7 @@
     "last_updated": "2026-10-25",
     "price": "$18.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_PANDORA_curiosity_s-trap_EDIT.png?v=1729201206",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_PANDORA_curiosity_s-trap_EDIT.png?v=1729201206",
@@ -1562,7 +1610,8 @@
       "status:discontinued",
       "status:july26-purg",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 7895156064416,
@@ -1575,7 +1624,7 @@
     "last_updated": "2026-10-25",
     "price": "$15.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mc_pdp_goddess_CALYPSO_2Coats_Tamm3_edit_8.jpg?v=1677197549",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mc_pdp_goddess_CALYPSO_2Coats_Tamm3_edit_8.jpg?v=1677197549",
@@ -1589,7 +1638,8 @@
       "status:discontinued",
       "status:no-restock",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 15124829667488,
@@ -1620,7 +1670,8 @@
       "color:silver",
       "finish:holographic",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15177659449504,
@@ -1648,7 +1699,8 @@
       "collection:everything",
       "collection:whats-new",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7096205541536,
@@ -1680,7 +1732,8 @@
       "finish:creme",
       "lunar-sale",
       "product-bundle"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 10368064258208,
@@ -1721,7 +1774,8 @@
       "shimmer",
       "type:nail-polish",
       "type:shimmer"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7236416929952,
@@ -1758,7 +1812,8 @@
       "type:nail-accessories",
       "type:nail-file",
       "type:nail-tool"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 14598278185120,
@@ -1790,7 +1845,8 @@
       "finish:shimmer",
       "LS-reward-apr25",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 12943529869472,
@@ -1820,7 +1876,8 @@
       "color:purple",
       "finish:thermal",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7096207278240,
@@ -1859,7 +1916,8 @@
       "lunar-sale",
       "product-bundle",
       "topper"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15658050551968,
@@ -1887,7 +1945,8 @@
       "collection:trending-now",
       "collection:whats-new",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15658012180640,
@@ -1921,7 +1980,8 @@
       "finish:shimmer",
       "lunar-sale",
       "type:shimmer"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15658007789728,
@@ -1956,7 +2016,8 @@
       "finish:shimmer",
       "finish:solar",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7895006478496,
@@ -1969,7 +2030,7 @@
     "last_updated": "2026-10-25",
     "price": "$16.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_DEMETERHARVEST_pc_10.jpg?v=1677191458",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_DEMETERHARVEST_pc_10.jpg?v=1677191458",
@@ -1982,7 +2043,8 @@
       "collection:goddess-complex-set",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 12394788356256,
@@ -2015,7 +2077,8 @@
       "lunar-sale",
       "magnetic-polish",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15050991599776,
@@ -2048,7 +2111,8 @@
       "finish:shimmer",
       "lunar-sale",
       "type:shimmer"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7585333412000,
@@ -2088,7 +2152,8 @@
       "nail-polish",
       "pink",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15276160712864,
@@ -2116,7 +2181,8 @@
       "loyalty:exclusive",
       "restrict:qty-limit-1",
       "reward:exclusive"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7060295155872,
@@ -2148,7 +2214,8 @@
       "matte",
       "purple",
       "shimmer"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 11682927771808,
@@ -2186,7 +2253,8 @@
       "magnetic-polish",
       "nail-polish",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7895614161056,
@@ -2199,7 +2267,7 @@
     "last_updated": "2026-10-25",
     "price": "$16.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/EVERGREENUPDATES_MAYLUNARSALE_PDPLABELS.png?v=1781114841",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/EVERGREENUPDATES_MAYLUNARSALE_PDPLABELS.png?v=1781114841",
@@ -2214,7 +2282,8 @@
       "status:discontinued",
       "status:july26-purg",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 15124830486688,
@@ -2244,7 +2313,8 @@
       "color:pink",
       "finish:holographic",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15827849838752,
@@ -2275,7 +2345,8 @@
       "finish:flakie",
       "finish:magnetic",
       "magnetic-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7060319142048,
@@ -2310,7 +2381,8 @@
       "fall-picks",
       "finish:creme",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7060235649184,
@@ -2323,7 +2395,7 @@
     "last_updated": "2026-10-25",
     "price": "$14.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/enchantedmist.jpg?v=1652362112",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/enchantedmist.jpg?v=1652362112",
@@ -2336,7 +2408,8 @@
       "restrict:qty-limit-2",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 15124826620064,
@@ -2372,7 +2445,8 @@
       "lunar-sale",
       "magnetic-polish",
       "type:magnetic"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7279047508128,
@@ -2404,7 +2478,8 @@
       "lunar-sale",
       "technicolor-dreams-collection",
       "yellow"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7278975778976,
@@ -2436,7 +2511,8 @@
       "lunar-sale",
       "pink",
       "technicolor-dreams-collection"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15276160975008,
@@ -2464,7 +2540,8 @@
       "loyalty:exclusive",
       "restrict:qty-limit-1",
       "reward:exclusive"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7060282671264,
@@ -2505,7 +2582,8 @@
       "neutral",
       "press:vogue",
       "rose-gold"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7060017217696,
@@ -2518,7 +2596,7 @@
     "last_updated": "2026-10-25",
     "price": "$16.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/fallenangelssuncrop.jpg?v=1667421132",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/fallenangelssuncrop.jpg?v=1667421132",
@@ -2533,7 +2611,8 @@
       "status:discontinued",
       "status:july26-purg",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 14586115260576,
@@ -2561,7 +2640,8 @@
       "collection:everything",
       "collection:fallen",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 12394733797536,
@@ -2594,7 +2674,8 @@
       "lunar-sale",
       "shimmer",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 14597845909664,
@@ -2630,7 +2711,8 @@
       "finish:magnetic",
       "lunar-sale",
       "magnetic-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7212312789152,
@@ -2666,7 +2748,8 @@
       "multichrome",
       "shimmer",
       "silver"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15008841367712,
@@ -2679,7 +2762,7 @@
     "last_updated": "2026-10-25",
     "price": "$16.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_BAROQUEN_FLEURSAUVAGE_7.jpg?v=1739284209",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_BAROQUEN_FLEURSAUVAGE_7.jpg?v=1739284209",
@@ -2694,7 +2777,8 @@
       "status:discontinued",
       "status:july26-purg",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 8153398116512,
@@ -2735,7 +2819,8 @@
       "shimmer",
       "type:nail-polish",
       "type:shimmer"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15050767958176,
@@ -2769,7 +2854,8 @@
       "finish:thermal",
       "lunar-sale",
       "white"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 10417371480224,
@@ -2809,7 +2895,8 @@
       "topper",
       "type:flakie",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7060151926944,
@@ -2822,7 +2909,7 @@
     "last_updated": "2026-10-25",
     "price": "$16.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/forbiddencovenew.jpg?v=1652906100",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/forbiddencovenew.jpg?v=1652906100",
@@ -2837,7 +2924,8 @@
       "status:discontinued",
       "status:july26-purg",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 14643536625824,
@@ -2874,7 +2962,8 @@
       "green",
       "lunar-sale",
       "magnetic-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7058238865568,
@@ -2910,7 +2999,8 @@
       "lunar-sale",
       "purple",
       "topper"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 12394832298144,
@@ -2946,7 +3036,8 @@
       "lunar-sale",
       "shimmer",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7701643460768,
@@ -2983,7 +3074,8 @@
       "nail-polish",
       "purple",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7060300267680,
@@ -3019,7 +3111,8 @@
       "lunar-sale",
       "press:popsugar",
       "red"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 11682175254688,
@@ -3059,7 +3152,8 @@
       "shimmer",
       "type:nail-polish",
       "type:shimmer"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7059954630816,
@@ -3072,7 +3166,7 @@
     "last_updated": "2026-10-25",
     "price": "$15.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_gameover_ade.jpg?v=1681314432",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_gameover_ade.jpg?v=1681314432",
@@ -3085,7 +3179,8 @@
       "restrict:qty-limit-1",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 12394802839712,
@@ -3117,7 +3212,8 @@
       "lunar-sale",
       "shimmer",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 9903387967648,
@@ -3130,7 +3226,7 @@
     "last_updated": "2026-10-25",
     "price": "$17.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_UNDERWORLD_GATES_OF_HELL_11.jpg?v=1713465734",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_UNDERWORLD_GATES_OF_HELL_11.jpg?v=1713465734",
@@ -3143,7 +3239,8 @@
       "collection:underworld",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 7442442289312,
@@ -3180,7 +3277,8 @@
       "pink",
       "type:base-coat",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 12943709044896,
@@ -3193,7 +3291,7 @@
     "last_updated": "2026-10-25",
     "price": "$18.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_SIRENS_Ghostship_12.jpg?v=1712264556",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_SIRENS_Ghostship_12.jpg?v=1712264556",
@@ -3208,7 +3306,8 @@
       "status:discontinued",
       "status:july26-purg",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 7895194796192,
@@ -3246,7 +3345,8 @@
       "type:nail-polish",
       "type:shimmer",
       "white"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 14643562545312,
@@ -3283,7 +3383,8 @@
       "finish:shimmer",
       "lunar-sale",
       "type:shimmer"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15009117765792,
@@ -3320,7 +3421,8 @@
       "lunar-sale",
       "shimmer+toppers",
       "type:flakie"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7060126990496,
@@ -3348,7 +3450,8 @@
       "collection:night-owl-set",
       "lunar-sale",
       "type:base-coat"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7060291485856,
@@ -3361,7 +3464,7 @@
     "last_updated": "2026-10-25",
     "price": "$14.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/hauntedforestlightened.jpg?v=1652371280",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/hauntedforestlightened.jpg?v=1652371280",
@@ -3373,7 +3476,8 @@
       "restrict:qty-limit-1",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 7406264647840,
@@ -3386,7 +3490,7 @@
     "last_updated": "2026-10-25",
     "price": "$16.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/headinthecloudsannanew.jpg?v=1655419539",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/headinthecloudsannanew.jpg?v=1655419539",
@@ -3401,7 +3505,8 @@
       "status:discontinued",
       "status:july26-purg",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 7451687780512,
@@ -3437,7 +3542,8 @@
       "nail-polish",
       "pink",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15178422485152,
@@ -3467,7 +3573,8 @@
       "color:red",
       "finish:holographic",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 11027467763872,
@@ -3480,7 +3587,7 @@
     "last_updated": "2026-10-25",
     "price": "$16.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_MISFITS_heavenmetal_8.jpg?v=1694614872",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_MISFITS_heavenmetal_8.jpg?v=1694614872",
@@ -3494,7 +3601,8 @@
       "restrict:qty-limit-3",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 7235509485728,
@@ -3507,7 +3615,7 @@
     "last_updated": "2026-10-25",
     "price": "$75.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/MC_Heavy-Is-The-Crown_PDP-Group_2.jpg?v=1697749201",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/MC_Heavy-Is-The-Crown_PDP-Group_2.jpg?v=1697749201",
@@ -3521,7 +3629,8 @@
       "heavy-is-the-crown-collection",
       "product-bundle",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 15178414915744,
@@ -3552,7 +3661,8 @@
       "color:purple",
       "finish:holographic",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 9005011501216,
@@ -3565,7 +3675,7 @@
     "last_updated": "2026-10-25",
     "price": "$14.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_HermitCrab_8_1_1.jpg?v=1689338974",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_HermitCrab_8_1_1.jpg?v=1689338974",
@@ -3578,7 +3688,8 @@
       "restrict:qty-limit-2",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 7628366020768,
@@ -3591,7 +3702,7 @@
     "last_updated": "2026-10-25",
     "price": "$15.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_highfructose_shimmer_06.jpg?v=1671130066",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_highfructose_shimmer_06.jpg?v=1671130066",
@@ -3604,7 +3715,8 @@
       "restrict:qty-limit-1",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 7060311179424,
@@ -3617,7 +3729,7 @@
     "last_updated": "2026-10-25",
     "price": "$15.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_highwayglow.jpg?v=1678823632",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_highwayglow.jpg?v=1678823632",
@@ -3631,7 +3743,8 @@
       "restrict:qty-limit-3",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 9886925226144,
@@ -3671,7 +3784,8 @@
       "nail-polish",
       "press:byrdie",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7169177845920,
@@ -3709,7 +3823,8 @@
       "nail-polish",
       "toxic-stardust",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7382122496160,
@@ -3722,7 +3837,7 @@
     "last_updated": "2026-10-25",
     "price": "$14.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/iffrogshadwings.jpg?v=1654015492",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/iffrogshadwings.jpg?v=1654015492",
@@ -3735,7 +3850,8 @@
       "restrict:qty-limit-1",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 7059831980192,
@@ -3775,7 +3891,8 @@
       "pink",
       "press:popsugar",
       "press:vogue"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7279120449696,
@@ -3807,7 +3924,8 @@
       "lunar-sale",
       "purple",
       "technicolor-dreams-collection"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7060302299296,
@@ -3840,7 +3958,8 @@
       "finish:creme",
       "ls-reward-apr25",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7382111846560,
@@ -3853,7 +3972,7 @@
     "last_updated": "2026-10-25",
     "price": "$15.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_intothewishingwell_new3.jpg?v=1699014487",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_intothewishingwell_new3.jpg?v=1699014487",
@@ -3866,7 +3985,8 @@
       "restrict:qty-limit-1",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 15223122854048,
@@ -3898,7 +4018,8 @@
       "finish:magnetic",
       "magnetic-polish",
       "restrict:us-ca-only"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 14597635702944,
@@ -3932,7 +4053,8 @@
       "color:pink",
       "finish:multichrome",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15050989469856,
@@ -3964,7 +4086,8 @@
       "finish:thermal",
       "green",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7697172791456,
@@ -4000,7 +4123,8 @@
       "lunar-sale",
       "nail-polish",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15827731644576,
@@ -4031,7 +4155,8 @@
       "color:pink",
       "finish:glow-in-the-dark",
       "finish:shimmer"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7348059930784,
@@ -4044,7 +4169,7 @@
     "last_updated": "2026-10-25",
     "price": "$16.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/IMG_5108.jpg?v=1667320614",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/IMG_5108.jpg?v=1667320614",
@@ -4057,7 +4182,8 @@
       "restrict:qty-limit-1",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 15050994516128,
@@ -4070,7 +4196,7 @@
     "last_updated": "2026-10-25",
     "price": "$18.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_remedy_koiwhiskers_19.jpg?v=1744126055",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_remedy_koiwhiskers_19.jpg?v=1744126055",
@@ -4085,7 +4211,8 @@
       "status:discontinued",
       "status:july26-purg",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 15008841629856,
@@ -4122,7 +4249,8 @@
       "finish:magnetic",
       "lunar-sale",
       "magnetic-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15039234670752,
@@ -4154,7 +4282,8 @@
       "nail-tool",
       "restrict:us-only",
       "type:nail-tool"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15628889522336,
@@ -4183,7 +4312,8 @@
       "collection:trending-now",
       "collection:whats-new",
       "restrict:us-ca-only"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7482684473504,
@@ -4196,7 +4326,7 @@
     "last_updated": "2026-10-25",
     "price": "$14.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_KH_lavalamp_8.jpg?v=1660145238",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_KH_lavalamp_8.jpg?v=1660145238",
@@ -4209,7 +4339,8 @@
       "restrict:qty-limit-1",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 15827852918944,
@@ -4240,7 +4371,8 @@
       "color:orange",
       "finish:glow-in-the-dark",
       "type:shimmer"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 11682677194912,
@@ -4253,7 +4385,7 @@
     "last_updated": "2026-10-25",
     "price": "$16.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_innerapocalypse_mothtoaflame_10.jpg?v=1701714086",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_innerapocalypse_mothtoaflame_10.jpg?v=1701714086",
@@ -4267,7 +4399,8 @@
       "restrict:qty-limit-3",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 15827848429728,
@@ -4298,7 +4431,8 @@
       "color:pink",
       "finish:glitter",
       "finish:holographic"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7060283457696,
@@ -4331,7 +4465,8 @@
       "finish:holographic",
       "holographic",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7468187320480,
@@ -4367,7 +4502,8 @@
       "type:base-coat",
       "type:nail-polish",
       "type:top-coat"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 8153669173408,
@@ -4380,7 +4516,7 @@
     "last_updated": "2026-10-25",
     "price": "$86.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_FOLKTALE_1.jpg?v=1678985529",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_FOLKTALE_1.jpg?v=1678985529",
@@ -4394,7 +4530,8 @@
       "collection:lost-in-a-folktale-set",
       "product-bundle",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 7060316586144,
@@ -4427,7 +4564,8 @@
       "lunar-sale",
       "pink",
       "purple"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15009122943136,
@@ -4461,7 +4599,8 @@
       "green",
       "holographic",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 12394766368928,
@@ -4497,7 +4636,8 @@
       "lunar-sale",
       "shimmer",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7279102066848,
@@ -4529,7 +4669,8 @@
       "lunar-sale",
       "orange",
       "technicolor-dreams-collection"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 14643538821280,
@@ -4542,7 +4683,7 @@
     "last_updated": "2026-10-25",
     "price": "$17.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_PANDORA_lust-for-vengeance_EDIT.png?v=1729201193",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_PANDORA_lust-for-vengeance_EDIT.png?v=1729201193",
@@ -4556,7 +4697,8 @@
       "restrict:qty-limit-3",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 12943727820960,
@@ -4590,7 +4732,8 @@
       "finish:flakie",
       "flakie",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7091659833504,
@@ -4617,7 +4760,8 @@
       "nail-tool",
       "product:magnet",
       "type:nail-tool"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7585352941728,
@@ -4630,7 +4774,7 @@
     "last_updated": "2026-10-25",
     "price": "$16.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_rotf_malevolent_7.jpg?v=1666961995",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_rotf_malevolent_7.jpg?v=1666961995",
@@ -4647,7 +4791,8 @@
       "status:discontinued",
       "status:no-restock",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 15658009067680,
@@ -4681,7 +4826,8 @@
       "finish:shimmer",
       "finish:solar",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7060008337568,
@@ -4712,7 +4858,8 @@
       "matte",
       "top-coat",
       "type:top-coat"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15050986455200,
@@ -4746,7 +4893,8 @@
       "lunar-sale",
       "pink",
       "purple"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 14590671650976,
@@ -4780,7 +4928,8 @@
       "color:white",
       "finish:shimmer",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15124826030240,
@@ -4816,7 +4965,8 @@
       "finish:shimmer",
       "lunar-sale",
       "type:shimmer"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 13321532637344,
@@ -4846,7 +4996,8 @@
       "finish:magnetic",
       "lunar-sale",
       "magnetic-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7059970293920,
@@ -4883,7 +5034,8 @@
       "finish:multichrome",
       "lunar-sale",
       "shimmer"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 9005048889504,
@@ -4920,7 +5072,8 @@
       "pink",
       "shimmer",
       "type:shimmer"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7628319326368,
@@ -4964,7 +5117,8 @@
       "nail-polish",
       "shimmer",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 9005231407264,
@@ -4989,7 +5143,8 @@
     "tags": [
       "collection:mermaid-tales-set",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7060308459680,
@@ -5023,7 +5178,8 @@
       "nail-polish",
       "purple",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 10367809454240,
@@ -5036,7 +5192,7 @@
     "last_updated": "2026-10-25",
     "price": "$17.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_MR_MidnightRider_3_NEWCROP.jpg?v=1692197901",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_MR_MidnightRider_3_NEWCROP.jpg?v=1692197901",
@@ -5049,7 +5205,8 @@
       "collection:midnight-rodeo",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 10418883199136,
@@ -5062,7 +5219,7 @@
     "last_updated": "2026-10-25",
     "price": "$145.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_MIDNIGHTRODEO_bottlegroup.jpg?v=1691773455",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_MIDNIGHTRODEO_bottlegroup.jpg?v=1691773455",
@@ -5076,7 +5233,8 @@
       "collection:midnight-rodeo",
       "product-bundle",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 7060230832288,
@@ -5089,7 +5247,7 @@
     "last_updated": "2026-10-25",
     "price": "$18.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/millenniawithflash.jpg?v=1652367882",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/millenniawithflash.jpg?v=1652367882",
@@ -5105,7 +5263,8 @@
       "status:discontinued",
       "status:july26-purg",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 11682748170400,
@@ -5143,7 +5302,8 @@
       "shimmer",
       "type:nail-polish",
       "type:shimmer"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 8475058241696,
@@ -5156,7 +5316,7 @@
     "last_updated": "2026-10-25",
     "price": "$15.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_moltenlava_shade.jpg?v=1689944464",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_moltenlava_shade.jpg?v=1689944464",
@@ -5169,7 +5329,8 @@
       "restrict:qty-limit-2",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 15050901880992,
@@ -5204,7 +5365,8 @@
       "orange",
       "pink",
       "type:shimmer"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 11682572107936,
@@ -5241,7 +5403,8 @@
       "lunar-sale",
       "nail-polish",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7480407851168,
@@ -5254,7 +5417,7 @@
     "last_updated": "2026-10-25",
     "price": "$14.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_KH_moodring_6.jpg?v=1660146762",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_KH_moodring_6.jpg?v=1660146762",
@@ -5267,7 +5430,8 @@
       "restrict:qty-limit-1",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 7060344864928,
@@ -5302,7 +5466,8 @@
       "ode-to-luna-collection",
       "silver",
       "topper"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7382083207328,
@@ -5336,7 +5501,8 @@
       "nail-polish",
       "purple",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7060213563552,
@@ -5369,7 +5535,8 @@
       "holographic",
       "lunar-sale",
       "silver"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 11027560595616,
@@ -5407,7 +5574,8 @@
       "shimmer",
       "type:nail-polish",
       "type:shimmer"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 9005077266592,
@@ -5443,7 +5611,8 @@
       "nail-polish",
       "type:nail-polish",
       "white"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15688260452512,
@@ -5474,7 +5643,8 @@
       "finish:glow-in-the-dark",
       "finish:shimmer",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 10368266961056,
@@ -5487,7 +5657,7 @@
     "last_updated": "2026-10-25",
     "price": "$16.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_MR_Moonrise_5.jpg?v=1692047526",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_MR_Moonrise_5.jpg?v=1692047526",
@@ -5500,7 +5670,8 @@
       "collection:midnight-rodeo",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 10764381847712,
@@ -5513,7 +5684,7 @@
     "last_updated": "2026-10-25",
     "price": "$15.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_Moonwalk_1.jpg?v=1693316850",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_Moonwalk_1.jpg?v=1693316850",
@@ -5527,7 +5698,8 @@
       "loyalty:exclusive",
       "reward:exclusive",
       "status:discontinued"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 14643549339808,
@@ -5557,7 +5729,8 @@
       "color:blue",
       "finish:thermal",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7127763222688,
@@ -5596,7 +5769,8 @@
       "purple",
       "shimmer",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15050889527456,
@@ -5630,7 +5804,8 @@
       "lunar-sale",
       "type:shimmer",
       "yellow"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15124828487840,
@@ -5662,7 +5837,8 @@
       "lunar-sale",
       "magnetic-polish",
       "type:magnetic"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15223119184032,
@@ -5694,7 +5870,8 @@
       "color:green",
       "finish:flakie",
       "restrict:us-ca-only"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7629379174560,
@@ -5728,7 +5905,8 @@
       "nail-tool",
       "type:nail-polish",
       "type:nail-tool"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7739244740768,
@@ -5768,7 +5946,8 @@
       "type:nail-polish",
       "type:nail-tool",
       "type:top-coat"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7060226375840,
@@ -5781,7 +5960,7 @@
     "last_updated": "2026-10-25",
     "price": "$18.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_neptunes_sand1.jpg?v=1667497760",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_neptunes_sand1.jpg?v=1667497760",
@@ -5795,7 +5974,8 @@
       "press:popsugar",
       "press:vogue",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 7278943797408,
@@ -5827,7 +6007,8 @@
       "green",
       "lunar-sale",
       "technicolor-dreams-collection"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7632385966240,
@@ -5861,7 +6042,8 @@
       "nail-polish",
       "product-bundle",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15621625544864,
@@ -5897,7 +6079,8 @@
       "pink",
       "purple",
       "restrict:qty-limit-5"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 11682833268896,
@@ -5936,7 +6119,8 @@
       "shimmer",
       "type:nail-polish",
       "type:shimmer"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15124829339808,
@@ -5967,7 +6151,8 @@
       "color:purple",
       "finish:holographic",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15124828946592,
@@ -5998,7 +6183,8 @@
       "finish:flakie",
       "finish:multichrome",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 14597627838624,
@@ -6029,7 +6215,8 @@
       "finish:magnetic",
       "lunar-sale",
       "magnetic-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15862886367392,
@@ -6058,7 +6245,8 @@
       "collection:whats-new",
       "color:purple",
       "finish:creme"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7235493036192,
@@ -6094,7 +6282,8 @@
       "holographic",
       "lunar-sale",
       "pink"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15827709690016,
@@ -6125,7 +6314,8 @@
       "color:blue",
       "finish:magnetic",
       "magnetic-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 10417115529376,
@@ -6168,7 +6358,8 @@
       "silver",
       "type:nail-polish",
       "type:shimmer"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 9903092465824,
@@ -6207,7 +6398,8 @@
       "shimmer",
       "type:nail-polish",
       "type:shimmer"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 14643540525216,
@@ -6240,7 +6432,8 @@
       "finish:magnetic",
       "lunar-sale",
       "magnetic-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 8475902705824,
@@ -6276,7 +6469,8 @@
       "matte",
       "nail-polish",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7278963228832,
@@ -6308,7 +6502,8 @@
       "green",
       "lunar-sale",
       "technicolor-dreams-collection"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15178270736544,
@@ -6341,7 +6536,8 @@
       "color:white",
       "finish:shimmer",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 12394714661024,
@@ -6378,7 +6574,8 @@
       "lunar-sale",
       "shimmer",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 8153273204896,
@@ -6391,7 +6588,7 @@
     "last_updated": "2026-10-25",
     "price": "$17.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_PIXIESTICK_5_crop2_1_1.jpg?v=1689339009",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_PIXIESTICK_5_crop2_1_1.jpg?v=1689339009",
@@ -6404,7 +6601,8 @@
       "collection:lost-in-a-folktale-set",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 15834234683552,
@@ -6432,7 +6630,8 @@
       "collection:planet-nyarr",
       "collection:trending-now",
       "collection:whats-new"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 9005176324256,
@@ -6469,7 +6668,8 @@
       "shimmer",
       "type:nail-polish",
       "type:shimmer"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 14597616795808,
@@ -6500,7 +6700,8 @@
       "color:pink",
       "finish:shimmer",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7060295418016,
@@ -6532,7 +6733,8 @@
       "finish:creme",
       "green",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 8153611796640,
@@ -6570,7 +6772,8 @@
       "shimmer",
       "type:nail-polish",
       "type:shimmer"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 9903001338016,
@@ -6606,7 +6809,8 @@
       "nail-polish",
       "purple",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15124827209888,
@@ -6641,7 +6845,8 @@
       "lunar-sale",
       "magnetic-polish",
       "type:magnetic"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7348058030240,
@@ -6654,7 +6859,7 @@
     "last_updated": "2026-10-25",
     "price": "$18.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/poseidonsprizefinal.jpg?v=1651234259",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/poseidonsprizefinal.jpg?v=1651234259",
@@ -6668,7 +6873,8 @@
       "restrict:qty-limit-3",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 10394025656480,
@@ -6681,7 +6887,7 @@
     "last_updated": "2026-10-25",
     "price": "$17.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_MR_PricklyPear_5.jpg?v=1692048331",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_MR_PricklyPear_5.jpg?v=1692048331",
@@ -6693,7 +6899,8 @@
     "tags": [
       "collection:midnight-rodeo",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 15862885449888,
@@ -6722,7 +6929,8 @@
       "collection:whats-new",
       "color:green",
       "finish:creme"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7060304953504,
@@ -6754,7 +6962,8 @@
       "finish:creme",
       "lunar-sale",
       "purple"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 12394846027936,
@@ -6788,7 +6997,8 @@
       "finish:thermal",
       "lunar-sale",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 12943886418080,
@@ -6801,7 +7011,7 @@
     "last_updated": "2026-10-25",
     "price": "$18.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_SIRENS_QuicksandsEmbrace_3.5.jpg?v=1712696152",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_SIRENS_QuicksandsEmbrace_3.5.jpg?v=1712696152",
@@ -6816,7 +7026,8 @@
       "status:discontinued",
       "status:july26-purg",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 8464813752480,
@@ -6829,7 +7040,7 @@
     "last_updated": "2026-10-25",
     "price": "$15.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/pdp_tamrawrrrrsun_1.jpg?v=1682007093",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/pdp_tamrawrrrrsun_1.jpg?v=1682007093",
@@ -6842,7 +7053,8 @@
       "restrict:qty-limit-1",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 11057430200480,
@@ -6855,7 +7067,7 @@
     "last_updated": "2026-10-25",
     "price": "$15.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_NB4XMAS_ragdoll_GLOW.gif?v=1696454780",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_NB4XMAS_ragdoll_GLOW.gif?v=1696454780",
@@ -6871,7 +7083,8 @@
       "status:discontinued",
       "status:limited-edition",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 7059852558496,
@@ -6911,7 +7124,8 @@
       "matte",
       "purple",
       "shimmer"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15178423599264,
@@ -6940,7 +7154,8 @@
       "color:black",
       "finish:flakie",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7585357955232,
@@ -6953,7 +7168,7 @@
     "last_updated": "2026-10-25",
     "price": "$83.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_rotf_bottles_group.jpg?v=1666384270",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_rotf_bottles_group.jpg?v=1666384270",
@@ -6965,7 +7180,8 @@
     "tags": [
       "collection:return-of-the-faves-set",
       "status:discontinued"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 15050879172768,
@@ -6997,7 +7213,8 @@
       "green",
       "lunar-sale",
       "type:shimmer"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 9903271805088,
@@ -7034,7 +7251,8 @@
       "shimmer",
       "type:nail-polish",
       "type:shimmer"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 14643533938848,
@@ -7070,7 +7288,8 @@
       "color:purple",
       "finish:multichrome",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7060215955616,
@@ -7083,7 +7302,7 @@
     "last_updated": "2026-10-25",
     "price": "$16.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_evergreen_2024_ruemorgue.jpg?v=1715122975",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_evergreen_2024_ruemorgue.jpg?v=1715122975",
@@ -7094,7 +7313,8 @@
     "product_url": "https://www.mooncat.com/products/rue-morgue",
     "tags": [
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 8464450683040,
@@ -7135,7 +7355,8 @@
       "shimmer",
       "type:nail-polish",
       "type:shimmer"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 14597629903008,
@@ -7169,7 +7390,8 @@
       "finish:thermal",
       "green",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15050877501600,
@@ -7204,7 +7426,8 @@
       "finish:thermal",
       "lunar-sale",
       "pink"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 10367960514720,
@@ -7245,7 +7468,8 @@
       "shimmer",
       "type:nail-polish",
       "type:shimmer"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7451704819872,
@@ -7258,7 +7482,7 @@
     "last_updated": "2026-10-25",
     "price": "$16.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_medusa_sealedwithahiss_1.jpg?v=1657852476",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_medusa_sealedwithahiss_1.jpg?v=1657852476",
@@ -7273,7 +7497,8 @@
       "status:discontinued",
       "status:july26-purg",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 12394892984480,
@@ -7304,7 +7529,8 @@
       "finish:shimmer",
       "lunar-sale",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 14643557564576,
@@ -7343,7 +7569,8 @@
       "finish:shimmer",
       "green",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7451679391904,
@@ -7378,7 +7605,8 @@
       "nail-polish",
       "purple",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7060322287776,
@@ -7412,7 +7640,8 @@
       "type:nail-accessories",
       "type:nail-file",
       "type:nail-tool"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7235490513056,
@@ -7446,7 +7675,8 @@
       "holographic",
       "lunar-sale",
       "purple"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15028535918752,
@@ -7474,7 +7704,8 @@
       "loyalty:exclusive",
       "ls-reward-apr25",
       "reward:exclusive"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 8153497534624,
@@ -7510,7 +7741,8 @@
       "nail-polish",
       "red",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 11027680034976,
@@ -7548,7 +7780,8 @@
       "shimmer",
       "type:nail-polish",
       "type:shimmer"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7278912438432,
@@ -7581,7 +7814,8 @@
       "finish:creme",
       "lunar-sale",
       "technicolor-dreams-collection"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7060072136864,
@@ -7614,7 +7848,8 @@
       "lunar-sale",
       "purple",
       "shimmer"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7585348976800,
@@ -7627,7 +7862,7 @@
     "last_updated": "2026-10-25",
     "price": "$16.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_rotf_smokescreen8.jpg?v=1666961736",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_rotf_smokescreen8.jpg?v=1666961736",
@@ -7644,7 +7879,8 @@
       "status:discontinued",
       "status:no-restock",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 7451748991136,
@@ -7657,7 +7893,7 @@
     "last_updated": "2026-10-25",
     "price": "$14.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_medusa_snakecharmer_10.jpg?v=1658418726",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_medusa_snakecharmer_10.jpg?v=1658418726",
@@ -7670,7 +7906,8 @@
       "restrict:qty-limit-1",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 12868130635936,
@@ -7683,7 +7920,7 @@
     "last_updated": "2026-10-25",
     "price": "$136.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_SONGOFSIRENS_SET_2.jpg?v=1712266174",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_SONGOFSIRENS_SET_2.jpg?v=1712266174",
@@ -7696,7 +7933,8 @@
       "bundle:product",
       "collection:songs-of-sirens",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 11027634782368,
@@ -7709,7 +7947,7 @@
     "last_updated": "2026-10-25",
     "price": "$16.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_MISFITS_Spaceoddity_2.jpg?v=1694623629",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_MISFITS_Spaceoddity_2.jpg?v=1694623629",
@@ -7731,7 +7969,8 @@
       "status:discontinued",
       "status:july26-purg",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 7447723245728,
@@ -7744,7 +7983,7 @@
     "last_updated": "2026-10-25",
     "price": "$14.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_medusa_spawnofmedusa_12.jpg?v=1658434477",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_medusa_spawnofmedusa_12.jpg?v=1658434477",
@@ -7757,7 +7996,8 @@
       "restrict:qty-limit-1",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 7060225622176,
@@ -7792,7 +8032,8 @@
       "quick-dry",
       "top-coat",
       "type:top-coat"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15223093428384,
@@ -7824,7 +8065,8 @@
       "finish:flakie",
       "finish:thermal",
       "restrict:us-ca-only"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 9903532114080,
@@ -7837,7 +8079,7 @@
     "last_updated": "2026-10-25",
     "price": "$15.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_UNDERWORLD_STOLEN_AMBROSIA_1.jpg?v=1689890174",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_UNDERWORLD_STOLEN_AMBROSIA_1.jpg?v=1689890174",
@@ -7851,7 +8093,8 @@
       "status:discontinued",
       "status:no-restock",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 7482716717216,
@@ -7864,7 +8107,7 @@
     "last_updated": "2026-10-25",
     "price": "$16.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_KH_Strangeberry_7.jpg?v=1710969340",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_KH_Strangeberry_7.jpg?v=1710969340",
@@ -7878,7 +8121,8 @@
       "restrict:qty-limit-3",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 8153541279904,
@@ -7891,7 +8135,7 @@
     "last_updated": "2026-10-25",
     "price": "$16.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_STUMPED_6.jpg?v=1679349761",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_STUMPED_6.jpg?v=1679349761",
@@ -7907,7 +8151,8 @@
       "status:discontinued",
       "status:july26-purg",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 15008841760928,
@@ -7942,7 +8187,8 @@
       "finish:shimmer",
       "lunar-sale",
       "type:shimmer"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15622772949152,
@@ -7976,7 +8222,8 @@
       "lunar-sale",
       "restrict:qty-limit-5",
       "topper"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15862887055520,
@@ -8005,7 +8252,8 @@
       "collection:trending-now",
       "collection:whats-new",
       "finish:creme"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7060288536736,
@@ -8018,7 +8266,7 @@
     "last_updated": "2026-10-25",
     "price": "$14.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/supernaturalsun.jpg?v=1667499534",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/supernaturalsun.jpg?v=1667499534",
@@ -8030,7 +8278,8 @@
     "tags": [
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 7585345798304,
@@ -8043,7 +8292,7 @@
     "last_updated": "2026-10-25",
     "price": "$16.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_rotf_supervillian_7.jpg?v=1686686828",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_rotf_supervillian_7.jpg?v=1686686828",
@@ -8056,7 +8305,8 @@
       "collection:return-of-the-faves-set",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 7279074934944,
@@ -8086,7 +8336,8 @@
       "finish:creme",
       "lunar-sale",
       "technicolor-dreams-collection"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15827850526880,
@@ -8116,7 +8367,8 @@
       "collection:whats-new",
       "color:blue",
       "finish:shimmer"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15658013884576,
@@ -8152,7 +8404,8 @@
       "finish:magnetic",
       "lunar-sale",
       "magnetic-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7127855988896,
@@ -8165,7 +8418,7 @@
     "last_updated": "2026-10-25",
     "price": "$16.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_evergreen_2024_takemetoyourleader.jpg?v=1715122981",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_evergreen_2024_takemetoyourleader.jpg?v=1715122981",
@@ -8180,7 +8433,8 @@
       "status:discontinued",
       "status:july26-purg",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 15223120789664,
@@ -8212,7 +8466,8 @@
       "finish:magnetic",
       "magnetic-polish",
       "restrict:us-ca-only"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7279160098976,
@@ -8247,7 +8502,8 @@
       "lunar-sale",
       "product-bundle",
       "technicolor-dreams-collection"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 8464533880992,
@@ -8260,7 +8516,7 @@
     "last_updated": "2026-10-25",
     "price": "$16.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_tectonicshiftontam2_1.jpg?v=1682008549",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_tectonicshiftontam2_1.jpg?v=1682008549",
@@ -8273,7 +8529,8 @@
       "collection:pretty-prehistoric-set",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 7406270152864,
@@ -8286,7 +8543,7 @@
     "last_updated": "2026-10-25",
     "price": "$16.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_13thhour_1.jpg?v=1654886867",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_13thhour_1.jpg?v=1654886867",
@@ -8300,7 +8557,8 @@
       "restrict:qty-limit-3",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 14643551961248,
@@ -8333,7 +8591,8 @@
       "color:red",
       "finish:shimmer",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15223108337824,
@@ -8367,7 +8626,8 @@
       "finish:glow-in-the-dark",
       "finish:shimmer",
       "restrict:us-ca-only"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7060348502176,
@@ -8380,7 +8640,7 @@
     "last_updated": "2026-10-25",
     "price": "$14.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_thedarkside1.jpg?v=1667427347",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_thedarkside1.jpg?v=1667427347",
@@ -8393,7 +8653,8 @@
       "restrict:qty-limit-2",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 15178405413024,
@@ -8424,7 +8685,8 @@
       "color:purple",
       "finish:thermal",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15622768066720,
@@ -8457,7 +8719,8 @@
       "lunar-sale",
       "purple",
       "restrict:qty-limit-5"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 14643555139744,
@@ -8489,7 +8752,8 @@
       "color:green",
       "color:purple",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15178191962272,
@@ -8522,7 +8786,8 @@
       "color:pink",
       "finish:shimmer",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 12943741124768,
@@ -8552,7 +8817,8 @@
       "finish:flakie",
       "flakie",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15178443292832,
@@ -8585,7 +8851,8 @@
       "finish:magnetic",
       "lunar-sale",
       "magnetic-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 12943867871392,
@@ -8598,7 +8865,7 @@
     "last_updated": "2026-10-25",
     "price": "$16.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_SIRENS_SirensRevenge_4.jpg?v=1712691365",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_SIRENS_SirensRevenge_4.jpg?v=1712691365",
@@ -8611,7 +8878,8 @@
       "collection:songs-of-sirens",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 15008841236640,
@@ -8647,7 +8915,8 @@
       "finish:shimmer",
       "lunar-sale",
       "type:shimmer"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7697156604064,
@@ -8684,7 +8953,8 @@
       "lunar-sale",
       "nail-polish",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 12394818011296,
@@ -8717,7 +8987,8 @@
       "glitter",
       "lunar-sale",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7208194998432,
@@ -8751,7 +9022,8 @@
       "lunar-sale",
       "nail-tool",
       "type:nail-tool"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15827851673760,
@@ -8782,7 +9054,8 @@
       "color:green",
       "finish:glow-in-the-dark",
       "type:shimmer"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 11682273263776,
@@ -8819,7 +9092,8 @@
       "nail-polish",
       "purple",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7059978322080,
@@ -8832,7 +9106,7 @@
     "last_updated": "2026-10-25",
     "price": "$15.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_throughthewormhole_ade.jpg?v=1681314329",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_throughthewormhole_ade.jpg?v=1681314329",
@@ -8845,7 +9119,8 @@
       "restrict:qty-limit-1",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 12394749165728,
@@ -8878,7 +9153,8 @@
       "lunar-sale",
       "shimmer",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 12943624929440,
@@ -8909,7 +9185,8 @@
       "color:pink",
       "finish:thermal",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7320328143008,
@@ -8934,7 +9211,8 @@
     "tags": [
       "current-product",
       "product-bundle"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 8475997175968,
@@ -8947,7 +9225,7 @@
     "last_updated": "2026-10-25",
     "price": "$17.00",
     "available": true,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_Prehistoric_triceratops_10.2_1.jpg?v=1682025396",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_Prehistoric_triceratops_10.2_1.jpg?v=1682025396",
@@ -8974,7 +9252,8 @@
       "restrict:qty-limit-3",
       "status:july26-purg",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 14597631934624,
@@ -9006,7 +9285,8 @@
       "color:purple",
       "finish:thermal",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 8475836055712,
@@ -9019,7 +9299,7 @@
     "last_updated": "2026-10-25",
     "price": "$15.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_Prehistoric_thex_7.2_3.jpg?v=1682006777",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_Prehistoric_thex_7.2_3.jpg?v=1682006777",
@@ -9032,7 +9312,8 @@
       "restrict:qty-limit-1",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 7060201111712,
@@ -9045,7 +9326,7 @@
     "last_updated": "2026-10-25",
     "price": "$15.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/ultrahottightcrop_1.jpg?v=1689339084",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/ultrahottightcrop_1.jpg?v=1689339084",
@@ -9057,7 +9338,8 @@
       "restrict:qty-limit-2",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 15862885253280,
@@ -9087,7 +9369,8 @@
       "color:brown",
       "color:gray",
       "finish:creme"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 9903626715296,
@@ -9114,7 +9397,8 @@
       "collection:underworld",
       "lunar-sale",
       "product-bundle"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7236412506272,
@@ -9151,7 +9435,8 @@
       "type:nail-polish",
       "type:nail-tool",
       "type:top-coat"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7060151468192,
@@ -9164,7 +9449,7 @@
     "last_updated": "2026-10-25",
     "price": "$15.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/vaporizecrop.jpg?v=1657837550",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/vaporizecrop.jpg?v=1657837550",
@@ -9176,7 +9461,8 @@
       "restrict:qty-limit-1",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 8464654762144,
@@ -9189,7 +9475,7 @@
     "last_updated": "2026-10-25",
     "price": "$17.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_SUN-mattetopcoat-velociraptor-1_1.jpg?v=1682007179",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_SUN-mattetopcoat-velociraptor-1_1.jpg?v=1682007179",
@@ -9203,7 +9489,8 @@
       "restrict:qty-limit-3",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 15227503542432,
@@ -9236,7 +9523,8 @@
       "loyalty:sale-excluded",
       "product:magnet",
       "restrict:magnet"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7585307459744,
@@ -9249,7 +9537,7 @@
     "last_updated": "2026-10-25",
     "price": "$16.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/MC_velvetrose2.0_Crop.jpg?v=1677102739",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/MC_velvetrose2.0_Crop.jpg?v=1677102739",
@@ -9266,7 +9554,8 @@
       "status:discontinued",
       "status:no-restock",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 7235481895072,
@@ -9279,7 +9568,7 @@
     "last_updated": "2026-10-25",
     "price": "$17.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_venusflytrap_athira.jpg?v=1644246761",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_venusflytrap_athira.jpg?v=1644246761",
@@ -9292,7 +9581,8 @@
       "heavy-is-the-crown-collection",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 7059966296224,
@@ -9305,7 +9595,7 @@
     "last_updated": "2026-10-25",
     "price": "$15.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_warpzone.jpg?v=1675272237",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_warpzone.jpg?v=1675272237",
@@ -9317,7 +9607,8 @@
       "restrict:qty-limit-1",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 8153329860768,
@@ -9330,7 +9621,7 @@
     "last_updated": "2026-10-25",
     "price": "$18.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_WEEPING_WILLOW_9_2.jpg?v=1679582280",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_WEEPING_WILLOW_9_2.jpg?v=1679582280",
@@ -9345,7 +9636,8 @@
       "restrict:qty-limit-3",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 15124831305888,
@@ -9373,7 +9665,8 @@
       "collection:welcome-to-paradise",
       "collection:whats-new",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 15658010345632,
@@ -9408,7 +9701,8 @@
       "finish:holographic",
       "finish:shimmer",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7059837517984,
@@ -9421,7 +9715,7 @@
     "last_updated": "2026-10-25",
     "price": "$17.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/whatismypurposesuncrop.jpg?v=1667437337",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/whatismypurposesuncrop.jpg?v=1667437337",
@@ -9434,7 +9728,8 @@
       "restrict:qty-limit-2",
       "status:discontinued",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 10368437911712,
@@ -9447,7 +9742,7 @@
     "last_updated": "2026-10-25",
     "price": "$17.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_MR_whenthedevilstrikes_6.jpg?v=1691604127",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_MR_whenthedevilstrikes_6.jpg?v=1691604127",
@@ -9466,7 +9761,8 @@
       "status:no-restock",
       "type:flakie",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 15827767394464,
@@ -9497,7 +9793,8 @@
       "color:purple",
       "finish:glitter",
       "finish:holographic"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 10417279565984,
@@ -9510,7 +9807,7 @@
     "last_updated": "2026-10-25",
     "price": "$17.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_MR_whiskeysunrise_7_1.jpg?v=1692363987",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_MR_whiskeysunrise_7_1.jpg?v=1692363987",
@@ -9522,7 +9819,8 @@
     "tags": [
       "collection:midnight-rodeo",
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 7279127625888,
@@ -9555,7 +9853,8 @@
       "lunar-sale",
       "technicolor-dreams-collection",
       "white"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7059987628192,
@@ -9568,7 +9867,7 @@
     "last_updated": "2026-10-25",
     "price": "$16.00",
     "available": false,
-    "status": "Discontinued",
+    "status": "Dearly Departed",
     "image_url": "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_windsofate1.jpg?v=1695137933",
     "swatch_images": [
       "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_windsofate1.jpg?v=1695137933",
@@ -9579,7 +9878,8 @@
     "product_url": "https://www.mooncat.com/products/winds-of-fate",
     "tags": [
       "status:no-restock"
-    ]
+    ],
+    "is_dearly_departed": true
   },
   {
     "id": 15862884630688,
@@ -9608,7 +9908,8 @@
       "collection:whats-new",
       "color:white",
       "finish:creme"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 14597553160352,
@@ -9640,7 +9941,8 @@
       "color:yellow",
       "finish:shimmer",
       "lunar-sale"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 7581749641376,
@@ -9676,7 +9978,8 @@
       "nail-polish",
       "product-bundle",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   },
   {
     "id": 11457831534752,
@@ -9714,6 +10017,7 @@
       "nail-polish",
       "red",
       "type:nail-polish"
-    ]
+    ],
+    "is_dearly_departed": false
   }
 ]

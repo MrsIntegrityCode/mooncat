@@ -3,14 +3,16 @@
   'use strict';
 
   // --- State ---
-  const STORAGE_KEY = 'mooncat_vault_user_data_v1';
+  const STORAGE_PROFILES_KEY = 'mooncat_vault_profiles_v2';
+  const STORAGE_ACTIVE_PROFILE_KEY = 'mooncat_vault_active_profile_v2';
   let catalog = window.MOONCAT_CATALOG || [];
   
-  // User data structure
+  let profiles = {};
+  let currentProfileId = 'melissa';
+
+  // Current active user data reference
   let userData = {
-    // map of id -> { qty: number, orderDates: [], notes: '' }
     inventory: {},
-    // array of ids
     wishlist: []
   };
 
@@ -22,49 +24,101 @@
   // --- Initialize ---
   function init() {
     loadUserData();
+    setupProfileSelector();
     setupFilters();
     bindEvents();
     renderAll();
   }
 
-  // --- LocalStorage persistence ---
+  // --- Multi-User Profile Persistence ---
   function loadUserData() {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        userData.inventory = parsed.inventory || {};
-        userData.wishlist = parsed.wishlist || [];
-        
-        // If initial seed has items that are not yet in inventory, merge them
-        if (window.INITIAL_USER_DATA && window.INITIAL_USER_DATA.inventory) {
-          const initInv = window.INITIAL_USER_DATA.inventory;
-          let changed = false;
-          Object.keys(initInv).forEach(id => {
-            if (!userData.inventory[id]) {
-              userData.inventory[id] = initInv[id];
-              changed = true;
-            }
-          });
-          if (changed) saveUserData();
-        }
-      } else if (window.INITIAL_USER_DATA) {
-        userData.inventory = window.INITIAL_USER_DATA.inventory || {};
-        userData.wishlist = window.INITIAL_USER_DATA.wishlist || [];
-        saveUserData();
+      const savedProfiles = localStorage.getItem(STORAGE_PROFILES_KEY);
+      const savedActiveId = localStorage.getItem(STORAGE_ACTIVE_PROFILE_KEY);
+
+      if (savedProfiles) {
+        profiles = JSON.parse(savedProfiles);
+      } else {
+        // Initialize with Melissa's Vault profile
+        const seedInv = (window.INITIAL_USER_DATA && window.INITIAL_USER_DATA.inventory) ? window.INITIAL_USER_DATA.inventory : {};
+        profiles = {
+          'melissa': {
+            id: 'melissa',
+            name: "Melissa's Vault",
+            inventory: seedInv,
+            wishlist: []
+          }
+        };
+        localStorage.setItem(STORAGE_PROFILES_KEY, JSON.stringify(profiles));
       }
+
+      currentProfileId = (savedActiveId && profiles[savedActiveId]) ? savedActiveId : Object.keys(profiles)[0];
+      userData = profiles[currentProfileId];
+
+      if (!userData.inventory) userData.inventory = {};
+      if (!userData.wishlist) userData.wishlist = [];
     } catch (e) {
-      console.error('Failed to load user data from storage:', e);
+      console.error('Failed to load user profiles from storage:', e);
     }
   }
 
   function saveUserData() {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
+      profiles[currentProfileId] = userData;
+      localStorage.setItem(STORAGE_PROFILES_KEY, JSON.stringify(profiles));
+      localStorage.setItem(STORAGE_ACTIVE_PROFILE_KEY, currentProfileId);
       updateHeaderStats();
     } catch (e) {
       console.error('Failed to save user data:', e);
     }
+  }
+
+  function setupProfileSelector() {
+    const selector = document.getElementById('select-active-profile');
+    if (!selector) return;
+
+    selector.innerHTML = Object.values(profiles).map(p => `
+      <option value="${p.id}" ${p.id === currentProfileId ? 'selected' : ''}>${escapeHtml(p.name)}</option>
+    `).join('');
+
+    selector.onchange = function () {
+      switchProfile(this.value);
+    };
+
+    const newBtn = document.getElementById('btn-new-profile');
+    if (newBtn) {
+      newBtn.onclick = createNewProfile;
+    }
+  }
+
+  function switchProfile(profileId) {
+    if (!profiles[profileId]) return;
+    currentProfileId = profileId;
+    userData = profiles[profileId];
+    if (!userData.inventory) userData.inventory = {};
+    if (!userData.wishlist) userData.wishlist = [];
+
+    localStorage.setItem(STORAGE_ACTIVE_PROFILE_KEY, currentProfileId);
+    renderAll();
+    setupProfileSelector();
+    showToast(`Switched active collection to: ${userData.name}`);
+  }
+
+  function createNewProfile() {
+    const name = prompt("Enter a name for this new collection (e.g. 'Emma\\'s Collection' or 'My Blank Vault'):");
+    if (!name || !name.trim()) return;
+
+    const newId = 'profile_' + Date.now();
+    profiles[newId] = {
+      id: newId,
+      name: name.trim(),
+      inventory: {}, // Starts completely blank!
+      wishlist: []
+    };
+
+    saveUserData();
+    switchProfile(newId);
+    showToast(`🎉 Created new empty collection: "${name.trim()}"! Your inventory is separate and private.`);
   }
 
   // --- Filters Setup ---
@@ -255,6 +309,7 @@
       if (statusFilter === 'unowned' && owned) return false;
       if (statusFilter === 'wishlist' && !inWishlist) return false;
       if (statusFilter === 'new' && !item.is_new) return false;
+      if (statusFilter === 'departed' && item.status !== 'Dearly Departed') return false;
       if (statusFilter === 'in_stock' && item.status !== 'In Stock') return false;
 
       return true;
@@ -303,6 +358,7 @@
 
     const finishBadges = item.type.split(',').map(f => `<span class="tag tag-finish">${escapeHtml(f.trim())}</span>`).join('');
     const colorBadges = item.color.split(',').map(c => `<span class="tag tag-color">${escapeHtml(c.trim())}</span>`).join('');
+    const isDeparted = item.status === 'Dearly Departed';
 
     return `
       <div class="polish-card ${isOwned ? 'is-owned' : ''}" data-id="${item.id}">
@@ -315,7 +371,7 @@
               : `<span class="badge badge-unowned">Not Owned</span>`}
             ${inWishlist ? `<span class="badge badge-wishlist">Wishlist</span>` : ''}
           </div>
-          <span class="badge-stock ${item.status === 'Discontinued' ? 'discontinued' : ''}">${escapeHtml(item.status)}</span>
+          <span class="badge-stock ${isDeparted ? 'departed' : ''}">${isDeparted ? '⚰️ DEARLY DEPARTED' : escapeHtml(item.status)}</span>
         </div>
 
         <div class="card-body">
@@ -766,7 +822,7 @@
             </tr>
             <tr>
               <td>Status:</td>
-              <td><span class="badge-stock ${item.status === 'Discontinued' ? 'discontinued' : ''}">${escapeHtml(item.status)}</span></td>
+              <td><span class="badge-stock ${item.status === 'Dearly Departed' ? 'departed' : (item.status === 'Discontinued' ? 'discontinued' : '')}">${item.status === 'Dearly Departed' ? '⚰️ DEARLY DEPARTED' : escapeHtml(item.status)}</span></td>
             </tr>
             <tr>
               <td>Price:</td>
@@ -785,6 +841,12 @@
               </td>
             </tr>
           </table>
+
+          ${item.status === 'Dearly Departed' ? `
+            <div style="background: rgba(185, 28, 28, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); padding: 0.75rem 1rem; border-radius: 8px; margin: 0.85rem 0; font-size: 0.84rem; color: #fecaca; line-height: 1.45;">
+              ⚰️ <strong>DEARLY DEPARTED SHADE:</strong> This color has been officially retired from Mooncat's active collection and is no longer sold or restocked. If you don't own it, you may need to look on destash groups (e.g. Reddit r/RedditLaqueristaSwap, Mercari).
+            </div>
+          ` : ''}
 
           <div class="modal-desc">
             <strong>Official Description:</strong><br>
