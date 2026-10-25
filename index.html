@@ -21,8 +21,10 @@
         </div>
       </div>
       
-      <!-- Live Stats & Profile Selector -->
+      <!-- Live Stats, Auth & Profile Selector -->
       <div class="header-right-group">
+        <div id="auth-status-container" class="auth-box"></div>
+
         <div class="profile-box">
           <span class="profile-icon">👤</span>
           <select id="select-active-profile" class="profile-dropdown" title="Active Inventory Profile"></select>
@@ -481,6 +483,7 @@ Speed Demon Top Coat"></textarea>
 
   <!-- Scripts -->
   <script src="catalog_data.js"></script>
+  <script type="module" src="firebase_service.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

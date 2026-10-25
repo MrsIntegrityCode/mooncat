@@ -68,6 +68,11 @@
       localStorage.setItem(STORAGE_PROFILES_KEY, JSON.stringify(profiles));
       localStorage.setItem(STORAGE_ACTIVE_PROFILE_KEY, currentProfileId);
       updateHeaderStats();
+
+      // If user is signed in to Google Cloud, sync to Firestore
+      if (window.MooncatAuth && window.MooncatAuth.saveUserDataToFirestore) {
+        window.MooncatAuth.saveUserDataToFirestore(userData);
+      }
     } catch (e) {
       console.error('Failed to save user data:', e);
     }
@@ -1090,6 +1095,19 @@
     }
   }
 
+  function onCloudDataLoaded(cloudData) {
+    if (!cloudData) return;
+    userData.inventory = cloudData.inventory || {};
+    userData.wishlist = cloudData.wishlist || [];
+    profiles[currentProfileId] = userData;
+    localStorage.setItem(STORAGE_PROFILES_KEY, JSON.stringify(profiles));
+    renderAll();
+  }
+
+  function onCloudSignOut() {
+    renderAll();
+  }
+
   // --- Global API for onclick handlers ---
   window.MooncatApp = {
     openDetail,
@@ -1099,7 +1117,11 @@
     markPurchased,
     decrementOrder,
     removeOrder,
-    checkLiveNewReleases
+    checkLiveNewReleases,
+    onCloudDataLoaded,
+    onCloudSignOut,
+    getCurrentUserData: () => userData,
+    showToast
   };
 
   // Run on load
