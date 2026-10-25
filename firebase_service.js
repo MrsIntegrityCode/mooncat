@@ -93,26 +93,37 @@ async function loadUserDataFromFirestore(user) {
       const data = userDocSnap.data();
       console.log("Loaded collection from Cloud Firestore:", data);
       if (window.MooncatApp && window.MooncatApp.onCloudDataLoaded) {
-        window.MooncatApp.onCloudDataLoaded(data);
+        window.MooncatApp.onCloudDataLoaded(data, user);
       }
     } else {
       // New user document in Firestore!
-      console.log("Creating new cloud collection document for:", user.displayName);
-      const localData = (window.MooncatApp && window.MooncatApp.getCurrentUserData) 
-        ? window.MooncatApp.getCurrentUserData() 
+      console.log("Creating new cloud collection document for:", user.displayName, user.email);
+      
+      const emailLower = (user.email || '').toLowerCase();
+      const nameLower = (user.displayName || '').toLowerCase();
+      const isMelissa = emailLower.includes('melissa') || emailLower.includes('mrsintegritycode') || nameLower.includes('melissa');
+
+      const initialData = (isMelissa && window.MELISSA_VAULT_SEED)
+        ? window.MELISSA_VAULT_SEED
         : { inventory: {}, wishlist: [] };
 
       // Save initial state to Cloud
       await setDoc(userDocRef, {
         displayName: user.displayName || '',
         email: user.email || '',
-        inventory: localData.inventory || {},
-        wishlist: localData.wishlist || [],
+        inventory: initialData.inventory || {},
+        wishlist: initialData.wishlist || [],
         updatedAt: serverTimestamp()
       });
 
+      if (window.MooncatApp && window.MooncatApp.onCloudDataLoaded) {
+        window.MooncatApp.onCloudDataLoaded(initialData, user);
+      }
+
       if (window.MooncatApp && window.MooncatApp.showToast) {
-        window.MooncatApp.showToast("☁️ Your collection is now safely backed up to your Google Cloud account!");
+        window.MooncatApp.showToast(isMelissa 
+          ? "☁️ Welcome Melissa! Your 28 colors are safely loaded in your private Google Cloud account." 
+          : "☁️ Welcome! Your private Google Cloud vault is ready.");
       }
     }
   } catch (err) {

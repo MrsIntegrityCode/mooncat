@@ -204,7 +204,7 @@ def sync():
     with open('catalog_data.js', 'w', encoding='utf-8') as f:
         f.write('window.MOONCAT_CATALOG = ')
         json.dump(updated_catalog, f, ensure_ascii=False)
-        f.write(';\n\nwindow.INITIAL_USER_DATA = ')
+        f.write(';\n\nwindow.MELISSA_VAULT_SEED = ')
         json.dump(user_data, f, ensure_ascii=False)
         f.write(';\n')
 

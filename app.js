@@ -3,14 +3,14 @@
   'use strict';
 
   // --- State ---
-  const STORAGE_PROFILES_KEY = 'mooncat_vault_profiles_v2';
-  const STORAGE_ACTIVE_PROFILE_KEY = 'mooncat_vault_active_profile_v2';
+  const STORAGE_PROFILES_KEY = 'mooncat_vault_profiles_v3';
+  const STORAGE_ACTIVE_PROFILE_KEY = 'mooncat_vault_active_profile_v3';
   let catalog = window.MOONCAT_CATALOG || [];
   
   let profiles = {};
-  let currentProfileId = 'melissa';
+  let currentProfileId = 'guest';
 
-  // Current active user data reference
+  // Current active user data reference (defaults to completely empty for guests)
   let userData = {
     inventory: {},
     wishlist: []
@@ -33,32 +33,71 @@
   // --- Multi-User Profile Persistence ---
   function loadUserData() {
     try {
+      // Purge legacy v1 and v2 keys that defaulted to seeded data
+      localStorage.removeItem('mooncat_vault_profiles_v1');
+      localStorage.removeItem('mooncat_vault_profiles_v2');
+      localStorage.removeItem('mooncat_vault_active_profile_v1');
+      localStorage.removeItem('mooncat_vault_active_profile_v2');
+
       const savedProfiles = localStorage.getItem(STORAGE_PROFILES_KEY);
       const savedActiveId = localStorage.getItem(STORAGE_ACTIVE_PROFILE_KEY);
 
       if (savedProfiles) {
         profiles = JSON.parse(savedProfiles);
       } else {
-        // Initialize with Melissa's Vault profile
-        const seedInv = (window.INITIAL_USER_DATA && window.INITIAL_USER_DATA.inventory) ? window.INITIAL_USER_DATA.inventory : {};
+        // Default to a completely empty Guest Vault
         profiles = {
-          'melissa': {
-            id: 'melissa',
-            name: "Melissa's Vault",
-            inventory: seedInv,
+          'guest': {
+            id: 'guest',
+            name: 'Guest Vault',
+            inventory: {},
             wishlist: []
           }
         };
         localStorage.setItem(STORAGE_PROFILES_KEY, JSON.stringify(profiles));
       }
 
-      currentProfileId = (savedActiveId && profiles[savedActiveId]) ? savedActiveId : Object.keys(profiles)[0];
-      userData = profiles[currentProfileId];
+      // Check if user is signed in to Google
+      const currentUser = (window.MooncatAuth && window.MooncatAuth.getCurrentUser) 
+        ? window.MooncatAuth.getCurrentUser() 
+        : null;
 
+      if (currentUser) {
+        const cloudId = `cloud_${currentUser.uid}`;
+        currentProfileId = profiles[cloudId] ? cloudId : (savedActiveId && profiles[savedActiveId] ? savedActiveId : 'guest');
+      } else {
+        // If not logged in, ensure we never default to a private cloud profile or melissa profile
+        if (savedActiveId && profiles[savedActiveId] && !savedActiveId.startsWith('cloud_') && savedActiveId !== 'melissa') {
+          currentProfileId = savedActiveId;
+        } else {
+          currentProfileId = 'guest';
+        }
+      }
+
+      if (!profiles[currentProfileId]) {
+        profiles[currentProfileId] = {
+          id: currentProfileId,
+          name: 'Guest Vault',
+          inventory: {},
+          wishlist: []
+        };
+      }
+
+      userData = profiles[currentProfileId];
       if (!userData.inventory) userData.inventory = {};
       if (!userData.wishlist) userData.wishlist = [];
     } catch (e) {
       console.error('Failed to load user profiles from storage:', e);
+      profiles = {
+        'guest': {
+          id: 'guest',
+          name: 'Guest Vault',
+          inventory: {},
+          wishlist: []
+        }
+      };
+      currentProfileId = 'guest';
+      userData = profiles['guest'];
     }
   }
 
@@ -82,7 +121,22 @@
     const selector = document.getElementById('select-active-profile');
     if (!selector) return;
 
-    selector.innerHTML = Object.values(profiles).map(p => `
+    const currentUser = (window.MooncatAuth && window.MooncatAuth.getCurrentUser) 
+      ? window.MooncatAuth.getCurrentUser() 
+      : null;
+
+    // Filter available profiles: only show private cloud profiles when logged in as that user
+    const availableProfiles = Object.values(profiles).filter(p => {
+      if (p.id.startsWith('cloud_')) {
+        return currentUser && p.id === `cloud_${currentUser.uid}`;
+      }
+      if (p.id === 'melissa') {
+        return currentUser && (currentUser.email || '').toLowerCase().includes('melissa');
+      }
+      return true;
+    });
+
+    selector.innerHTML = availableProfiles.map(p => `
       <option value="${p.id}" ${p.id === currentProfileId ? 'selected' : ''}>${escapeHtml(p.name)}</option>
     `).join('');
 
@@ -1095,17 +1149,54 @@
     }
   }
 
-  function onCloudDataLoaded(cloudData) {
+  function onCloudDataLoaded(cloudData, user) {
     if (!cloudData) return;
-    userData.inventory = cloudData.inventory || {};
-    userData.wishlist = cloudData.wishlist || [];
-    profiles[currentProfileId] = userData;
+    
+    const uid = user ? user.uid : 'cloud';
+    const profileId = 'cloud_' + uid;
+    
+    let profileName = "My Cloud Vault";
+    if (user && user.displayName) {
+      const isMelissa = (user.email || '').toLowerCase().includes('melissa') || (user.displayName || '').toLowerCase().includes('melissa');
+      profileName = isMelissa ? "Melissa's Vault" : `${user.displayName.trim().split(' ')[0]}'s Vault`;
+    }
+
+    profiles[profileId] = {
+      id: profileId,
+      name: profileName,
+      inventory: cloudData.inventory || {},
+      wishlist: cloudData.wishlist || []
+    };
+
+    currentProfileId = profileId;
+    userData = profiles[profileId];
+
     localStorage.setItem(STORAGE_PROFILES_KEY, JSON.stringify(profiles));
+    localStorage.setItem(STORAGE_ACTIVE_PROFILE_KEY, currentProfileId);
+
+    setupProfileSelector();
     renderAll();
+    updateHeaderStats();
   }
 
   function onCloudSignOut() {
+    if (!profiles['guest']) {
+      profiles['guest'] = {
+        id: 'guest',
+        name: 'Guest Vault',
+        inventory: {},
+        wishlist: []
+      };
+    }
+    currentProfileId = 'guest';
+    userData = profiles['guest'];
+
+    localStorage.setItem(STORAGE_ACTIVE_PROFILE_KEY, 'guest');
+    localStorage.setItem(STORAGE_PROFILES_KEY, JSON.stringify(profiles));
+
+    setupProfileSelector();
     renderAll();
+    updateHeaderStats();
   }
 
   // --- Global API for onclick handlers ---
