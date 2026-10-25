@@ -43,6 +43,10 @@
             <span class="stat-value" id="stat-total-wishlist">0</span>
           </div>
         </div>
+
+        <button id="btn-open-help" class="btn-help-guide" title="User Guide & Help">
+          ❓ Help Guide
+        </button>
       </div>
     </div>
 
@@ -320,6 +324,154 @@ Speed Demon Top Coat"></textarea>
       <div class="modal-actions">
         <button id="btn-parse-preview" class="btn-secondary">Preview Match</button>
         <button id="btn-confirm-import" class="btn-primary">Add to My Orders</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Help & User Guide Modal -->
+  <div id="help-modal" class="modal-backdrop hidden">
+    <div class="modal-card help-card">
+      <button class="modal-close" id="help-close-btn">&times;</button>
+      
+      <div class="help-header">
+        <span class="help-icon">📖</span>
+        <h2>Mooncat Vault & Inventory User Guide</h2>
+        <p class="help-sub">Everything you need to know about browsing, managing your personal collection, wishlisting, and using every button.</p>
+      </div>
+
+      <!-- Section 1: How to Manage Your Own Inventory -->
+      <div class="help-section">
+        <h3>✨ 1. How to Manage Your Own Inventory</h3>
+        <div class="help-steps">
+          <div class="help-step">
+            <span class="step-num">1</span>
+            <div>
+              <strong>Create or Switch Your Profile:</strong>
+              <p>At the top-right, click <code>+ New Profile</code> to create your own collection (e.g. <em>"Emma's Vault"</em>). It starts completely blank (0 owned) and is 100% private to your browser.</p>
+            </div>
+          </div>
+          <div class="help-step">
+            <span class="step-num">2</span>
+            <div>
+              <strong>Add Colors You Own:</strong>
+              <p>Find any polish in the <em>Main Catalog</em> and click <code>+ Add to Owned</code>. Or go to <em>My Orders & Inventory</em> and click <code>+ Add / Import Orders</code> to paste your Mooncat receipt!</p>
+            </div>
+          </div>
+          <div class="help-step">
+            <span class="step-num">3</span>
+            <div>
+              <strong>Track Quantities & Duplicates:</strong>
+              <p>In the <em>My Orders & Inventory</em> tab, use the <code>+</code> and <code>-</code> buttons to adjust your physical bottles on hand if you buy backups or gift one away.</p>
+            </div>
+          </div>
+          <div class="help-step">
+            <span class="step-num">4</span>
+            <div>
+              <strong>Wishlist Shades You Want:</strong>
+              <p>Click <code>✦ Wishlist</code> on shades you desire. <em>(The app prevents you from accidentally adding colors you already own!)</em> Once purchased, click <code>🛍 Mark Purchased</code> to move it to your collection.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2: What Every Button Does -->
+      <div class="help-section">
+        <h3>🎛️ 2. What Every Button Does</h3>
+        <table class="help-table">
+          <thead>
+            <tr>
+              <th style="width: 170px;">Button</th>
+              <th style="width: 150px;">Where it is</th>
+              <th>What it does</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>+ New Profile</code></td>
+              <td>Top Header</td>
+              <td>Creates a brand new, empty personal collection. Keeps everyone's inventory completely separate without mixing up bottles.</td>
+            </tr>
+            <tr>
+              <td><code>Profile Dropdown</code></td>
+              <td>Top Header</td>
+              <td>Switches between different collections saved on this device (e.g. Melissa's Vault vs. a friend's vault).</td>
+            </tr>
+            <tr>
+              <td><code>⚡ Check New Releases</code></td>
+              <td>Main Catalog Toolbar</td>
+              <td>Queries Mooncat.com live to detect newly dropped shades or collections and flags them with a glowing <code>✨ NEW</code> badge.</td>
+            </tr>
+            <tr>
+              <td><code>⬇ Download CSV</code></td>
+              <td>Main Catalog / Orders</td>
+              <td>Exports your collection or the entire catalog as a clean spreadsheet file that opens in Excel, Google Sheets, or Apple Numbers.</td>
+            </tr>
+            <tr>
+              <td><code>🎴 Cards / 📋 Table</code></td>
+              <td>Main Catalog Toolbar</td>
+              <td>Toggles the view between visual photo cards (with high-res nail swatches) and a compact spreadsheet table.</td>
+            </tr>
+            <tr>
+              <td><code>+ Add to Owned</code></td>
+              <td>Polish Cards & Rows</td>
+              <td>Adds 1 bottle to your inventory, marks it as Owned (Y), and automatically removes it from your Wishlist if it was there.</td>
+            </tr>
+            <tr>
+              <td><code>✦ Wishlist</code></td>
+              <td>Polish Cards & Rows</td>
+              <td>Saves a color to your Wishlist. <em>Notice: this button is disabled on shades you already own so you never buy duplicates by mistake!</em></td>
+            </tr>
+            <tr>
+              <td><code>🛍 Mark Purchased</code></td>
+              <td>Wishlist Tab</td>
+              <td>When you buy a shade from your wishlist, clicking this immediately removes it from your wishlist and adds it to your inventory!</td>
+            </tr>
+            <tr>
+              <td><code>+ / - Buttons</code></td>
+              <td>My Orders Tab</td>
+              <td>Increments or decrements your physical bottle count on hand (for backup bottles or gifts).</td>
+            </tr>
+            <tr>
+              <td><code>+ Add / Import Orders</code></td>
+              <td>My Orders Tab</td>
+              <td>Opens a window where you can paste order confirmations or a list of polish names. The app matches them automatically!</td>
+            </tr>
+            <tr>
+              <td><code>💾 Export Backup (JSON)</code></td>
+              <td>Sync Tab</td>
+              <td>Downloads a backup file of your collection and wishlist so you can transfer it to your phone or keep it safe.</td>
+            </tr>
+            <tr>
+              <td><code>📥 Import Backup (JSON)</code></td>
+              <td>Sync Tab</td>
+              <td>Restores your personal collection and wishlist from a backup file on any device.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Section 3: Understanding the Tabs -->
+      <div class="help-section">
+        <h3>📑 3. The 4 Tabs</h3>
+        <ul class="help-list">
+          <li><strong>✨ Main Catalog:</strong> Mooncat's full 304 colors with photos, finishes, color palettes, official descriptions, and your Owned (Y/N) status. Filter by finish, color, new releases, or retired shades.</li>
+          <li><strong>📦 My Orders & Inventory:</strong> Your personal alphabetical list of ordered shades, showing your total ordered count, physical bottles on hand, and notes.</li>
+          <li><strong>💫 Wishlist:</strong> Your dream list of unowned shades to buy next. Move them to your inventory in 1 click once purchased.</li>
+          <li><strong>☁️ Sync & Online Access:</strong> Explains how to access the site on your phone and backup or transfer data.</li>
+        </ul>
+      </div>
+
+      <!-- Section 4: What the Status Badges Mean -->
+      <div class="help-section">
+        <h3>🏷️ 4. What the Status Badges Mean</h3>
+        <div class="help-badges-grid">
+          <div><span class="badge-stock" style="position:static; display:inline-block;">In Stock</span> Available to purchase directly on mooncat.com.</div>
+          <div><span class="badge-stock" style="position:static; display:inline-block; background: #64748b;">Out of Stock</span> Temporarily sold out, expected to be restocked.</div>
+          <div><span class="badge-stock departed" style="position:static; display:inline-block;">⚰️ DEARLY DEPARTED</span> Retired from Mooncat's line forever. No longer restocked.</div>
+          <div><span class="badge badge-new" style="display:inline-block;">✨ NEW</span> Recently dropped shade from Mooncat's newest collections.</div>
+          <div><span class="badge badge-owned" style="display:inline-block;">Owned: 1</span> You have this polish in your personal collection.</div>
+          <div><span class="badge badge-wishlist" style="display:inline-block;">Wishlist</span> You've marked this unowned shade to buy next.</div>
+        </div>
       </div>
     </div>
   </div>

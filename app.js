@@ -206,11 +206,17 @@
       if (e.target.id === 'detail-modal') closeModal();
     });
 
-    document.getElementById('btn-open-order-import').addEventListener('click', openImportModal);
-    document.getElementById('import-close-btn').addEventListener('click', closeImportModal);
-    document.getElementById('import-modal').addEventListener('click', (e) => {
-      if (e.target.id === 'import-modal') closeImportModal();
-    });
+    // Help Guide Modal
+    const helpBtn = document.getElementById('btn-open-help');
+    if (helpBtn) helpBtn.addEventListener('click', openHelpModal);
+    const helpCloseBtn = document.getElementById('help-close-btn');
+    if (helpCloseBtn) helpCloseBtn.addEventListener('click', closeHelpModal);
+    const helpModal = document.getElementById('help-modal');
+    if (helpModal) {
+      helpModal.addEventListener('click', (e) => {
+        if (e.target.id === 'help-modal') closeHelpModal();
+      });
+    }
 
     // Import Actions
     document.getElementById('btn-parse-preview').addEventListener('click', previewImport);
@@ -663,6 +669,15 @@
       renderAll();
       showToast(`Removed from your ordered collection`);
     }
+  }
+
+  // --- Help Modal ---
+  function openHelpModal() {
+    document.getElementById('help-modal').classList.remove('hidden');
+  }
+
+  function closeHelpModal() {
+    document.getElementById('help-modal').classList.add('hidden');
   }
 
   // --- Order Import / Parser (Goal 2) ---
