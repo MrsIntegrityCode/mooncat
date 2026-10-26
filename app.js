@@ -1268,23 +1268,109 @@
     curatedHaul: []
   };
 
-  function calculateSimilarity(itemA, itemB) {
-    if (!itemA || !itemB || itemA.id === itemB.id) return { score: 0, reasons: [] };
+  const COLOR_FAMILIES = {
+    'blue': ['teal', 'purple', 'multichrome/shift'],
+    'teal': ['blue', 'green'],
+    'green': ['teal', 'yellow'],
+    'purple': ['blue', 'pink', 'multichrome/shift'],
+    'pink': ['purple', 'rose gold', 'red'],
+    'red': ['pink', 'brown', 'orange'],
+    'orange': ['red', 'copper/bronze', 'yellow'],
+    'copper/bronze': ['orange', 'gold', 'brown'],
+    'gold': ['yellow', 'copper/bronze', 'rose gold'],
+    'rose gold': ['pink', 'gold', 'copper/bronze'],
+    'yellow': ['gold', 'orange', 'green'],
+    'gray': ['black', 'silver', 'white'],
+    'silver': ['gray', 'white'],
+    'black': ['gray', 'brown'],
+    'brown': ['black', 'red', 'copper/bronze'],
+    'white': ['silver', 'gray'],
+    'multichrome/shift': ['purple', 'blue', 'teal', 'green', 'multi'],
+    'multi': ['multichrome/shift']
+  };
 
-    const colorsA = (itemA.color || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-    const colorsB = (itemB.color || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+  const SPECIAL_REACTIVES = ['magnetic', 'thermal', 'solar', 'glow in the dark', 'glow-in-the-dark'];
+
+  function calculateSimilarity(itemA, itemB) {
+    if (!itemA || !itemB || itemA.id === itemB.id) return { score: 0, reasons: [], sharedColors: [], sharedTypes: [] };
 
     const typesA = (itemA.type || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
     const typesB = (itemB.type || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
 
-    const colorInter = colorsA.filter(c => colorsB.includes(c));
-    const colorUnion = Array.from(new Set([...colorsA, ...colorsB]));
-    const colorScore = colorUnion.length ? (colorInter.length / colorUnion.length) : 0;
+    // RULE 1: Special reactive formulas (magnetic, thermal, solar, glow) MUST match.
+    // A magnetic is never a dupe/twin of a non-magnetic lacquer!
+    for (const sf of SPECIAL_REACTIVES) {
+      const aHas = typesA.some(t => t.includes(sf));
+      const bHas = typesB.some(t => t.includes(sf));
+      if (aHas !== bHas) {
+        return { score: 0, reasons: [], sharedColors: [], sharedTypes: [] };
+      }
+    }
 
-    const typeInter = typesA.filter(t => typesB.includes(t));
-    const typeUnion = Array.from(new Set([...typesA, ...typesB]));
-    const typeScore = typeUnion.length ? (typeInter.length / typeUnion.length) : 0;
+    // RULE 2: Must share the same type/finish (or compatible finishes like Holo & Linear Holo, or Creme & Jelly)
+    const sharedFinishes = typesA.filter(t => typesB.includes(t));
+    let isFinishCompatible = sharedFinishes.length > 0;
+    let finishDesc = sharedFinishes.map(f => f.charAt(0).toUpperCase() + f.slice(1)).join(', ');
 
+    if (!isFinishCompatible) {
+      const holoA = typesA.some(t => t.includes('holo'));
+      const holoB = typesB.some(t => t.includes('holo'));
+      if (holoA && holoB) {
+        isFinishCompatible = true;
+        finishDesc = 'Holographic';
+      }
+      const cjA = typesA.includes('creme') || typesA.includes('jelly');
+      const cjB = typesB.includes('creme') || typesB.includes('jelly');
+      if (cjA && cjB) {
+        isFinishCompatible = true;
+        finishDesc = 'Creme / Jelly';
+      }
+    }
+
+    if (!isFinishCompatible) {
+      return { score: 0, reasons: [], sharedColors: [], sharedTypes: [] };
+    }
+
+    // RULE 3: Must be the same color or a close neighboring color
+    const colorsA = (itemA.color || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+    const colorsB = (itemB.color || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+
+    const sharedColors = colorsA.filter(c => colorsB.includes(c));
+    let isColorMatch = sharedColors.length > 0;
+    let colorDegree = isColorMatch ? 'exact' : 'none';
+    let closeColorPair = [];
+
+    if (!isColorMatch) {
+      for (const cA of colorsA) {
+        const neighbors = COLOR_FAMILIES[cA] || [];
+        for (const cB of colorsB) {
+          if (neighbors.includes(cB)) {
+            isColorMatch = true;
+            colorDegree = 'close';
+            closeColorPair.push(`${cA.charAt(0).toUpperCase() + cA.slice(1)} & ${cB.charAt(0).toUpperCase() + cB.slice(1)}`);
+          }
+        }
+      }
+    }
+
+    if (!isColorMatch) {
+      return { score: 0, reasons: [], sharedColors: [], sharedTypes: [] };
+    }
+
+    // Calculate score for genuine twins/siblings:
+    let score = colorDegree === 'exact' ? 85 : 70;
+    const reasons = [];
+
+    if (colorDegree === 'exact') {
+      reasons.push(`Same Color (${sharedColors.map(c => c.charAt(0).toUpperCase() + c.slice(1)).join(', ')})`);
+    } else {
+      reasons.push(`Close Color Family (${closeColorPair[0] || 'Adjacent Tones'})`);
+    }
+
+    reasons.push(`Matching Finish: ${finishDesc}`);
+    score += Math.min(10, (sharedFinishes.length || 1) * 5);
+
+    // Fine-tune with descriptive effect matches
     const keywords = [
       'magnetic', 'flakie', 'shimmer', 'reflective', 'iridescent', 
       'cat eye', 'velvet', 'holographic', 'holo', 'multichrome', 
@@ -1294,24 +1380,18 @@
     const descA = (itemA.description || '').toLowerCase();
     const descB = (itemB.description || '').toLowerCase();
     const descMatches = keywords.filter(k => descA.includes(k) && descB.includes(k));
-    const descScore = Math.min(1, descMatches.length / 3);
-
-    let totalScore = Math.round((colorScore * 0.45 + typeScore * 0.40 + descScore * 0.15) * 100);
-
-    if (colorInter.length > 0 && typeInter.length > 0) {
-      totalScore = Math.max(totalScore, 75);
+    if (descMatches.length > 0) {
+      score += Math.min(4, descMatches.length * 2);
+      reasons.push(`Shared Effects: ${descMatches.slice(0, 2).join(', ')}`);
     }
 
-    const reasons = [];
-    if (colorInter.length > 0) reasons.push(`Shared palette: ${colorInter.join(', ')}`);
-    if (typeInter.length > 0) reasons.push(`Matching finish: ${typeInter.join(', ')}`);
-    if (descMatches.length > 0) reasons.push(`Similar effects: ${descMatches.slice(0, 2).join(', ')}`);
+    score = Math.min(99, score);
 
     return {
-      score: totalScore,
+      score,
       reasons,
-      sharedColors: colorInter,
-      sharedTypes: typeInter
+      sharedColors: sharedColors.length ? sharedColors : closeColorPair,
+      sharedTypes: [finishDesc]
     };
   }
 
@@ -1322,7 +1402,7 @@
     wizardState.wishlistPool.forEach(wishItem => {
       wizardState.ownedPool.forEach(ownedItem => {
         const sim = calculateSimilarity(ownedItem, wishItem);
-        if (sim.score >= 60) {
+        if (sim.score >= 70) {
           wizardState.similaritiesOwned.push({ ownedItem, wishItem, sim });
         }
       });
@@ -1333,7 +1413,7 @@
         const itemA = wizardState.wishlistPool[i];
         const itemB = wizardState.wishlistPool[j];
         const sim = calculateSimilarity(itemA, itemB);
-        if (sim.score >= 60) {
+        if (sim.score >= 70) {
           wizardState.similaritiesTwins.push({ itemA, itemB, sim });
         }
       }
@@ -1762,23 +1842,49 @@
     wizardState.showdownQueue = [];
     const pool = [...mustItems];
 
+    // 1. First priority: pair detected twins/siblings (same finish + same/close color)
     wizardState.similaritiesTwins.forEach(pair => {
       const inPoolA = pool.find(p => p.id === pair.itemA.id);
       const inPoolB = pool.find(p => p.id === pair.itemB.id);
       if (inPoolA && inPoolB) {
-        wizardState.showdownQueue.push([inPoolA, inPoolB]);
+        const already = wizardState.showdownQueue.some(([x, y]) => 
+          (x.id === inPoolA.id && y.id === inPoolB.id) || (x.id === inPoolB.id && y.id === inPoolA.id)
+        );
+        if (!already) {
+          wizardState.showdownQueue.push([inPoolA, inPoolB]);
+        }
       }
     });
 
-    for (let i = 0; i < pool.length; i += 2) {
-      if (i + 1 < pool.length) {
-        const a = pool[i];
-        const b = pool[i + 1];
-        const alreadyQueued = wizardState.showdownQueue.some(([x, y]) => (x.id === a.id && y.id === b.id) || (x.id === b.id && y.id === a.id));
-        if (!alreadyQueued) {
-          wizardState.showdownQueue.push([a, b]);
+    // 2. Next: Pair remaining shades by closest affinity (same finish or closest color)
+    const unpaired = pool.filter(item => {
+      return !wizardState.showdownQueue.some(([x, y]) => x.id === item.id || y.id === item.id);
+    });
+
+    while (unpaired.length >= 2) {
+      const first = unpaired.shift();
+      let bestIdx = 0;
+      let bestRank = -1;
+      for (let i = 0; i < unpaired.length; i++) {
+        const candidate = unpaired[i];
+        const sim = calculateSimilarity(first, candidate);
+        let rank = sim.score;
+        if (rank === 0) {
+          const typesA = (first.type || '').split(',').map(s => s.trim().toLowerCase());
+          const typesB = (candidate.type || '').split(',').map(s => s.trim().toLowerCase());
+          const sharedTypes = typesA.filter(t => typesB.includes(t));
+          const colorsA = (first.color || '').split(',').map(s => s.trim().toLowerCase());
+          const colorsB = (candidate.color || '').split(',').map(s => s.trim().toLowerCase());
+          const sharedColors = colorsA.filter(c => colorsB.includes(c));
+          rank = (sharedTypes.length * 20) + (sharedColors.length * 15);
+        }
+        if (rank > bestRank) {
+          bestRank = rank;
+          bestIdx = i;
         }
       }
+      const second = unpaired.splice(bestIdx, 1)[0];
+      wizardState.showdownQueue.push([first, second]);
     }
 
     wizardState.currentMatchIndex = 0;
