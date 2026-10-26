@@ -423,7 +423,7 @@
 
       // Ownership filter (Owned Only, Not Owned Only, Wishlist, or All)
       if (ownedFilter === 'owned' && !owned) return false;
-      if (ownedFilter === 'unowned' && owned) return false;
+      if (ownedFilter === 'unowned' && owned && !query) return false;
       if (ownedFilter === 'wishlist' && !inWishlist) return false;
 
       return true;

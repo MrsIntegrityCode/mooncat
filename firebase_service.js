@@ -91,6 +91,27 @@ async function loadUserDataFromFirestore(user) {
 
     if (userDocSnap.exists()) {
       const data = userDocSnap.data();
+      const emailLower = (user.email || '').toLowerCase();
+      const nameLower = (user.displayName || '').toLowerCase();
+      const isMelissa = emailLower.includes('melissa') || emailLower.includes('mrsintegritycode') || nameLower.includes('melissa');
+
+      // Ensure verified order shades from seed (such as Jewel Beetle) are merged in if missing
+      if (isMelissa && window.MELISSA_VAULT_SEED && window.MELISSA_VAULT_SEED.inventory) {
+        const seedInv = window.MELISSA_VAULT_SEED.inventory;
+        if (!data.inventory) data.inventory = {};
+        let addedCount = 0;
+        for (const [id, entry] of Object.entries(seedInv)) {
+          if (!data.inventory[id]) {
+            data.inventory[id] = entry;
+            addedCount++;
+          }
+        }
+        if (addedCount > 0) {
+          console.log(`Auto-merged ${addedCount} missing verified order shades into Melissa's Cloud Vault.`);
+          await setDoc(userDocRef, { inventory: data.inventory }, { merge: true });
+        }
+      }
+
       console.log("Loaded collection from Cloud Firestore:", data);
       if (window.MooncatApp && window.MooncatApp.onCloudDataLoaded) {
         window.MooncatApp.onCloudDataLoaded(data, user);
