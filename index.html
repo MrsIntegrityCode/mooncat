@@ -95,15 +95,23 @@
           </div>
 
           <div class="filter-group">
-            <label for="filter-status">Status / Owned:</label>
+            <label for="filter-status">Availability:</label>
             <select id="filter-status">
-              <option value="all">All Lacquers</option>
-              <option value="owned">Owned Only (Y)</option>
-              <option value="unowned">Not Owned (N)</option>
-              <option value="wishlist">On Wishlist</option>
+              <option value="in_stock" selected>In Stock Only</option>
+              <option value="all">All (In Stock & Departed)</option>
               <option value="new">✨ New Releases Only</option>
-              <option value="departed">⚰️ Dearly Departed (Discontinued)</option>
-              <option value="in_stock">In Stock at Mooncat</option>
+              <option value="departed">⚰️ Dearly Departed (Retired)</option>
+              <option value="out_of_stock">Out of Stock</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="filter-owned">Owned (Y/N):</label>
+            <select id="filter-owned">
+              <option value="unowned" selected>Not Owned (N)</option>
+              <option value="all">All (Both Y & N)</option>
+              <option value="owned">Owned Only (Y)</option>
+              <option value="wishlist">💫 On Wishlist</option>
             </select>
           </div>
 

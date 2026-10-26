@@ -262,6 +262,8 @@
     document.getElementById('filter-finish').addEventListener('change', renderCatalog);
     document.getElementById('filter-color').addEventListener('change', renderCatalog);
     document.getElementById('filter-status').addEventListener('change', renderCatalog);
+    const filterOwned = document.getElementById('filter-owned');
+    if (filterOwned) filterOwned.addEventListener('change', renderCatalog);
 
     // Orders search
     document.getElementById('orders-search').addEventListener('input', debounce(renderOrders, 200));
@@ -375,7 +377,8 @@
     const query = document.getElementById('catalog-search').value.toLowerCase().trim();
     const finishFilter = document.getElementById('filter-finish').value;
     const colorFilter = document.getElementById('filter-color').value;
-    const statusFilter = document.getElementById('filter-status').value;
+    const statusFilter = document.getElementById('filter-status') ? document.getElementById('filter-status').value : 'in_stock';
+    const ownedFilter = document.getElementById('filter-owned') ? document.getElementById('filter-owned').value : 'unowned';
 
     return catalog.filter(item => {
       const owned = (userData.inventory[item.id]?.qty || 0) > 0;
@@ -400,13 +403,16 @@
         if (!item.color.toLowerCase().includes(colorFilter.toLowerCase())) return false;
       }
 
-      // Status filter
-      if (statusFilter === 'owned' && !owned) return false;
-      if (statusFilter === 'unowned' && owned) return false;
-      if (statusFilter === 'wishlist' && !inWishlist) return false;
-      if (statusFilter === 'new' && !item.is_new) return false;
-      if (statusFilter === 'departed' && item.status !== 'Dearly Departed') return false;
+      // Availability / Status filter (In Stock, Dearly Departed, New, Out of Stock, or All)
       if (statusFilter === 'in_stock' && item.status !== 'In Stock') return false;
+      if (statusFilter === 'departed' && item.status !== 'Dearly Departed') return false;
+      if (statusFilter === 'new' && !item.is_new) return false;
+      if (statusFilter === 'out_of_stock' && item.status !== 'Out of Stock') return false;
+
+      // Ownership filter (Owned Only, Not Owned Only, Wishlist, or All)
+      if (ownedFilter === 'owned' && !owned) return false;
+      if (ownedFilter === 'unowned' && owned) return false;
+      if (ownedFilter === 'wishlist' && !inWishlist) return false;
 
       return true;
     });

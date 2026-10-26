@@ -181,7 +181,7 @@ def sync():
             'last_updated': updated_date,
             'price': f"${price}" if price else "$15.00",
             'available': available,
-            'status': 'Discontinued' if is_discontinued else ('In Stock' if available else 'Out of Stock'),
+            'status': 'Dearly Departed' if is_discontinued else ('In Stock' if available else 'Out of Stock'),
             'image_url': image_url,
             'swatch_images': swatch_images,
             'product_url': f"https://www.mooncat.com/products/{handle}",
@@ -244,6 +244,3 @@ def sync():
 
 if __name__ == '__main__':
     sync()
-EOF
-chmod +x sync_new_releases.py
-python3 sync_new_releases.py
