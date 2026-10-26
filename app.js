@@ -1581,9 +1581,9 @@
 
   function renderWizardStep2(container, mainTitle, subTitle) {
     mainTitle.textContent = "🎯 Stage 2: Budget & Bottle Goals";
-    subTitle.textContent = "Set how many bottles you plan to order or your spending cap. Mooncat shades range from $14.00 (cremes) to $18.00 (magnetics/thermals), with free US shipping on orders over $55.";
+    subTitle.textContent = "Set how many bottles you plan to order or your spending cap. Mooncat shades range from $14.00 (cremes) to $18.00 (magnetics/thermals), with free shipping on orders over $125 USD (typically ~8 bottles).";
 
-    const bottlePresets = [2, 3, 4, 6];
+    const bottlePresets = [3, 5, 8, 10];
     const totalWish = wizardState.wishlistPool.length;
 
     let html = `
@@ -1593,19 +1593,19 @@
           <div class="bottle-caps-row">
             ${bottlePresets.map(num => `
               <button class="btn-cap-select ${wizardState.targetBottleCount === num ? 'active' : ''}" onclick="window.MooncatApp.setWizardBottleCap(${num})">
-                ${num} Bottles (~$${num * 14}–$${num * 18}) ${num >= 4 ? '🚚 Free Ship' : ''}
+                ${num} Bottles (~$${num * 14}–$${num * 18}) ${num >= 8 ? '🚚 Free Ship' : ''}
               </button>
             `).join('')}
-            ${totalWish > 6 ? `
+            ${totalWish > 10 ? `
               <button class="btn-cap-select ${wizardState.targetBottleCount === totalWish ? 'active' : ''}" onclick="window.MooncatApp.setWizardBottleCap(${totalWish})">
                 All ${totalWish} Bottles
               </button>
             ` : ''}
           </div>
           <div class="wizard-hint" style="margin-top: 0.5rem;">
-            ${wizardState.targetBottleCount >= 4 
-              ? '🎉 <strong>Free US Shipping Target Met!</strong> (Orders $55+ qualify for free standard shipping)' 
-              : '💡 <em>Tip: Ordering 4 bottles (~$56–$72 depending on finishes) qualifies for Mooncat Free US Shipping.</em>'}
+            ${wizardState.targetBottleCount >= 8 
+              ? '🎉 <strong>Free Shipping Target Met!</strong> (Orders $125+ USD qualify for free standard shipping)' 
+              : '💡 <em>Tip: Orders of $125+ USD (typically ~8 bottles, or ~$112–$144 depending on finishes) qualify for Mooncat Free Shipping.</em>'}
           </div>
         </div>
 
@@ -1893,7 +1893,7 @@
       totalPrice += pNum;
     });
 
-    const isFreeShipping = totalPrice >= 55;
+    const isFreeShipping = totalPrice >= 125;
 
     const uniqueFinishes = new Set();
     const uniqueColors = new Set();
@@ -1918,7 +1918,7 @@
               <span class="haul-metric-num" style="color: ${isFreeShipping ? '#10b981' : '#f59e0b'};">
                 ${isFreeShipping ? '🚚 FREE' : 'Standard'}
               </span>
-              <span class="haul-metric-label">US Shipping</span>
+              <span class="haul-metric-label">${isFreeShipping ? 'Free Shipping ($125+)' : `Shipping (+$${(125 - totalPrice).toFixed(2)} for Free)`}</span>
             </div>
           </div>
 
