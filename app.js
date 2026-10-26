@@ -163,7 +163,28 @@
     showToast(`Switched active collection to: ${userData.name}`);
   }
 
+  // --- Auth Enforcement Helper ---
+  function requireAuth(actionDescription = "add colors to your inventory") {
+    const currentUser = (window.MooncatAuth && window.MooncatAuth.getCurrentUser) 
+      ? window.MooncatAuth.getCurrentUser() 
+      : null;
+
+    if (!currentUser) {
+      const willLogin = confirm(
+        `🔒 Sign In Required\n\nYou must sign in with your Google account to ${actionDescription}.\n\nWould you like to sign in with Google now?`
+      );
+      if (willLogin && window.MooncatAuth && window.MooncatAuth.signInWithGoogle) {
+        window.MooncatAuth.signInWithGoogle();
+      } else {
+        showToast(`🔒 Please sign in with Google to ${actionDescription}.`);
+      }
+      return false;
+    }
+    return true;
+  }
+
   function createNewProfile() {
+    if (!requireAuth("create a new collection profile")) return;
     const name = prompt("Enter a name for this new collection (e.g. 'Emma\\'s Collection' or 'My Blank Vault'):");
     if (!name || !name.trim()) return;
 
@@ -278,6 +299,16 @@
     }
 
     // Import Actions
+    const importOpenBtn = document.getElementById('btn-open-order-import');
+    if (importOpenBtn) importOpenBtn.addEventListener('click', openImportModal);
+    const importCloseBtn = document.getElementById('import-close-btn');
+    if (importCloseBtn) importCloseBtn.addEventListener('click', closeImportModal);
+    const importModal = document.getElementById('import-modal');
+    if (importModal) {
+      importModal.addEventListener('click', (e) => {
+        if (e.target.id === 'import-modal') closeImportModal();
+      });
+    }
     document.getElementById('btn-parse-preview').addEventListener('click', previewImport);
     document.getElementById('btn-confirm-import').addEventListener('click', confirmImport);
 
@@ -528,6 +559,24 @@
 
     if (ownedItems.length === 0) {
       tbody.innerHTML = '';
+      const currentUser = (window.MooncatAuth && window.MooncatAuth.getCurrentUser) ? window.MooncatAuth.getCurrentUser() : null;
+      if (!currentUser) {
+        emptyState.innerHTML = `
+          <div class="empty-icon">🔒</div>
+          <h3>Sign In to Track Your Inventory</h3>
+          <p>Please sign in with your Google account to track your orders, on-hand counts, and sync your personal Mooncat collection.</p>
+          <button class="btn-primary" onclick="window.MooncatAuth && window.MooncatAuth.signInWithGoogle && window.MooncatAuth.signInWithGoogle()">
+            Sign in with Google
+          </button>
+        `;
+      } else {
+        emptyState.innerHTML = `
+          <div class="empty-icon">📦</div>
+          <h3>No Orders Added Yet</h3>
+          <p>Click "Add / Import Orders" above to paste your order history, enter shades, or upload receipts. You can also click "+ Add to Owned" from the Main Catalog!</p>
+          <button class="btn-primary" onclick="window.MooncatApp && window.MooncatApp.openImportModal && window.MooncatApp.openImportModal()">+ Add Your Ordered Colors</button>
+        `;
+      }
       emptyState.classList.remove('hidden');
       return;
     }
@@ -586,6 +635,24 @@
 
     if (wishlistItems.length === 0) {
       grid.innerHTML = '';
+      const currentUser = (window.MooncatAuth && window.MooncatAuth.getCurrentUser) ? window.MooncatAuth.getCurrentUser() : null;
+      if (!currentUser) {
+        emptyState.innerHTML = `
+          <div class="empty-icon">🔒</div>
+          <h3>Sign In to Save Your Wishlist</h3>
+          <p>Please sign in with your Google account to save wishlist shades across your devices and prevent buying duplicate colors.</p>
+          <button class="btn-primary" onclick="window.MooncatAuth && window.MooncatAuth.signInWithGoogle && window.MooncatAuth.signInWithGoogle()">
+            Sign in with Google
+          </button>
+        `;
+      } else {
+        emptyState.innerHTML = `
+          <div class="empty-icon">💫</div>
+          <h3>Your Wishlist is Empty</h3>
+          <p>Explore the Main Catalog and click "✦ Wishlist" on any unowned shade you'd love to add to your collection!</p>
+          <button class="btn-primary" onclick="document.querySelector('[data-tab=catalog]').click()">Browse Main Catalog</button>
+        `;
+      }
       emptyState.classList.remove('hidden');
       return;
     }
@@ -639,6 +706,7 @@
 
   // --- Wishlist Enforcement & Workflow (Goal 3) ---
   function toggleWishlist(id) {
+    if (!requireAuth("save colors to your wishlist")) return;
     const isOwned = (userData.inventory[id]?.qty || 0) > 0;
     const item = catalog.find(i => i.id === id);
 
@@ -662,6 +730,7 @@
   }
 
   function removeFromWishlist(id) {
+    if (!requireAuth("manage your wishlist")) return;
     const item = catalog.find(i => i.id === id);
     userData.wishlist = userData.wishlist.filter(wId => wId !== id);
     showToast(`Removed "${item ? item.name : 'Shade'}" from Wishlist`);
@@ -671,6 +740,7 @@
 
   // Purchased Workflow (Goal 3): "once purchased, they should be removed from the wishlist and added to my inventory"
   function markPurchased(id) {
+    if (!requireAuth("add colors to your inventory")) return;
     const item = catalog.find(i => i.id === id);
     if (!item) return;
 
@@ -692,6 +762,7 @@
 
   // --- Inventory & Order Actions ---
   function quickAddOwned(id) {
+    if (!requireAuth("add colors to your inventory")) return;
     const item = catalog.find(i => i.id === id);
     if (!item) return;
 
@@ -711,6 +782,7 @@
   }
 
   function decrementOrder(id) {
+    if (!requireAuth("modify your inventory")) return;
     if (!userData.inventory[id]) return;
     userData.inventory[id].qty -= 1;
     if (userData.inventory[id].qty <= 0) {
@@ -721,6 +793,7 @@
   }
 
   function removeOrder(id) {
+    if (!requireAuth("modify your inventory")) return;
     const item = catalog.find(i => i.id === id);
     if (confirm(`Remove "${item ? item.name : 'this polish'}" from your ordered inventory?`)) {
       delete userData.inventory[id];
@@ -741,6 +814,7 @@
 
   // --- Order Import / Parser (Goal 2) ---
   function openImportModal() {
+    if (!requireAuth("add or import orders to your inventory")) return;
     document.getElementById('import-modal').classList.remove('hidden');
     document.getElementById('import-text').focus();
   }
@@ -819,6 +893,7 @@
   }
 
   function confirmImport() {
+    if (!requireAuth("import orders to your inventory")) return;
     const text = document.getElementById('import-text').value;
     const matches = parseInputOrders(text);
     const matchedIds = Object.keys(matches);
@@ -1045,6 +1120,7 @@
   }
 
   function importJSONBackup(event) {
+    if (!requireAuth("restore data from a backup")) return;
     const file = event.target.files[0];
     if (!file) return;
 
@@ -1069,6 +1145,7 @@
   }
 
   function confirmResetData() {
+    if (!requireAuth("reset collection data")) return;
     if (confirm('Are you sure you want to reset all your owned inventory and wishlist? This cannot be undone.')) {
       userData = { inventory: {}, wishlist: [] };
       saveUserData();
@@ -1208,6 +1285,8 @@
     markPurchased,
     decrementOrder,
     removeOrder,
+    openImportModal,
+    closeImportModal,
     checkLiveNewReleases,
     onCloudDataLoaded,
     onCloudSignOut,
