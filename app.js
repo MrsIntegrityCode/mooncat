@@ -1269,10 +1269,10 @@
   };
 
   const COLOR_FAMILIES = {
-    'blue': ['teal', 'purple', 'multichrome/shift'],
+    'blue': ['teal', 'purple'],
     'teal': ['blue', 'green'],
     'green': ['teal', 'yellow'],
-    'purple': ['blue', 'pink', 'multichrome/shift'],
+    'purple': ['blue', 'pink'],
     'pink': ['purple', 'rose gold', 'red'],
     'red': ['pink', 'brown', 'orange'],
     'orange': ['red', 'copper/bronze', 'yellow'],
@@ -1284,105 +1284,154 @@
     'silver': ['gray', 'white'],
     'black': ['gray', 'brown'],
     'brown': ['black', 'red', 'copper/bronze'],
-    'white': ['silver', 'gray'],
-    'multichrome/shift': ['purple', 'blue', 'teal', 'green', 'multi'],
-    'multi': ['multichrome/shift']
+    'white': ['silver', 'gray']
   };
 
   const SPECIAL_REACTIVES = ['magnetic', 'thermal', 'solar', 'glow in the dark', 'glow-in-the-dark'];
+  const SHIFTING_EFFECT_FINISHES = ['multichrome', 'shimmer', 'flakie'];
+
+  function getEnhancedFinishes(item) {
+    const f = new Set((item.type || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean));
+    const desc = (item.description || '').toLowerCase();
+    const tags = Array.isArray(item.tags) ? item.tags.map(t => String(t).toLowerCase()) : [];
+    const colorStr = (item.color || '').toLowerCase();
+
+    // Recognize color-shifting finishes and shimmering effects across Mooncat's catalog
+    if (colorStr.includes('multichrome/shift') || desc.includes('multichrome') || desc.includes('shifts between') || tags.includes('collection:multichrome')) {
+      f.add('multichrome');
+    }
+    if (desc.includes('shimmer') || tags.includes('collection:shimmer')) {
+      f.add('shimmer');
+    }
+    if (desc.includes('flakie') || desc.includes('iridescent')) {
+      f.add('flakie');
+    }
+    return f;
+  }
+
+  function getEnhancedColors(item) {
+    const c = new Set((item.color || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean));
+    const desc = (item.description || '').toLowerCase();
+    
+    // Extract shifting colors directly from Mooncat descriptions (e.g. "shifts between shades of pink, gold, and green")
+    const shiftMatches = desc.match(/shifts\s+between(?:\s+shades\s+of)?\s+([a-z,\s\+–\-]+?)(?:\.|as\s+it|when)/i);
+    if (shiftMatches && shiftMatches[1]) {
+      const phrase = shiftMatches[1];
+      for (const col of ['pink', 'green', 'gold', 'blue', 'purple', 'teal', 'red', 'orange', 'yellow']) {
+        if (phrase.includes(col)) c.add(col);
+      }
+    }
+    return c;
+  }
 
   function calculateSimilarity(itemA, itemB) {
     if (!itemA || !itemB || itemA.id === itemB.id) return { score: 0, reasons: [], sharedColors: [], sharedTypes: [] };
 
-    const typesA = (itemA.type || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-    const typesB = (itemB.type || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+    const finishesA = getEnhancedFinishes(itemA);
+    const finishesB = getEnhancedFinishes(itemB);
 
     // RULE 1: Special reactive formulas (magnetic, thermal, solar, glow) MUST match.
-    // A magnetic is never a dupe/twin of a non-magnetic lacquer!
     for (const sf of SPECIAL_REACTIVES) {
-      const aHas = typesA.some(t => t.includes(sf));
-      const bHas = typesB.some(t => t.includes(sf));
+      const aHas = Array.from(finishesA).some(t => t.includes(sf));
+      const bHas = Array.from(finishesB).some(t => t.includes(sf));
       if (aHas !== bHas) {
         return { score: 0, reasons: [], sharedColors: [], sharedTypes: [] };
       }
     }
 
-    // RULE 2: Must share the same type/finish (or compatible finishes like Holo & Linear Holo, or Creme & Jelly)
-    const sharedFinishes = typesA.filter(t => typesB.includes(t));
+    // RULE 2: Must share the same finish or compatible effect family
+    const sharedFinishes = Array.from(finishesA).filter(t => finishesB.has(t));
     let isFinishCompatible = sharedFinishes.length > 0;
     let finishDesc = sharedFinishes.map(f => f.charAt(0).toUpperCase() + f.slice(1)).join(', ');
 
     if (!isFinishCompatible) {
-      const holoA = typesA.some(t => t.includes('holo'));
-      const holoB = typesB.some(t => t.includes('holo'));
-      if (holoA && holoB) {
+      const hasEffectA = SHIFTING_EFFECT_FINISHES.some(e => finishesA.has(e));
+      const hasEffectB = SHIFTING_EFFECT_FINISHES.some(e => finishesB.has(e));
+      if (hasEffectA && hasEffectB) {
         isFinishCompatible = true;
-        finishDesc = 'Holographic';
-      }
-      const cjA = typesA.includes('creme') || typesA.includes('jelly');
-      const cjB = typesB.includes('creme') || typesB.includes('jelly');
-      if (cjA && cjB) {
-        isFinishCompatible = true;
-        finishDesc = 'Creme / Jelly';
-      }
-    }
-
-    if (!isFinishCompatible) {
-      return { score: 0, reasons: [], sharedColors: [], sharedTypes: [] };
-    }
-
-    // RULE 3: Must be the same color or a close neighboring color
-    const colorsA = (itemA.color || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-    const colorsB = (itemB.color || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
-
-    const sharedColors = colorsA.filter(c => colorsB.includes(c));
-    let isColorMatch = sharedColors.length > 0;
-    let colorDegree = isColorMatch ? 'exact' : 'none';
-    let closeColorPair = [];
-
-    if (!isColorMatch) {
-      for (const cA of colorsA) {
-        const neighbors = COLOR_FAMILIES[cA] || [];
-        for (const cB of colorsB) {
-          if (neighbors.includes(cB)) {
-            isColorMatch = true;
-            colorDegree = 'close';
-            closeColorPair.push(`${cA.charAt(0).toUpperCase() + cA.slice(1)} & ${cB.charAt(0).toUpperCase() + cB.slice(1)}`);
+        finishDesc = 'Shifting Effect';
+      } else {
+        const holoA = Array.from(finishesA).some(t => t.includes('holo'));
+        const holoB = Array.from(finishesB).some(t => t.includes('holo'));
+        if (holoA && holoB) {
+          isFinishCompatible = true;
+          finishDesc = 'Holographic';
+        } else {
+          const cjA = finishesA.has('creme') || finishesA.has('jelly');
+          const cjB = finishesB.has('creme') || finishesB.has('jelly');
+          if (cjA && cjB) {
+            isFinishCompatible = true;
+            finishDesc = 'Creme / Jelly';
           }
         }
       }
     }
 
-    if (!isColorMatch) {
+    if (!isFinishCompatible) {
       return { score: 0, reasons: [], sharedColors: [], sharedTypes: [] };
     }
 
-    // Calculate score for genuine twins/siblings:
-    let score = colorDegree === 'exact' ? 85 : 70;
+    // RULE 3: Color palette comparison
+    const colorsA = getEnhancedColors(itemA);
+    const colorsB = getEnhancedColors(itemB);
+    const sharedColors = Array.from(colorsA).filter(c => colorsB.has(c));
+    const allColors = new Set([...colorsA, ...colorsB]);
+    const jaccard = allColors.size ? (sharedColors.length / allColors.size) : 0;
+
+    let score = 0;
     const reasons = [];
 
-    if (colorDegree === 'exact') {
-      reasons.push(`Same Color (${sharedColors.map(c => c.charAt(0).toUpperCase() + c.slice(1)).join(', ')})`);
+    if (sharedColors.length >= 3) {
+      // Identical multi-color shift match (e.g. Pink + Green + Gold + Shift)
+      score = 92 + Math.min(6, sharedColors.length);
+      reasons.push(`Identical Color Shift (${sharedColors.map(c => c.charAt(0).toUpperCase() + c.slice(1)).join(' ⇄ ')})`);
+    } else if (sharedColors.length === 2) {
+      // 2 shared colors
+      score = 82 + Math.round(jaccard * 10);
+      reasons.push(`Shared Palette (${sharedColors.map(c => c.charAt(0).toUpperCase() + c.slice(1)).join(' & ')})`);
+    } else if (sharedColors.length === 1) {
+      // Only 1 shared color
+      if (colorsA.size === 1 && colorsB.size === 1) {
+        score = 80;
+        reasons.push(`Same Color (${sharedColors[0].charAt(0).toUpperCase() + sharedColors[0].slice(1)})`);
+      } else {
+        // Only 1 color out of a multi-color lacquer is NOT enough to claim they are duplicate twins
+        score = 55 + Math.round(jaccard * 20);
+        reasons.push(`Partial Color Overlap (${sharedColors[0].charAt(0).toUpperCase() + sharedColors[0].slice(1)})`);
+      }
     } else {
-      reasons.push(`Close Color Family (${closeColorPair[0] || 'Adjacent Tones'})`);
+      // No exact shared color - check neighboring tones
+      let closePair = null;
+      for (const cA of colorsA) {
+        const neighbors = COLOR_FAMILIES[cA] || [];
+        for (const cB of colorsB) {
+          if (neighbors.includes(cB)) {
+            closePair = `${cA.charAt(0).toUpperCase() + cA.slice(1)} & ${cB.charAt(0).toUpperCase() + cB.slice(1)}`;
+            break;
+          }
+        }
+        if (closePair) break;
+      }
+
+      if (!closePair) {
+        return { score: 0, reasons: [], sharedColors: [], sharedTypes: [] };
+      }
+
+      score = 70;
+      reasons.push(`Adjacent Tones (${closePair})`);
     }
 
     reasons.push(`Matching Finish: ${finishDesc}`);
-    score += Math.min(10, (sharedFinishes.length || 1) * 5);
 
-    // Fine-tune with descriptive effect matches
+    // Extra descriptive effect nuance
     const keywords = [
-      'magnetic', 'flakie', 'shimmer', 'reflective', 'iridescent', 
-      'cat eye', 'velvet', 'holographic', 'holo', 'multichrome', 
-      'jelly', 'glitter', 'matte', 'gold', 'silver', 'emerald', 
-      'copper', 'neon', 'pastel', 'vampy', 'pearl'
+      'cat eye', 'velvet', 'gold flakes', 'iridescent flakies', 'chrome', 'duochrome'
     ];
     const descA = (itemA.description || '').toLowerCase();
     const descB = (itemB.description || '').toLowerCase();
     const descMatches = keywords.filter(k => descA.includes(k) && descB.includes(k));
     if (descMatches.length > 0) {
-      score += Math.min(4, descMatches.length * 2);
-      reasons.push(`Shared Effects: ${descMatches.slice(0, 2).join(', ')}`);
+      score += Math.min(3, descMatches.length * 2);
     }
 
     score = Math.min(99, score);
@@ -1390,7 +1439,7 @@
     return {
       score,
       reasons,
-      sharedColors: sharedColors.length ? sharedColors : closeColorPair,
+      sharedColors: sharedColors.length ? sharedColors : [reasons[0]],
       sharedTypes: [finishDesc]
     };
   }
