@@ -1578,28 +1578,54 @@
     subTitle.textContent = "Evaluating your wishlist against colors you already own and highlighting near-identical twins so you can make informed choices.";
 
     let html = '';
-    const hasOwnedConflicts = wizardState.similaritiesOwned.length > 0;
-    const hasTwinConflicts = wizardState.similaritiesTwins.length > 0;
+    // Filter out any shades that have already been demoted to 'next' haul:
+    // Once demoted, the conflict is resolved and the card disappears immediately from Stage 1!
+    const activeOwnedConflicts = wizardState.similaritiesOwned.filter(pair => {
+      return wizardState.itemTiers[pair.wishItem.id] !== 'next';
+    });
+
+    const activeTwinConflicts = wizardState.similaritiesTwins.filter(pair => {
+      // If either itemA or itemB has been demoted to 'next', that twin conflict is resolved!
+      return wizardState.itemTiers[pair.itemA.id] !== 'next' && wizardState.itemTiers[pair.itemB.id] !== 'next';
+    });
+
+    const hasOwnedConflicts = activeOwnedConflicts.length > 0;
+    const hasTwinConflicts = activeTwinConflicts.length > 0;
+    const demotedInWizard = wizardState.wishlistPool.filter(it => wizardState.itemTiers[it.id] === 'next');
 
     if (!hasOwnedConflicts && !hasTwinConflicts) {
-      html += `
-        <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 12px; padding: 2rem; text-align: center; margin-top: 1rem;">
-          <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">✨</div>
-          <h3 style="color: #34d399; margin-bottom: 0.5rem;">All Wishlist Shades Are Distinct!</h3>
-          <p style="color: var(--text-muted); font-size: 0.9rem; max-width: 520px; margin: 0 auto 1.5rem auto;">
-            We compared your wishlist shades against your ${wizardState.ownedPool.length} owned lacquers and each other. No overlapping formulas or near-identical twins were found!
-          </p>
-          <button class="btn-primary" onclick="window.MooncatApp.goToWizardStep(2)">Proceed to Order Goals (Stage 2) →</button>
-        </div>
-      `;
+      if (demotedInWizard.length > 0) {
+        html += `
+          <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 12px; padding: 2rem; text-align: center; margin-top: 1rem;">
+            <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">🎉</div>
+            <h3 style="color: #34d399; margin-bottom: 0.5rem;">All Duplicate Conflicts Resolved!</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; max-width: 520px; margin: 0 auto 1.5rem auto;">
+              All active wishlist shades in this haul are distinct! You demoted <strong>${demotedInWizard.length}</strong> shade(s) (${demotedInWizard.map(d => escapeHtml(d.name)).join(', ')}), keeping them safely saved for your next order.
+            </p>
+            <button class="btn-primary" onclick="window.MooncatApp.goToWizardStep(2)">Proceed to Order Goals (Stage 2) →</button>
+          </div>
+        `;
+      } else {
+        html += `
+          <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 12px; padding: 2rem; text-align: center; margin-top: 1rem;">
+            <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">✨</div>
+            <h3 style="color: #34d399; margin-bottom: 0.5rem;">All Wishlist Shades Are Distinct!</h3>
+            <p style="color: var(--text-muted); font-size: 0.9rem; max-width: 520px; margin: 0 auto 1.5rem auto;">
+              We compared your wishlist shades against your ${wizardState.ownedPool.length} owned lacquers and each other. No overlapping formulas or near-identical twins were found!
+            </p>
+            <button class="btn-primary" onclick="window.MooncatApp.goToWizardStep(2)">Proceed to Order Goals (Stage 2) →</button>
+          </div>
+        `;
+      }
     } else {
+      const activeCount = wizardState.wishlistPool.length - demotedInWizard.length;
       html += `
         <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: 8px; padding: 0.85rem 1rem; margin-top: 0.5rem; margin-bottom: 1.25rem;">
           <div style="font-size: 0.92rem; color: #fff; font-weight: 600; margin-bottom: 0.25rem;">
-            💫 Reviewing Your ${wizardState.wishlistPool.length}-Bottle Wishlist
+            💫 Reviewing Your ${activeCount}-Bottle Wishlist
           </div>
           <p style="font-size: 0.84rem; color: var(--text-muted); margin: 0; line-height: 1.45;">
-            If you plan to order all ${wizardState.wishlistPool.length} shades in your wishlist, you can keep all of them! We only flag true near-identical formula sisters (85%+ matches) below so you can choose if you'd like to demote any accidental duplicates.
+            If you plan to order all ${activeCount} shades, you can keep all of them! We only flag true near-identical formula sisters (85%+ matches) below. Demoting any shade removes it immediately from this list and saves it for your next haul.
           </p>
         </div>
       `;
@@ -1607,16 +1633,15 @@
       if (hasOwnedConflicts) {
         html += `
           <h3 style="color: #f472b6; font-size: 1.05rem; margin-top: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
-            ⚠️ Similar to Colors You Already Own (${wizardState.similaritiesOwned.length})
+            ⚠️ Similar to Colors You Already Own (${activeOwnedConflicts.length})
           </h3>
           <div class="similarity-list">
         `;
 
-        wizardState.similaritiesOwned.forEach(pair => {
+        activeOwnedConflicts.forEach(pair => {
           const owned = pair.ownedItem;
           const wish = pair.wishItem;
           const sim = pair.sim;
-          const isDemoted = wizardState.itemTiers[wish.id] === 'next';
 
           html += `
             <div class="similarity-card high-match">
@@ -1647,11 +1672,11 @@
               </div>
 
               <div class="similarity-actions">
-                <button class="btn-card-action" style="${isDemoted ? 'background: rgba(245, 158, 11, 0.2); color: #f59e0b; border-color: rgba(245, 158, 11, 0.4); font-weight: 600;' : 'color: #f59e0b; border-color: rgba(245, 158, 11, 0.4);'}" onclick="window.MooncatApp.toggleDemoteInWizard(${wish.id})">
-                  ${isDemoted ? `✓ Demoted to Next Haul (Click to Restore)` : `⬇ Demote "${escapeHtml(wish.name)}" (Optional)`}
+                <button class="btn-card-action" style="color: #f59e0b; border-color: rgba(245, 158, 11, 0.4);" onclick="window.MooncatApp.toggleDemoteInWizard(${wish.id})">
+                  ⬇ Demote "${escapeHtml(wish.name)}" to Next Haul
                 </button>
                 <span style="font-size: 0.8rem; color: var(--text-muted); align-self: center; margin-left: auto;">
-                  ${isDemoted ? 'Saved for your next order • stays safely on your wishlist' : 'Optional • keep if you love having both!'}
+                  Removes from current order • stays safely on your wishlist
                 </span>
               </div>
             </div>
@@ -1664,17 +1689,15 @@
       if (hasTwinConflicts) {
         html += `
           <h3 style="color: #a855f7; font-size: 1.05rem; margin-top: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
-            👯 Closest Sister / Twin Shades in Wishlist (${wizardState.similaritiesTwins.length})
+            👯 Closest Sister / Twin Shades in Wishlist (${activeTwinConflicts.length})
           </h3>
           <div class="similarity-list">
         `;
 
-        wizardState.similaritiesTwins.forEach(pair => {
+        activeTwinConflicts.forEach(pair => {
           const itemA = pair.itemA;
           const itemB = pair.itemB;
           const sim = pair.sim;
-          const isADemoted = wizardState.itemTiers[itemA.id] === 'next';
-          const isBDemoted = wizardState.itemTiers[itemB.id] === 'next';
 
           html += `
             <div class="similarity-card">
@@ -1683,38 +1706,36 @@
                 <span style="font-size: 0.8rem; color: var(--text-muted);">${escapeHtml(sim.reasons.join(' • '))}</span>
               </div>
               <div class="similarity-pair-grid">
-                <div class="pair-item" style="${isADemoted ? 'opacity: 0.6;' : ''}">
+                <div class="pair-item">
                   <img class="pair-thumb" src="${escapeHtml(itemA.image_url)}" alt="${escapeHtml(itemA.name)}">
                   <div class="pair-info">
                     <span class="pair-tag-wishlist">Wishlist Option A</span>
                     <span class="pair-name" title="${escapeHtml(itemA.name)}">${escapeHtml(itemA.name)}</span>
                     <span class="pair-meta">${escapeHtml(itemA.type)} • ${escapeHtml(itemA.color)}</span>
-                    ${isADemoted ? '<span style="font-size: 0.72rem; color: #f59e0b; font-weight: 600;">⏳ Demoted to Next Haul</span>' : ''}
                   </div>
                 </div>
 
                 <div class="pair-vs">VS</div>
 
-                <div class="pair-item" style="${isBDemoted ? 'opacity: 0.6;' : ''}">
+                <div class="pair-item">
                   <img class="pair-thumb" src="${escapeHtml(itemB.image_url)}" alt="${escapeHtml(itemB.name)}">
                   <div class="pair-info">
                     <span class="pair-tag-wishlist">Wishlist Option B</span>
                     <span class="pair-name" title="${escapeHtml(itemB.name)}">${escapeHtml(itemB.name)}</span>
                     <span class="pair-meta">${escapeHtml(itemB.type)} • ${escapeHtml(itemB.color)}</span>
-                    ${isBDemoted ? '<span style="font-size: 0.72rem; color: #f59e0b; font-weight: 600;">⏳ Demoted to Next Haul</span>' : ''}
                   </div>
                 </div>
               </div>
 
               <div class="similarity-actions">
-                <button class="btn-card-action" style="${isADemoted ? 'background: rgba(245, 158, 11, 0.2); color: #f59e0b; border-color: rgba(245, 158, 11, 0.4);' : ''}" onclick="window.MooncatApp.toggleDemoteInWizard(${itemA.id})">
-                  ${isADemoted ? `✓ Demoted ${escapeHtml(itemA.name)}` : `⬇ Demote ${escapeHtml(itemA.name)}`}
+                <button class="btn-card-action" onclick="window.MooncatApp.toggleDemoteInWizard(${itemA.id})">
+                  ⬇ Demote ${escapeHtml(itemA.name)}
                 </button>
-                <button class="btn-card-action" style="${isBDemoted ? 'background: rgba(245, 158, 11, 0.2); color: #f59e0b; border-color: rgba(245, 158, 11, 0.4);' : ''}" onclick="window.MooncatApp.toggleDemoteInWizard(${itemB.id})">
-                  ${isBDemoted ? `✓ Demoted ${escapeHtml(itemB.name)}` : `⬇ Demote ${escapeHtml(itemB.name)}`}
+                <button class="btn-card-action" onclick="window.MooncatApp.toggleDemoteInWizard(${itemB.id})">
+                  ⬇ Demote ${escapeHtml(itemB.name)}
                 </button>
                 <span style="font-size: 0.8rem; color: var(--accent-cyan); align-self: center; margin-left: auto;">
-                  ${(!isADemoted && !isBDemoted) ? '⚔️ Or battle head-to-head in Stage 4!' : 'Saved for next haul • stays on wishlist!'}
+                  Demoting either shade resolves the conflict and removes it from view
                 </span>
               </div>
             </div>
@@ -1722,6 +1743,17 @@
         });
 
         html += `</div>`;
+      }
+
+      if (demotedInWizard.length > 0) {
+        html += `
+          <div style="margin-top: 1.25rem; padding: 0.75rem 1rem; background: rgba(245, 158, 11, 0.08); border: 1px dashed rgba(245, 158, 11, 0.35); border-radius: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+            <span style="font-size: 0.84rem; color: #f59e0b;">
+              ⏳ <strong>${demotedInWizard.length}</strong> shade(s) demoted & saved for next haul: ${demotedInWizard.map(d => `<span style="text-decoration: underline; cursor: pointer;" title="Click to restore" onclick="window.MooncatApp.toggleDemoteInWizard(${d.id})">${escapeHtml(d.name)} ↺</span>`).join(', ')}
+            </span>
+            <span style="font-size: 0.76rem; color: var(--text-muted);">(Click ↺ on any shade name above to restore)</span>
+          </div>
+        `;
       }
 
       html += `
