@@ -1448,21 +1448,33 @@
     wizardState.similaritiesOwned = [];
     wizardState.similaritiesTwins = [];
 
+    // Realistic dupe threshold: True duplicates must be genuine formula & color/shift sisters (>= 85%)
+    // Rather than showing multiple matches for the same wishlist item against different owned items,
+    // we find the single highest-scoring conflict for each wishlist item to keep the list realistic and clean.
+    const bestOwnedMatches = new Map();
+
     wizardState.wishlistPool.forEach(wishItem => {
       wizardState.ownedPool.forEach(ownedItem => {
         const sim = calculateSimilarity(ownedItem, wishItem);
-        if (sim.score >= 70) {
-          wizardState.similaritiesOwned.push({ ownedItem, wishItem, sim });
+        // Only count true high-confidence twins/sisters (score >= 85%)
+        if (sim.score >= 85) {
+          const existing = bestOwnedMatches.get(wishItem.id);
+          if (!existing || sim.score > existing.sim.score) {
+            bestOwnedMatches.set(wishItem.id, { ownedItem, wishItem, sim });
+          }
         }
       });
     });
 
+    wizardState.similaritiesOwned = Array.from(bestOwnedMatches.values());
+
+    // For twins within wishlist: only keep high-confidence duplicates (>= 85%)
     for (let i = 0; i < wizardState.wishlistPool.length; i++) {
       for (let j = i + 1; j < wizardState.wishlistPool.length; j++) {
         const itemA = wizardState.wishlistPool[i];
         const itemB = wizardState.wishlistPool[j];
         const sim = calculateSimilarity(itemA, itemB);
-        if (sim.score >= 70) {
+        if (sim.score >= 85) {
           wizardState.similaritiesTwins.push({ itemA, itemB, sim });
         }
       }
@@ -1470,6 +1482,10 @@
 
     wizardState.similaritiesOwned.sort((a, b) => b.sim.score - a.sim.score);
     wizardState.similaritiesTwins.sort((a, b) => b.sim.score - a.sim.score);
+    // Keep wishlist twins list reasonable and focused on the top closest conflicts
+    if (wizardState.similaritiesTwins.length > 6) {
+      wizardState.similaritiesTwins = wizardState.similaritiesTwins.slice(0, 6);
+    }
   }
 
   function openDecisionWizard() {
@@ -1482,7 +1498,8 @@
 
     wizardState.wishlistPool = catalog.filter(i => userData.wishlist.includes(i.id));
     wizardState.ownedPool = catalog.filter(i => (userData.inventory[i.id]?.qty || 0) > 0);
-    wizardState.targetBottleCount = Math.min(4, wizardState.wishlistPool.length);
+    // Default to the full wishlist count! The user may want to order all shades on their wishlist.
+    wizardState.targetBottleCount = wizardState.wishlistPool.length;
     wizardState.budgetCap = wizardState.targetBottleCount * 15;
     wizardState.itemTiers = {};
 
@@ -1558,7 +1575,7 @@
 
   function renderWizardStep1(container, mainTitle, subTitle) {
     mainTitle.textContent = "🔍 Stage 1: Similarity & Duplicates Detector";
-    subTitle.textContent = "Evaluating your wishlist against colors you already own and detecting similar shades so you avoid buying accidental dupes.";
+    subTitle.textContent = "Evaluating your wishlist against colors you already own and highlighting near-identical twins so you can make informed choices.";
 
     let html = '';
     const hasOwnedConflicts = wizardState.similaritiesOwned.length > 0;
@@ -1569,17 +1586,20 @@
         <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 12px; padding: 2rem; text-align: center; margin-top: 1rem;">
           <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">✨</div>
           <h3 style="color: #34d399; margin-bottom: 0.5rem;">All Wishlist Shades Are Distinct!</h3>
-          <p style="color: var(--text-muted); font-size: 0.9rem; max-width: 500px; margin: 0 auto 1.5rem auto;">
-            We compared your wishlist against your ${wizardState.ownedPool.length} owned lacquers and each other. No overlapping formulas or similar twins were found!
+          <p style="color: var(--text-muted); font-size: 0.9rem; max-width: 520px; margin: 0 auto 1.5rem auto;">
+            We compared your wishlist shades against your ${wizardState.ownedPool.length} owned lacquers and each other. No overlapping formulas or near-identical twins were found!
           </p>
-          <button class="btn-primary" onclick="window.MooncatApp.goToWizardStep(2)">Proceed to Budget & Goals (Stage 2) →</button>
+          <button class="btn-primary" onclick="window.MooncatApp.goToWizardStep(2)">Proceed to Order Goals (Stage 2) →</button>
         </div>
       `;
     } else {
       html += `
-        <div style="margin-top: 0.5rem;">
-          <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem;">
-            We found <strong>${wizardState.similaritiesOwned.length}</strong> shade(s) similar to what you already own, and <strong>${wizardState.similaritiesTwins.length}</strong> twin pair(s) inside your wishlist. Review them below:
+        <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: 8px; padding: 0.85rem 1rem; margin-top: 0.5rem; margin-bottom: 1.25rem;">
+          <div style="font-size: 0.92rem; color: #fff; font-weight: 600; margin-bottom: 0.25rem;">
+            💫 Reviewing Your ${wizardState.wishlistPool.length}-Bottle Wishlist
+          </div>
+          <p style="font-size: 0.84rem; color: var(--text-muted); margin: 0; line-height: 1.45;">
+            If you plan to order all ${wizardState.wishlistPool.length} shades in your wishlist, you can keep all of them! We only flag true near-identical formula sisters (85%+ matches) below so you can choose if you'd like to demote any accidental duplicates.
           </p>
         </div>
       `;
@@ -1596,6 +1616,7 @@
           const owned = pair.ownedItem;
           const wish = pair.wishItem;
           const sim = pair.sim;
+          const isDemoted = wizardState.itemTiers[wish.id] === 'next';
 
           html += `
             <div class="similarity-card high-match">
@@ -1626,17 +1647,12 @@
               </div>
 
               <div class="similarity-actions">
-                ${(() => {
-                  const isDemoted = wizardState.itemTiers[wish.id] === 'next';
-                  return `
-                    <button class="btn-card-action" style="${isDemoted ? 'background: rgba(245, 158, 11, 0.2); color: #f59e0b; border-color: rgba(245, 158, 11, 0.4); font-weight: 600;' : 'color: #f59e0b; border-color: rgba(245, 158, 11, 0.4);'}" onclick="window.MooncatApp.toggleDemoteInWizard(${wish.id})">
-                      ${isDemoted ? `✓ Demoted to Next Haul (Click to Restore)` : `⬇ Demote "${escapeHtml(wish.name)}" to Next Haul`}
-                    </button>
-                    <span style="font-size: 0.8rem; color: var(--text-muted); align-self: center; margin-left: auto;">
-                      ${isDemoted ? 'Saved for your next order • stays safely on your wishlist' : 'Keeps on wishlist, but excludes from this haul'}
-                    </span>
-                  `;
-                })()}
+                <button class="btn-card-action" style="${isDemoted ? 'background: rgba(245, 158, 11, 0.2); color: #f59e0b; border-color: rgba(245, 158, 11, 0.4); font-weight: 600;' : 'color: #f59e0b; border-color: rgba(245, 158, 11, 0.4);'}" onclick="window.MooncatApp.toggleDemoteInWizard(${wish.id})">
+                  ${isDemoted ? `✓ Demoted to Next Haul (Click to Restore)` : `⬇ Demote "${escapeHtml(wish.name)}" (Optional)`}
+                </button>
+                <span style="font-size: 0.8rem; color: var(--text-muted); align-self: center; margin-left: auto;">
+                  ${isDemoted ? 'Saved for your next order • stays safely on your wishlist' : 'Optional • keep if you love having both!'}
+                </span>
               </div>
             </div>
           `;
@@ -1648,7 +1664,7 @@
       if (hasTwinConflicts) {
         html += `
           <h3 style="color: #a855f7; font-size: 1.05rem; margin-top: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
-            👯 Sibling / Twin Shades in Your Wishlist (${wizardState.similaritiesTwins.length})
+            👯 Closest Sister / Twin Shades in Wishlist (${wizardState.similaritiesTwins.length})
           </h3>
           <div class="similarity-list">
         `;
@@ -1711,7 +1727,7 @@
       html += `
         <div class="wizard-footer-actions">
           <button class="btn-secondary" onclick="window.MooncatApp.closeDecisionWizard()">Cancel</button>
-          <button class="btn-primary" onclick="window.MooncatApp.goToWizardStep(2)">Proceed to Budget & Goals (Stage 2) →</button>
+          <button class="btn-primary" onclick="window.MooncatApp.goToWizardStep(2)">Proceed to Order Goals (Stage 2) →</button>
         </div>
       `;
     }
@@ -1734,24 +1750,33 @@
     mainTitle.textContent = "🎯 Stage 2: Budget & Bottle Goals";
     subTitle.textContent = "Set how many bottles you plan to order or your spending cap. Mooncat shades range from $14.00 (cremes) to $18.00 (magnetics/thermals), with free shipping on orders over $125 USD (typically ~8 bottles).";
 
-    const bottlePresets = [3, 5, 8, 10];
     const totalWish = wizardState.wishlistPool.length;
+
+    // Dynamic bottle presets adapted to the user's wishlist size
+    const presetCandidates = [3, 5, 8, 10];
+    const bottlePresets = [];
+    presetCandidates.forEach(p => {
+      if (p < totalWish) bottlePresets.push(p);
+    });
+    // Always include full wishlist count as a primary preset option
+    if (!bottlePresets.includes(totalWish)) {
+      bottlePresets.push(totalWish);
+    }
 
     let html = `
       <div class="wizard-form-box">
         <div class="wizard-field-group">
           <label>Target Bottle Count for this Order:</label>
           <div class="bottle-caps-row">
-            ${bottlePresets.map(num => `
-              <button class="btn-cap-select ${wizardState.targetBottleCount === num ? 'active' : ''}" onclick="window.MooncatApp.setWizardBottleCap(${num})">
-                ${num} Bottles (~$${num * 14}–$${num * 18}) ${num >= 8 ? '🚚 Free Ship' : ''}
-              </button>
-            `).join('')}
-            ${totalWish > 10 ? `
-              <button class="btn-cap-select ${wizardState.targetBottleCount === totalWish ? 'active' : ''}" onclick="window.MooncatApp.setWizardBottleCap(${totalWish})">
-                All ${totalWish} Bottles
-              </button>
-            ` : ''}
+            ${bottlePresets.map(num => {
+              const isAll = (num === totalWish);
+              const label = isAll ? `All ${num} Bottles (Full Wishlist)` : `${num} Bottles`;
+              return `
+                <button class="btn-cap-select ${wizardState.targetBottleCount === num ? 'active' : ''}" onclick="window.MooncatApp.setWizardBottleCap(${num})">
+                  ${label} (~$${num * 14}–$${num * 18}) ${num >= 8 ? '🚚 Free Ship' : ''}
+                </button>
+              `;
+            }).join('')}
           </div>
           <div class="wizard-hint" style="margin-top: 0.5rem;">
             ${wizardState.targetBottleCount >= 8 
