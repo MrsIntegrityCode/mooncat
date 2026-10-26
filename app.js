@@ -439,6 +439,9 @@
       if (catalogSortKey === 'owned') {
         valA = userData.inventory[a.id]?.qty || 0;
         valB = userData.inventory[b.id]?.qty || 0;
+      } else if (catalogSortKey === 'price') {
+        valA = parseFloat((a.price || '$0').replace(/[^0-9\.]/g, '')) || 0;
+        valB = parseFloat((b.price || '$0').replace(/[^0-9\.]/g, '')) || 0;
       } else {
         valA = (a[catalogSortKey] || '').toString().toLowerCase();
         valB = (b[catalogSortKey] || '').toString().toLowerCase();
@@ -538,6 +541,7 @@
         <td><span class="tag tag-finish">${escapeHtml(item.type)}</span></td>
         <td><span class="tag tag-color">${escapeHtml(item.color)}</span></td>
         <td class="table-desc-cell" title="${escapeHtml(item.description)}">${escapeHtml(item.description)}</td>
+        <td style="font-family: var(--font-mono); font-size: 0.88rem; font-weight: 600;">${escapeHtml(item.price)}</td>
         <td style="font-family: var(--font-mono); font-size: 0.8rem;">${escapeHtml(item.last_updated)}</td>
         <td>
           ${isOwned 
@@ -1566,7 +1570,7 @@
 
   function setWizardBottleCap(num) {
     wizardState.targetBottleCount = num;
-    wizardState.budgetCap = num * 15;
+    wizardState.budgetCap = num * 16;
     goToWizardStep(2);
   }
 
@@ -1577,7 +1581,7 @@
 
   function renderWizardStep2(container, mainTitle, subTitle) {
     mainTitle.textContent = "🎯 Stage 2: Budget & Bottle Goals";
-    subTitle.textContent = "Set how many bottles you plan to order or your spending cap. Mooncat provides free US shipping on orders over $55 (usually 4 bottles).";
+    subTitle.textContent = "Set how many bottles you plan to order or your spending cap. Mooncat shades range from $14.00 (cremes) to $18.00 (magnetics/thermals), with free US shipping on orders over $55.";
 
     const bottlePresets = [2, 3, 4, 6];
     const totalWish = wizardState.wishlistPool.length;
@@ -1589,7 +1593,7 @@
           <div class="bottle-caps-row">
             ${bottlePresets.map(num => `
               <button class="btn-cap-select ${wizardState.targetBottleCount === num ? 'active' : ''}" onclick="window.MooncatApp.setWizardBottleCap(${num})">
-                ${num} Bottles (~$${num * 15}) ${num >= 4 ? '🚚 Free Ship' : ''}
+                ${num} Bottles (~$${num * 14}–$${num * 18}) ${num >= 4 ? '🚚 Free Ship' : ''}
               </button>
             `).join('')}
             ${totalWish > 6 ? `
@@ -1601,7 +1605,7 @@
           <div class="wizard-hint" style="margin-top: 0.5rem;">
             ${wizardState.targetBottleCount >= 4 
               ? '🎉 <strong>Free US Shipping Target Met!</strong> (Orders $55+ qualify for free standard shipping)' 
-              : '💡 <em>Tip: Ordering 4 bottles ($60) qualifies for Mooncat Free US Shipping.</em>'}
+              : '💡 <em>Tip: Ordering 4 bottles (~$56–$72 depending on finishes) qualifies for Mooncat Free US Shipping.</em>'}
           </div>
         </div>
 

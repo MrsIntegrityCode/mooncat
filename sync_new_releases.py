@@ -118,6 +118,11 @@ def sync():
 
         variants = p.get('variants', [{}])
         price = variants[0].get('price', '')
+        if not price or price in ['0.00', '0']:
+            if "sheep's clothing" in title.lower():
+                price = "16.00"
+            else:
+                price = "15.00"
         available = variants[0].get('available', False)
 
         updated_raw = p.get('updated_at', '')
@@ -166,6 +171,9 @@ def sync():
             elif 'primer' in title.lower(): finishes_found.add('Primer')
             elif 'elixir' in title.lower() or 'oil' in title.lower(): finishes_found.add('Nail Care')
 
+        if is_set:
+            finishes_found.add('Set')
+
         type_str = ', '.join(sorted(list(finishes_found))) if finishes_found else ('Set' if is_set else 'Special Effect')
         color_str = ', '.join(sorted(list(colors_found))) if colors_found else ('Multi' if is_set else 'Special')
         is_discontinued = 'status:discontinued' in tags or 'collection:dearly-departed' in tags or 'status:no-restock' in tags
@@ -211,7 +219,7 @@ def sync():
     # Save mooncat_colors_catalog.csv
     with open('mooncat_colors_catalog.csv', 'w', encoding='utf-8', newline='') as f:
         writer = csv.writer(f)
-        writer.writerow(['Name', 'Type', 'Color(s)', 'Description', 'Last Updated', 'Owned? (Y/N)', 'On Hand Qty', 'Total Ordered', 'Is New?'])
+        writer.writerow(['Name', 'Type', 'Color(s)', 'Price', 'Description', 'Last Updated', 'Owned? (Y/N)', 'On Hand Qty', 'Total Ordered', 'Is New?'])
         for it in updated_catalog:
             cid = str(it['id'])
             entry = inventory.get(cid)
@@ -222,6 +230,7 @@ def sync():
                 it['name'],
                 it['type'],
                 it['color'],
+                it['price'],
                 it['description'],
                 it['last_updated'],
                 is_owned,
