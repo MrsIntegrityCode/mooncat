@@ -2112,3 +2112,63 @@ body {
   font-weight: 500;
 }
 
+/* --- "I Can't Decide" Showdown Arena Styles --- */
+.showdown-cant-decide-divider-wrap {
+  margin-top: 0.6rem;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.btn-cant-decide-split {
+  background: rgba(168, 85, 247, 0.15);
+  border: 1px solid rgba(168, 85, 247, 0.45);
+  border-radius: 10px;
+  padding: 0.55rem 0.85rem;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  transition: all 0.2s ease;
+  width: 100%;
+  max-width: 140px;
+}
+
+.btn-cant-decide-split:hover {
+  background: rgba(168, 85, 247, 0.3);
+  border-color: var(--accent-magenta);
+  transform: scale(1.04);
+  box-shadow: 0 0 15px rgba(236, 72, 153, 0.35);
+}
+
+.showdown-banner-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+.btn-cant-decide-banner {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.18), rgba(236, 72, 153, 0.18));
+  border: 1px dashed rgba(236, 72, 153, 0.6);
+  border-radius: 10px;
+  padding: 0.75rem 1.4rem;
+  color: #f5d0fe;
+  font-size: 0.92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-cant-decide-banner:hover {
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.35), rgba(236, 72, 153, 0.35));
+  border-color: #f472b6;
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(236, 72, 153, 0.25);
+}
+

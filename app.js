@@ -1363,6 +1363,7 @@
     itemTiers: {},
     showdownQueue: [],
     currentMatchIndex: 0,
+    undecidedPairs: [],
     curatedHaul: []
   };
 
@@ -1614,6 +1615,7 @@
     wizardState.targetBottleCount = wizardState.wishlistPool.length;
     wizardState.budgetCap = wizardState.targetBottleCount * 15;
     wizardState.itemTiers = {};
+    wizardState.undecidedPairs = [];
 
     wizardState.wishlistPool.forEach(it => {
       wizardState.itemTiers[it.id] = 'must';
@@ -2175,29 +2177,49 @@
     const mustItems = wizardState.wishlistPool.filter(it => wizardState.itemTiers[it.id] === 'must');
     const excessCount = mustItems.length - wizardState.targetBottleCount;
 
+    // If mustItems is already within the user's bottle target:
     if (mustItems.length <= wizardState.targetBottleCount) {
       wizardState.curatedHaul = mustItems;
       goToWizardStep(5);
       return;
     }
 
-    subTitle.textContent = `Choose your favorite in each head-to-head battle! Eliminate ${excessCount} more to hit your target of ${wizardState.targetBottleCount} bottle(s).`;
-
-    let match = wizardState.showdownQueue[wizardState.currentMatchIndex];
-    if (!match || match[0].id === match[1].id || wizardState.itemTiers[match[0].id] !== 'must' || wizardState.itemTiers[match[1].id] !== 'must') {
-      const rem = wizardState.wishlistPool.filter(it => wizardState.itemTiers[it.id] === 'must');
-      match = [rem[0], rem[1]];
+    // Advance currentMatchIndex past any matchups where one or both shades are no longer 'must' or are invalid
+    while (
+      wizardState.currentMatchIndex < wizardState.showdownQueue.length &&
+      (
+        !wizardState.showdownQueue[wizardState.currentMatchIndex] ||
+        wizardState.showdownQueue[wizardState.currentMatchIndex][0].id === wizardState.showdownQueue[wizardState.currentMatchIndex][1].id ||
+        wizardState.itemTiers[wizardState.showdownQueue[wizardState.currentMatchIndex][0].id] !== 'must' ||
+        wizardState.itemTiers[wizardState.showdownQueue[wizardState.currentMatchIndex][1].id] !== 'must'
+      )
+    ) {
+      wizardState.currentMatchIndex++;
     }
 
+    // If we've completed all scheduled showdowns in the queue:
+    // (This happens when user selects "I Can't Decide" on matchups, keeping extra bottles in their haul!)
+    if (wizardState.currentMatchIndex >= wizardState.showdownQueue.length) {
+      wizardState.curatedHaul = mustItems;
+      goToWizardStep(5);
+      return;
+    }
+
+    subTitle.textContent = `Choose your favorite in each head-to-head battle! Eliminate ${excessCount} more to hit your target of ${wizardState.targetBottleCount} bottle(s), or choose "I Can't Decide" to keep both.`;
+
+    const match = wizardState.showdownQueue[wizardState.currentMatchIndex];
     const [leftItem, rightItem] = match;
     const sim = calculateSimilarity(leftItem, rightItem);
     const leftRating = (userData.wishlistRatings && userData.wishlistRatings[leftItem.id]) || 0;
     const rightRating = (userData.wishlistRatings && userData.wishlistRatings[rightItem.id]) || 0;
 
     let html = `
-      <div style="text-align: center; margin-bottom: 0.5rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 8px;">
         <span style="font-size: 0.85rem; color: var(--accent-cyan); font-weight: 600;">
-          🥊 Matchup: ${leftItem.type} vs ${rightItem.type} (${sim.score}% similarity)
+          🥊 Matchup ${wizardState.currentMatchIndex + 1} of ${wizardState.showdownQueue.length}: ${escapeHtml(leftItem.type)} vs ${escapeHtml(rightItem.type)} (${sim.score}% similarity)
+        </span>
+        <span style="font-size: 0.8rem; color: var(--text-muted);">
+          Current Haul: <strong style="color: #fff;">${mustItems.length} bottles</strong> (Target: ${wizardState.targetBottleCount})
         </span>
       </div>
 
@@ -2227,6 +2249,13 @@
         <div class="showdown-vs-divider">
           <div class="vs-orb">VS</div>
           <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">THIS OR THAT</span>
+          <div class="showdown-cant-decide-divider-wrap">
+            <button class="btn-cant-decide-split" onclick="window.MooncatApp.cantDecideShowdown(${leftItem.id}, ${rightItem.id})" title="Can't choose? Keep both in your haul!">
+              <span style="font-size: 1.1rem;">🤷‍♀️</span>
+              <span style="font-weight: 700; font-size: 0.85rem;">I Can't Decide</span>
+              <span style="font-size: 0.72rem; color: var(--accent-magenta); font-weight: 600;">Keep Both! 💕</span>
+            </button>
+          </div>
         </div>
 
         <div class="showdown-card">
@@ -2252,11 +2281,18 @@
         </div>
       </div>
 
+      <div class="showdown-banner-actions">
+        <button class="btn-cant-decide-banner" onclick="window.MooncatApp.cantDecideShowdown(${leftItem.id}, ${rightItem.id})">
+          <span>🤷‍♀️</span>
+          <span>Can't decide between <strong>"${escapeHtml(leftItem.name)}"</strong> and <strong>"${escapeHtml(rightItem.name)}"</strong>? Click here to keep both in your haul!</span>
+        </button>
+      </div>
+
       <div class="wizard-footer-actions">
         <button class="btn-secondary" onclick="window.MooncatApp.goToWizardStep(3)">← Back to Priority Tiers</button>
-        <span style="font-size: 0.82rem; color: var(--text-dim);">
-          Clicking a winner keeps it in your cart and saves the other for your next haul!
-        </span>
+        <button class="btn-primary" onclick="window.MooncatApp.finishHaulWithCurrentMustItems()">
+          ✨ Finish & Keep All Current Choices (${mustItems.length} Bottles) →
+        </button>
       </div>
     `;
 
@@ -2272,6 +2308,29 @@
 
     wizardState.currentMatchIndex++;
     goToWizardStep(4);
+  }
+
+  function cantDecideShowdown(itemAId, itemBId) {
+    const itemA = catalog.find(i => i.id === itemAId);
+    const itemB = catalog.find(i => i.id === itemBId);
+
+    // Keep both items as 'must'
+    wizardState.itemTiers[itemAId] = 'must';
+    wizardState.itemTiers[itemBId] = 'must';
+
+    if (!wizardState.undecidedPairs) wizardState.undecidedPairs = [];
+    wizardState.undecidedPairs.push([itemAId, itemBId]);
+
+    showToast(`🤷‍♀️ Kept both "${itemA ? itemA.name : 'A'}" & "${itemB ? itemB.name : 'B'}" in your haul! 💕`);
+
+    wizardState.currentMatchIndex++;
+    goToWizardStep(4);
+  }
+
+  function finishHaulWithCurrentMustItems() {
+    const mustItems = wizardState.wishlistPool.filter(it => wizardState.itemTiers[it.id] === 'must');
+    wizardState.curatedHaul = mustItems;
+    goToWizardStep(5);
   }
 
   function renderWizardStep5(container, mainTitle, subTitle) {
@@ -2318,6 +2377,15 @@
           <div style="font-size: 0.85rem; color: #34d399; font-weight: 600; text-align: right;">
             🎨 ${uniqueFinishes.size} Formulas • ${uniqueColors.size} Color Families
           </div>
+
+          ${totalBottles > wizardState.targetBottleCount ? `
+            <div style="width: 100%; background: rgba(168, 85, 247, 0.15); border: 1px solid rgba(168, 85, 247, 0.35); border-radius: 8px; padding: 0.65rem 1rem; font-size: 0.85rem; color: #d8b4fe; display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 1.2rem;">💖</span>
+              <span>
+                <strong>Flexible Haul:</strong> Your initial goal was <strong>${wizardState.targetBottleCount} bottle(s)</strong>, but because you chose <em>"I Can't Decide"</em> on close favorites, your curated haul includes all <strong>${totalBottles} shades</strong>!
+              </span>
+            </div>
+          ` : ''}
         </div>
 
         <div>
@@ -2511,6 +2579,8 @@
     setWizardItemTier,
     advanceFromStage3,
     pickShowdownWinner,
+    cantDecideShowdown,
+    finishHaulWithCurrentMustItems,
     toggleDemoteInWizard,
     dropFromWishlistInWizard,
     markCuratedHaulPurchased,
