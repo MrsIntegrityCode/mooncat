@@ -1473,6 +1473,19 @@
     else if (step === 5) renderWizardStep5(container, mainTitle, subTitle);
   }
 
+  function toggleDemoteInWizard(id) {
+    const item = catalog.find(i => i.id === id);
+    const currentTier = wizardState.itemTiers[id] || 'must';
+    if (currentTier === 'next') {
+      wizardState.itemTiers[id] = 'must';
+      showToast(`⭐ Restored "${item ? item.name : 'Shade'}" to Must-Have!`);
+    } else {
+      wizardState.itemTiers[id] = 'next';
+      showToast(`⬇ Demoted "${item ? item.name : 'Shade'}" to Next Haul (still saved in your Wishlist!)`);
+    }
+    goToWizardStep(wizardState.currentStep);
+  }
+
   function dropFromWishlistInWizard(id) {
     const item = catalog.find(i => i.id === id);
     userData.wishlist = userData.wishlist.filter(wId => wId !== id);
@@ -1564,12 +1577,17 @@
               </div>
 
               <div class="similarity-actions">
-                <button class="btn-card-action" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.4);" onclick="window.MooncatApp.dropFromWishlistInWizard(${wish.id})">
-                  ✕ Drop "${escapeHtml(wish.name)}" from Wishlist
-                </button>
-                <span style="font-size: 0.8rem; color: #10b981; align-self: center; margin-left: auto;">
-                  Or keep both if you love variations of this shade!
-                </span>
+                ${(() => {
+                  const isDemoted = wizardState.itemTiers[wish.id] === 'next';
+                  return `
+                    <button class="btn-card-action" style="${isDemoted ? 'background: rgba(245, 158, 11, 0.2); color: #f59e0b; border-color: rgba(245, 158, 11, 0.4); font-weight: 600;' : 'color: #f59e0b; border-color: rgba(245, 158, 11, 0.4);'}" onclick="window.MooncatApp.toggleDemoteInWizard(${wish.id})">
+                      ${isDemoted ? `✓ Demoted to Next Haul (Click to Restore)` : `⬇ Demote "${escapeHtml(wish.name)}" to Next Haul`}
+                    </button>
+                    <span style="font-size: 0.8rem; color: var(--text-muted); align-self: center; margin-left: auto;">
+                      ${isDemoted ? 'Saved for your next order • stays safely on your wishlist' : 'Keeps on wishlist, but excludes from this haul'}
+                    </span>
+                  `;
+                })()}
               </div>
             </div>
           `;
@@ -1590,6 +1608,8 @@
           const itemA = pair.itemA;
           const itemB = pair.itemB;
           const sim = pair.sim;
+          const isADemoted = wizardState.itemTiers[itemA.id] === 'next';
+          const isBDemoted = wizardState.itemTiers[itemB.id] === 'next';
 
           html += `
             <div class="similarity-card">
@@ -1598,36 +1618,38 @@
                 <span style="font-size: 0.8rem; color: var(--text-muted);">${escapeHtml(sim.reasons.join(' • '))}</span>
               </div>
               <div class="similarity-pair-grid">
-                <div class="pair-item">
+                <div class="pair-item" style="${isADemoted ? 'opacity: 0.6;' : ''}">
                   <img class="pair-thumb" src="${escapeHtml(itemA.image_url)}" alt="${escapeHtml(itemA.name)}">
                   <div class="pair-info">
                     <span class="pair-tag-wishlist">Wishlist Option A</span>
                     <span class="pair-name" title="${escapeHtml(itemA.name)}">${escapeHtml(itemA.name)}</span>
                     <span class="pair-meta">${escapeHtml(itemA.type)} • ${escapeHtml(itemA.color)}</span>
+                    ${isADemoted ? '<span style="font-size: 0.72rem; color: #f59e0b; font-weight: 600;">⏳ Demoted to Next Haul</span>' : ''}
                   </div>
                 </div>
 
                 <div class="pair-vs">VS</div>
 
-                <div class="pair-item">
+                <div class="pair-item" style="${isBDemoted ? 'opacity: 0.6;' : ''}">
                   <img class="pair-thumb" src="${escapeHtml(itemB.image_url)}" alt="${escapeHtml(itemB.name)}">
                   <div class="pair-info">
                     <span class="pair-tag-wishlist">Wishlist Option B</span>
                     <span class="pair-name" title="${escapeHtml(itemB.name)}">${escapeHtml(itemB.name)}</span>
                     <span class="pair-meta">${escapeHtml(itemB.type)} • ${escapeHtml(itemB.color)}</span>
+                    ${isBDemoted ? '<span style="font-size: 0.72rem; color: #f59e0b; font-weight: 600;">⏳ Demoted to Next Haul</span>' : ''}
                   </div>
                 </div>
               </div>
 
               <div class="similarity-actions">
-                <button class="btn-card-action" onclick="window.MooncatApp.dropFromWishlistInWizard(${itemA.id})">
-                  Drop ${escapeHtml(itemA.name)}
+                <button class="btn-card-action" style="${isADemoted ? 'background: rgba(245, 158, 11, 0.2); color: #f59e0b; border-color: rgba(245, 158, 11, 0.4);' : ''}" onclick="window.MooncatApp.toggleDemoteInWizard(${itemA.id})">
+                  ${isADemoted ? `✓ Demoted ${escapeHtml(itemA.name)}` : `⬇ Demote ${escapeHtml(itemA.name)}`}
                 </button>
-                <button class="btn-card-action" onclick="window.MooncatApp.dropFromWishlistInWizard(${itemB.id})">
-                  Drop ${escapeHtml(itemB.name)}
+                <button class="btn-card-action" style="${isBDemoted ? 'background: rgba(245, 158, 11, 0.2); color: #f59e0b; border-color: rgba(245, 158, 11, 0.4);' : ''}" onclick="window.MooncatApp.toggleDemoteInWizard(${itemB.id})">
+                  ${isBDemoted ? `✓ Demoted ${escapeHtml(itemB.name)}` : `⬇ Demote ${escapeHtml(itemB.name)}`}
                 </button>
                 <span style="font-size: 0.8rem; color: var(--accent-cyan); align-self: center; margin-left: auto;">
-                  ⚔️ Compare head-to-head in Stage 4!
+                  ${(!isADemoted && !isBDemoted) ? '⚔️ Or battle head-to-head in Stage 4!' : 'Saved for next haul • stays on wishlist!'}
                 </span>
               </div>
             </div>
@@ -2054,6 +2076,39 @@
             `).join('')}
           </div>
         </div>
+
+        ${(() => {
+          const demotedShades = wizardState.wishlistPool.filter(it => wizardState.itemTiers[it.id] === 'next' || wizardState.itemTiers[it.id] === 'skip');
+          if (demotedShades.length === 0) return '';
+          return `
+            <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px dashed rgba(255, 255, 255, 0.15);">
+              <h4 style="font-size: 0.95rem; color: #f59e0b; margin-bottom: 0.35rem; display: flex; align-items: center; gap: 0.5rem;">
+                ⏳ Demoted & Saved for Next Haul (${demotedShades.length}):
+              </h4>
+              <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+                These shades were demoted during your decision process, but remain safely on your Mooncat Wishlist for future orders.
+              </p>
+              <div class="haul-grid">
+                ${demotedShades.map(item => `
+                  <div class="haul-item-card" style="opacity: 0.8; border-color: rgba(245, 158, 11, 0.3);">
+                    <img class="haul-item-thumb" src="${escapeHtml(item.image_url)}" alt="${escapeHtml(item.name)}">
+                    <div class="haul-item-info">
+                      <div style="font-weight: 700; font-size: 0.88rem; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        ${escapeHtml(item.name)}
+                      </div>
+                      <div style="font-size: 0.72rem; color: var(--text-muted);">
+                        ${escapeHtml(item.type)}
+                      </div>
+                      <div style="font-size: 0.72rem; color: #f59e0b; font-weight: 600;">
+                        Saved on Wishlist
+                      </div>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `;
+        })()}
       </div>
 
       <div class="wizard-footer-actions">
@@ -2183,6 +2238,7 @@
     setWizardItemTier,
     advanceFromStage3,
     pickShowdownWinner,
+    toggleDemoteInWizard,
     dropFromWishlistInWizard,
     markCuratedHaulPurchased,
     copyCuratedHaulNames,
