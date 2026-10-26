@@ -226,6 +226,9 @@
           <p class="section-desc">Keep track of dreamy shades to buy next. <em>Rule: You cannot add colors you already own. When purchased, shades automatically move to your inventory and remove from your wishlist.</em></p>
         </div>
         <div class="banner-buttons">
+          <button id="btn-start-decision-wizard" class="btn-primary" style="background: linear-gradient(135deg, #a855f7, #ec4899); border: none; font-weight: 600;" title="Launch Wishlist Haul Decision Studio">
+            ✨ Haul Decision Wizard
+          </button>
           <button id="btn-export-wishlist-csv" class="btn-secondary">
             ⬇ Export Wishlist CSV
           </button>
@@ -482,6 +485,31 @@ Speed Demon Top Coat"></textarea>
           <div><span class="badge badge-owned" style="display:inline-block;">Owned: 1</span> You have this polish in your personal collection.</div>
           <div><span class="badge badge-wishlist" style="display:inline-block;">Wishlist</span> You've marked this unowned shade to buy next.</div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wishlist Haul Decision Wizard Modal -->
+  <div id="decision-wizard-modal" class="modal-backdrop hidden">
+    <div class="modal-card wizard-card">
+      <button class="modal-close" id="wizard-close-btn">&times;</button>
+      
+      <div class="wizard-header">
+        <span class="wizard-badge">✨ WISHLIST DECISION STUDIO</span>
+        <h2 id="wizard-main-title">Curate Your Next Mooncat Haul</h2>
+        <p class="wizard-subtitle" id="wizard-step-subtitle">Step-by-step decision assistant to eliminate duplicates, set budgets, and pick your perfect shades.</p>
+        
+        <div class="wizard-stepper" id="wizard-stepper">
+          <div class="step-pill active" data-step="1">1. Similarity Check</div>
+          <div class="step-pill" data-step="2">2. Budget & Goals</div>
+          <div class="step-pill" data-step="3">3. Priorities & Vibe</div>
+          <div class="step-pill" data-step="4">4. This or That</div>
+          <div class="step-pill" data-step="5">5. Curated Haul</div>
+        </div>
+      </div>
+
+      <div id="wizard-step-content" class="wizard-body">
+        <!-- Rendered dynamically -->
       </div>
     </div>
   </div>

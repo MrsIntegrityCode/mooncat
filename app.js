@@ -319,6 +319,18 @@
     document.getElementById('btn-export-orders-csv').addEventListener('click', exportOrdersCSV);
     document.getElementById('btn-export-wishlist-csv').addEventListener('click', exportWishlistCSV);
 
+    // Wishlist Decision Studio
+    const wizardBtn = document.getElementById('btn-start-decision-wizard');
+    if (wizardBtn) wizardBtn.addEventListener('click', openDecisionWizard);
+    const wizardCloseBtn = document.getElementById('wizard-close-btn');
+    if (wizardCloseBtn) wizardCloseBtn.addEventListener('click', closeDecisionWizard);
+    const wizardModal = document.getElementById('decision-wizard-modal');
+    if (wizardModal) {
+      wizardModal.addEventListener('click', (e) => {
+        if (e.target.id === 'decision-wizard-modal') closeDecisionWizard();
+      });
+    }
+
     // Live New Releases Sync
     const syncBtn = document.getElementById('btn-sync-new-releases');
     if (syncBtn) {
@@ -1232,6 +1244,765 @@
     }
   }
 
+  // ==========================================================================
+  // Wishlist Haul Decision Studio (5-Stage Decision Workflow)
+  // ==========================================================================
+
+  let wizardState = {
+    currentStep: 1,
+    wishlistPool: [],
+    ownedPool: [],
+    similaritiesOwned: [],
+    similaritiesTwins: [],
+    targetBottleCount: 4,
+    budgetCap: 60,
+    prioritizeDeparted: true,
+    prioritizeNew: false,
+    itemTiers: {},
+    showdownQueue: [],
+    currentMatchIndex: 0,
+    curatedHaul: []
+  };
+
+  function calculateSimilarity(itemA, itemB) {
+    if (!itemA || !itemB || itemA.id === itemB.id) return { score: 0, reasons: [] };
+
+    const colorsA = (itemA.color || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+    const colorsB = (itemB.color || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+
+    const typesA = (itemA.type || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+    const typesB = (itemB.type || '').split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+
+    const colorInter = colorsA.filter(c => colorsB.includes(c));
+    const colorUnion = Array.from(new Set([...colorsA, ...colorsB]));
+    const colorScore = colorUnion.length ? (colorInter.length / colorUnion.length) : 0;
+
+    const typeInter = typesA.filter(t => typesB.includes(t));
+    const typeUnion = Array.from(new Set([...typesA, ...typesB]));
+    const typeScore = typeUnion.length ? (typeInter.length / typeUnion.length) : 0;
+
+    const keywords = [
+      'magnetic', 'flakie', 'shimmer', 'reflective', 'iridescent', 
+      'cat eye', 'velvet', 'holographic', 'holo', 'multichrome', 
+      'jelly', 'glitter', 'matte', 'gold', 'silver', 'emerald', 
+      'copper', 'neon', 'pastel', 'vampy', 'pearl'
+    ];
+    const descA = (itemA.description || '').toLowerCase();
+    const descB = (itemB.description || '').toLowerCase();
+    const descMatches = keywords.filter(k => descA.includes(k) && descB.includes(k));
+    const descScore = Math.min(1, descMatches.length / 3);
+
+    let totalScore = Math.round((colorScore * 0.45 + typeScore * 0.40 + descScore * 0.15) * 100);
+
+    if (colorInter.length > 0 && typeInter.length > 0) {
+      totalScore = Math.max(totalScore, 75);
+    }
+
+    const reasons = [];
+    if (colorInter.length > 0) reasons.push(`Shared palette: ${colorInter.join(', ')}`);
+    if (typeInter.length > 0) reasons.push(`Matching finish: ${typeInter.join(', ')}`);
+    if (descMatches.length > 0) reasons.push(`Similar effects: ${descMatches.slice(0, 2).join(', ')}`);
+
+    return {
+      score: totalScore,
+      reasons,
+      sharedColors: colorInter,
+      sharedTypes: typeInter
+    };
+  }
+
+  function detectAllSimilarities() {
+    wizardState.similaritiesOwned = [];
+    wizardState.similaritiesTwins = [];
+
+    wizardState.wishlistPool.forEach(wishItem => {
+      wizardState.ownedPool.forEach(ownedItem => {
+        const sim = calculateSimilarity(ownedItem, wishItem);
+        if (sim.score >= 60) {
+          wizardState.similaritiesOwned.push({ ownedItem, wishItem, sim });
+        }
+      });
+    });
+
+    for (let i = 0; i < wizardState.wishlistPool.length; i++) {
+      for (let j = i + 1; j < wizardState.wishlistPool.length; j++) {
+        const itemA = wizardState.wishlistPool[i];
+        const itemB = wizardState.wishlistPool[j];
+        const sim = calculateSimilarity(itemA, itemB);
+        if (sim.score >= 60) {
+          wizardState.similaritiesTwins.push({ itemA, itemB, sim });
+        }
+      }
+    }
+
+    wizardState.similaritiesOwned.sort((a, b) => b.sim.score - a.sim.score);
+    wizardState.similaritiesTwins.sort((a, b) => b.sim.score - a.sim.score);
+  }
+
+  function openDecisionWizard() {
+    if (!requireAuth("use the Wishlist Decision Wizard")) return;
+
+    if (userData.wishlist.length < 2) {
+      alert(`You currently have ${userData.wishlist.length} shade(s) in your wishlist.\n\nPlease add at least 2 shades to your wishlist from the Main Catalog to use the Haul Decision Studio!`);
+      return;
+    }
+
+    wizardState.wishlistPool = catalog.filter(i => userData.wishlist.includes(i.id));
+    wizardState.ownedPool = catalog.filter(i => (userData.inventory[i.id]?.qty || 0) > 0);
+    wizardState.targetBottleCount = Math.min(4, wizardState.wishlistPool.length);
+    wizardState.budgetCap = wizardState.targetBottleCount * 15;
+    wizardState.itemTiers = {};
+
+    wizardState.wishlistPool.forEach(it => {
+      wizardState.itemTiers[it.id] = 'must';
+    });
+
+    detectAllSimilarities();
+    goToWizardStep(1);
+    document.getElementById('decision-wizard-modal').classList.remove('hidden');
+  }
+
+  function closeDecisionWizard() {
+    document.getElementById('decision-wizard-modal').classList.add('hidden');
+  }
+
+  function updateWizardStepper(step) {
+    wizardState.currentStep = step;
+    document.querySelectorAll('#wizard-stepper .step-pill').forEach(pill => {
+      const pStep = parseInt(pill.getAttribute('data-step'), 10);
+      pill.classList.remove('active', 'completed');
+      if (pStep === step) pill.classList.add('active');
+      else if (pStep < step) pill.classList.add('completed');
+    });
+  }
+
+  function goToWizardStep(step) {
+    updateWizardStepper(step);
+    const container = document.getElementById('wizard-step-content');
+    const mainTitle = document.getElementById('wizard-main-title');
+    const subTitle = document.getElementById('wizard-step-subtitle');
+
+    if (step === 1) renderWizardStep1(container, mainTitle, subTitle);
+    else if (step === 2) renderWizardStep2(container, mainTitle, subTitle);
+    else if (step === 3) renderWizardStep3(container, mainTitle, subTitle);
+    else if (step === 4) renderWizardStep4(container, mainTitle, subTitle);
+    else if (step === 5) renderWizardStep5(container, mainTitle, subTitle);
+  }
+
+  function dropFromWishlistInWizard(id) {
+    const item = catalog.find(i => i.id === id);
+    userData.wishlist = userData.wishlist.filter(wId => wId !== id);
+    saveUserData();
+    renderWishlist();
+
+    wizardState.wishlistPool = wizardState.wishlistPool.filter(i => i.id !== id);
+    delete wizardState.itemTiers[id];
+    detectAllSimilarities();
+
+    showToast(`Removed "${item ? item.name : 'Shade'}" from Wishlist`);
+
+    if (wizardState.wishlistPool.length < 2) {
+      alert("You now have fewer than 2 items in your wishlist. Closing wizard.");
+      closeDecisionWizard();
+      return;
+    }
+
+    goToWizardStep(wizardState.currentStep);
+  }
+
+  function renderWizardStep1(container, mainTitle, subTitle) {
+    mainTitle.textContent = "🔍 Stage 1: Similarity & Duplicates Detector";
+    subTitle.textContent = "Evaluating your wishlist against colors you already own and detecting similar shades so you avoid buying accidental dupes.";
+
+    let html = '';
+    const hasOwnedConflicts = wizardState.similaritiesOwned.length > 0;
+    const hasTwinConflicts = wizardState.similaritiesTwins.length > 0;
+
+    if (!hasOwnedConflicts && !hasTwinConflicts) {
+      html += `
+        <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 12px; padding: 2rem; text-align: center; margin-top: 1rem;">
+          <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">✨</div>
+          <h3 style="color: #34d399; margin-bottom: 0.5rem;">All Wishlist Shades Are Distinct!</h3>
+          <p style="color: var(--text-muted); font-size: 0.9rem; max-width: 500px; margin: 0 auto 1.5rem auto;">
+            We compared your wishlist against your ${wizardState.ownedPool.length} owned lacquers and each other. No overlapping formulas or similar twins were found!
+          </p>
+          <button class="btn-primary" onclick="window.MooncatApp.goToWizardStep(2)">Proceed to Budget & Goals (Stage 2) →</button>
+        </div>
+      `;
+    } else {
+      html += `
+        <div style="margin-top: 0.5rem;">
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem;">
+            We found <strong>${wizardState.similaritiesOwned.length}</strong> shade(s) similar to what you already own, and <strong>${wizardState.similaritiesTwins.length}</strong> twin pair(s) inside your wishlist. Review them below:
+          </p>
+        </div>
+      `;
+
+      if (hasOwnedConflicts) {
+        html += `
+          <h3 style="color: #f472b6; font-size: 1.05rem; margin-top: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+            ⚠️ Similar to Colors You Already Own (${wizardState.similaritiesOwned.length})
+          </h3>
+          <div class="similarity-list">
+        `;
+
+        wizardState.similaritiesOwned.forEach(pair => {
+          const owned = pair.ownedItem;
+          const wish = pair.wishItem;
+          const sim = pair.sim;
+
+          html += `
+            <div class="similarity-card high-match">
+              <div class="similarity-header">
+                <span class="similarity-score-badge">${sim.score}% Similarity Match</span>
+                <span style="font-size: 0.8rem; color: var(--text-muted);">${escapeHtml(sim.reasons.join(' • '))}</span>
+              </div>
+              <div class="similarity-pair-grid">
+                <div class="pair-item">
+                  <img class="pair-thumb" src="${escapeHtml(owned.image_url)}" alt="${escapeHtml(owned.name)}">
+                  <div class="pair-info">
+                    <span class="pair-tag-owned">✓ You Already Own</span>
+                    <span class="pair-name" title="${escapeHtml(owned.name)}">${escapeHtml(owned.name)}</span>
+                    <span class="pair-meta">${escapeHtml(owned.type)} • ${escapeHtml(owned.color)}</span>
+                  </div>
+                </div>
+
+                <div class="pair-vs">VS</div>
+
+                <div class="pair-item">
+                  <img class="pair-thumb" src="${escapeHtml(wish.image_url)}" alt="${escapeHtml(wish.name)}">
+                  <div class="pair-info">
+                    <span class="pair-tag-wishlist">💫 In Your Wishlist</span>
+                    <span class="pair-name" title="${escapeHtml(wish.name)}">${escapeHtml(wish.name)}</span>
+                    <span class="pair-meta">${escapeHtml(wish.type)} • ${escapeHtml(wish.color)}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="similarity-actions">
+                <button class="btn-card-action" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.4);" onclick="window.MooncatApp.dropFromWishlistInWizard(${wish.id})">
+                  ✕ Drop "${escapeHtml(wish.name)}" from Wishlist
+                </button>
+                <span style="font-size: 0.8rem; color: #10b981; align-self: center; margin-left: auto;">
+                  Or keep both if you love variations of this shade!
+                </span>
+              </div>
+            </div>
+          `;
+        });
+
+        html += `</div>`;
+      }
+
+      if (hasTwinConflicts) {
+        html += `
+          <h3 style="color: #a855f7; font-size: 1.05rem; margin-top: 1.5rem; display: flex; align-items: center; gap: 0.5rem;">
+            👯 Sibling / Twin Shades in Your Wishlist (${wizardState.similaritiesTwins.length})
+          </h3>
+          <div class="similarity-list">
+        `;
+
+        wizardState.similaritiesTwins.forEach(pair => {
+          const itemA = pair.itemA;
+          const itemB = pair.itemB;
+          const sim = pair.sim;
+
+          html += `
+            <div class="similarity-card">
+              <div class="similarity-header">
+                <span class="similarity-score-badge" style="background: rgba(168, 85, 247, 0.2); color: #c084fc; border-color: rgba(168, 85, 247, 0.4);">${sim.score}% Sibling Match</span>
+                <span style="font-size: 0.8rem; color: var(--text-muted);">${escapeHtml(sim.reasons.join(' • '))}</span>
+              </div>
+              <div class="similarity-pair-grid">
+                <div class="pair-item">
+                  <img class="pair-thumb" src="${escapeHtml(itemA.image_url)}" alt="${escapeHtml(itemA.name)}">
+                  <div class="pair-info">
+                    <span class="pair-tag-wishlist">Wishlist Option A</span>
+                    <span class="pair-name" title="${escapeHtml(itemA.name)}">${escapeHtml(itemA.name)}</span>
+                    <span class="pair-meta">${escapeHtml(itemA.type)} • ${escapeHtml(itemA.color)}</span>
+                  </div>
+                </div>
+
+                <div class="pair-vs">VS</div>
+
+                <div class="pair-item">
+                  <img class="pair-thumb" src="${escapeHtml(itemB.image_url)}" alt="${escapeHtml(itemB.name)}">
+                  <div class="pair-info">
+                    <span class="pair-tag-wishlist">Wishlist Option B</span>
+                    <span class="pair-name" title="${escapeHtml(itemB.name)}">${escapeHtml(itemB.name)}</span>
+                    <span class="pair-meta">${escapeHtml(itemB.type)} • ${escapeHtml(itemB.color)}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="similarity-actions">
+                <button class="btn-card-action" onclick="window.MooncatApp.dropFromWishlistInWizard(${itemA.id})">
+                  Drop ${escapeHtml(itemA.name)}
+                </button>
+                <button class="btn-card-action" onclick="window.MooncatApp.dropFromWishlistInWizard(${itemB.id})">
+                  Drop ${escapeHtml(itemB.name)}
+                </button>
+                <span style="font-size: 0.8rem; color: var(--accent-cyan); align-self: center; margin-left: auto;">
+                  ⚔️ Compare head-to-head in Stage 4!
+                </span>
+              </div>
+            </div>
+          `;
+        });
+
+        html += `</div>`;
+      }
+
+      html += `
+        <div class="wizard-footer-actions">
+          <button class="btn-secondary" onclick="window.MooncatApp.closeDecisionWizard()">Cancel</button>
+          <button class="btn-primary" onclick="window.MooncatApp.goToWizardStep(2)">Proceed to Budget & Goals (Stage 2) →</button>
+        </div>
+      `;
+    }
+
+    container.innerHTML = html;
+  }
+
+  function setWizardBottleCap(num) {
+    wizardState.targetBottleCount = num;
+    wizardState.budgetCap = num * 15;
+    goToWizardStep(2);
+  }
+
+  function toggleWizardRule(rule, val) {
+    if (rule === 'departed') wizardState.prioritizeDeparted = val;
+    if (rule === 'new') wizardState.prioritizeNew = val;
+  }
+
+  function renderWizardStep2(container, mainTitle, subTitle) {
+    mainTitle.textContent = "🎯 Stage 2: Budget & Bottle Goals";
+    subTitle.textContent = "Set how many bottles you plan to order or your spending cap. Mooncat provides free US shipping on orders over $55 (usually 4 bottles).";
+
+    const bottlePresets = [2, 3, 4, 6];
+    const totalWish = wizardState.wishlistPool.length;
+
+    let html = `
+      <div class="wizard-form-box">
+        <div class="wizard-field-group">
+          <label>Target Bottle Count for this Order:</label>
+          <div class="bottle-caps-row">
+            ${bottlePresets.map(num => `
+              <button class="btn-cap-select ${wizardState.targetBottleCount === num ? 'active' : ''}" onclick="window.MooncatApp.setWizardBottleCap(${num})">
+                ${num} Bottles (~$${num * 15}) ${num >= 4 ? '🚚 Free Ship' : ''}
+              </button>
+            `).join('')}
+            ${totalWish > 6 ? `
+              <button class="btn-cap-select ${wizardState.targetBottleCount === totalWish ? 'active' : ''}" onclick="window.MooncatApp.setWizardBottleCap(${totalWish})">
+                All ${totalWish} Bottles
+              </button>
+            ` : ''}
+          </div>
+          <div class="wizard-hint" style="margin-top: 0.5rem;">
+            ${wizardState.targetBottleCount >= 4 
+              ? '🎉 <strong>Free US Shipping Target Met!</strong> (Orders $55+ qualify for free standard shipping)' 
+              : '💡 <em>Tip: Ordering 4 bottles ($60) qualifies for Mooncat Free US Shipping.</em>'}
+          </div>
+        </div>
+
+        <div class="wizard-field-group" style="margin-top: 1rem;">
+          <label>Automated Priority Rules:</label>
+          <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal; font-size: 0.88rem; cursor: pointer;">
+            <input type="checkbox" id="wizard-rule-departed" ${wizardState.prioritizeDeparted ? 'checked' : ''} onchange="window.MooncatApp.toggleWizardRule('departed', this.checked)">
+            <span>⚰️ <strong>Prioritize Dearly Departed shades</strong> (Give highest priority to retired shades that will never restock)</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal; font-size: 0.88rem; cursor: pointer; margin-top: 0.35rem;">
+            <input type="checkbox" id="wizard-rule-new" ${wizardState.prioritizeNew ? 'checked' : ''} onchange="window.MooncatApp.toggleWizardRule('new', this.checked)">
+            <span>✨ <strong>Prioritize Brand New Releases</strong> (Prioritize fresh drops from the latest collection)</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="wizard-footer-actions">
+        <button class="btn-secondary" onclick="window.MooncatApp.goToWizardStep(1)">← Back to Similarity</button>
+        <button class="btn-primary" onclick="window.MooncatApp.goToWizardStep(3)">Proceed to Priority Tiers (Stage 3) →</button>
+      </div>
+    `;
+
+    container.innerHTML = html;
+  }
+
+  function setWizardItemTier(id, tier) {
+    wizardState.itemTiers[id] = tier;
+    goToWizardStep(3);
+  }
+
+  function renderWizardStep3(container, mainTitle, subTitle) {
+    mainTitle.textContent = "🏷️ Stage 3: Priority Tiers & Finish Variety";
+    subTitle.textContent = `Sort your shades into Must-Have vs Next Haul. Target: ${wizardState.targetBottleCount} bottle(s).`;
+
+    if (wizardState.prioritizeDeparted) {
+      wizardState.wishlistPool.forEach(it => {
+        if (it.status === 'Dearly Departed') wizardState.itemTiers[it.id] = 'must';
+      });
+    }
+    if (wizardState.prioritizeNew) {
+      wizardState.wishlistPool.forEach(it => {
+        if (it.is_new) wizardState.itemTiers[it.id] = 'must';
+      });
+    }
+
+    const mustCount = Object.values(wizardState.itemTiers).filter(t => t === 'must').length;
+    const mustItems = wizardState.wishlistPool.filter(it => wizardState.itemTiers[it.id] === 'must');
+
+    const finishCounts = {};
+    const colorCounts = {};
+    mustItems.forEach(it => {
+      (it.type || '').split(',').forEach(f => {
+        const tr = f.trim();
+        if (tr) finishCounts[tr] = (finishCounts[tr] || 0) + 1;
+      });
+      (it.color || '').split(',').forEach(c => {
+        const cr = c.trim();
+        if (cr) colorCounts[cr] = (colorCounts[cr] || 0) + 1;
+      });
+    });
+
+    let html = `
+      <div class="variety-meter-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+          <span style="font-size: 0.95rem; font-weight: 700; color: #fff;">
+            Must-Have Selected: <span style="color: ${mustCount > wizardState.targetBottleCount ? '#f472b6' : '#34d399'}">${mustCount}</span> / Target ${wizardState.targetBottleCount} Bottles
+          </span>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">
+            ${mustCount > wizardState.targetBottleCount 
+              ? `⚡ ${mustCount - wizardState.targetBottleCount} extra shade(s) will compete in Stage 4 Showdowns!` 
+              : (mustCount === wizardState.targetBottleCount ? '🎯 Perfect bottle target match!' : `Pick ${wizardState.targetBottleCount - mustCount} more Must-Haves.`)}
+          </span>
+        </div>
+
+        <div style="margin-top: 0.5rem;">
+          <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.35rem; text-transform: uppercase; letter-spacing: 0.05em;">Formula Variety in Cart:</div>
+          <div class="variety-tags-row">
+            ${Object.keys(finishCounts).length ? Object.entries(finishCounts).map(([fin, cnt]) => `
+              <span class="tag tag-finish" style="font-size: 0.75rem;">${escapeHtml(fin)} (${cnt})</span>
+            `).join('') : '<span style="font-size: 0.75rem; color: var(--text-dim);">No finishes selected yet</span>'}
+          </div>
+        </div>
+      </div>
+
+      <div class="priority-items-grid">
+        ${wizardState.wishlistPool.map(item => {
+          const tier = wizardState.itemTiers[item.id] || 'must';
+          return `
+            <div class="priority-card">
+              <div class="priority-card-top">
+                <img class="priority-thumb" src="${escapeHtml(item.image_url)}" alt="${escapeHtml(item.name)}">
+                <div style="min-width: 0; flex: 1;">
+                  <div style="font-weight: 700; font-size: 0.9rem; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    ${escapeHtml(item.name)}
+                  </div>
+                  <div style="font-size: 0.75rem; color: var(--text-muted);">
+                    ${escapeHtml(item.type)} • ${escapeHtml(item.color)}
+                  </div>
+                  <div style="font-size: 0.75rem; margin-top: 2px;">
+                    ${item.status === 'Dearly Departed' ? '<span class="badge-stock departed" style="font-size: 0.65rem; padding: 1px 5px; position: static;">⚰️ Retiring</span>' : ''}
+                    ${item.is_new ? '<span class="badge badge-new" style="font-size: 0.65rem; padding: 1px 5px;">✨ NEW</span>' : ''}
+                    <span style="color: var(--text-dim); font-family: var(--font-mono);">${escapeHtml(item.price)}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="priority-btn-group">
+                <button class="btn-tier ${tier === 'must' ? 'active-must' : ''}" onclick="window.MooncatApp.setWizardItemTier(${item.id}, 'must')">
+                  🔥 Must Have
+                </button>
+                <button class="btn-tier ${tier === 'next' ? 'active-next' : ''}" onclick="window.MooncatApp.setWizardItemTier(${item.id}, 'next')">
+                  ⏳ Next Haul
+                </button>
+                <button class="btn-tier ${tier === 'skip' ? 'active-skip' : ''}" onclick="window.MooncatApp.setWizardItemTier(${item.id}, 'skip')">
+                  ❄️ Skip
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+
+      <div class="wizard-footer-actions">
+        <button class="btn-secondary" onclick="window.MooncatApp.goToWizardStep(2)">← Back to Budget</button>
+        <button class="btn-primary" onclick="window.MooncatApp.advanceFromStage3()">
+          ${mustCount > wizardState.targetBottleCount 
+            ? `Start "This or That" Showdown (${mustCount} competing for ${wizardState.targetBottleCount}) →` 
+            : `Finalize Haul (${mustCount} Bottles) →`}
+        </button>
+      </div>
+    `;
+
+    container.innerHTML = html;
+  }
+
+  function advanceFromStage3() {
+    const mustItems = wizardState.wishlistPool.filter(it => wizardState.itemTiers[it.id] === 'must');
+    
+    if (mustItems.length === 0) {
+      alert("Please select at least 1 shade as 'Must Have' before continuing!");
+      return;
+    }
+
+    if (mustItems.length <= wizardState.targetBottleCount) {
+      wizardState.curatedHaul = mustItems;
+      goToWizardStep(5);
+    } else {
+      setupShowdowns(mustItems);
+      goToWizardStep(4);
+    }
+  }
+
+  function setupShowdowns(mustItems) {
+    wizardState.showdownQueue = [];
+    const pool = [...mustItems];
+
+    wizardState.similaritiesTwins.forEach(pair => {
+      const inPoolA = pool.find(p => p.id === pair.itemA.id);
+      const inPoolB = pool.find(p => p.id === pair.itemB.id);
+      if (inPoolA && inPoolB) {
+        wizardState.showdownQueue.push([inPoolA, inPoolB]);
+      }
+    });
+
+    for (let i = 0; i < pool.length; i += 2) {
+      if (i + 1 < pool.length) {
+        const a = pool[i];
+        const b = pool[i + 1];
+        const alreadyQueued = wizardState.showdownQueue.some(([x, y]) => (x.id === a.id && y.id === b.id) || (x.id === b.id && y.id === a.id));
+        if (!alreadyQueued) {
+          wizardState.showdownQueue.push([a, b]);
+        }
+      }
+    }
+
+    wizardState.currentMatchIndex = 0;
+  }
+
+  function renderWizardStep4(container, mainTitle, subTitle) {
+    mainTitle.textContent = "⚔️ Stage 4: Head-to-Head Showdowns";
+    
+    const mustItems = wizardState.wishlistPool.filter(it => wizardState.itemTiers[it.id] === 'must');
+    const excessCount = mustItems.length - wizardState.targetBottleCount;
+
+    if (mustItems.length <= wizardState.targetBottleCount) {
+      wizardState.curatedHaul = mustItems;
+      goToWizardStep(5);
+      return;
+    }
+
+    subTitle.textContent = `Choose your favorite in each head-to-head battle! Eliminate ${excessCount} more to hit your target of ${wizardState.targetBottleCount} bottle(s).`;
+
+    let match = wizardState.showdownQueue[wizardState.currentMatchIndex];
+    if (!match || match[0].id === match[1].id || wizardState.itemTiers[match[0].id] !== 'must' || wizardState.itemTiers[match[1].id] !== 'must') {
+      const rem = wizardState.wishlistPool.filter(it => wizardState.itemTiers[it.id] === 'must');
+      match = [rem[0], rem[1]];
+    }
+
+    const [leftItem, rightItem] = match;
+    const sim = calculateSimilarity(leftItem, rightItem);
+
+    let html = `
+      <div style="text-align: center; margin-bottom: 0.5rem;">
+        <span style="font-size: 0.85rem; color: var(--accent-cyan); font-weight: 600;">
+          🥊 Matchup: ${leftItem.type} vs ${rightItem.type} (${sim.score}% similarity)
+        </span>
+      </div>
+
+      <div class="showdown-arena">
+        <div class="showdown-card">
+          <img class="showdown-img" src="${escapeHtml(leftItem.image_url)}" alt="${escapeHtml(leftItem.name)}">
+          <div class="showdown-content">
+            <h3 style="font-size: 1.15rem; color: #fff; margin: 0;">${escapeHtml(leftItem.name)}</h3>
+            <div>
+              <span class="tag tag-finish">${escapeHtml(leftItem.type)}</span>
+              <span class="tag tag-color">${escapeHtml(leftItem.color)}</span>
+              ${leftItem.status === 'Dearly Departed' ? '<span class="badge-stock departed" style="position:static; padding: 2px 6px; font-size: 0.7rem;">⚰️ Retiring</span>' : ''}
+              ${leftItem.is_new ? '<span class="badge badge-new" style="font-size: 0.7rem; padding: 2px 6px;">✨ NEW</span>' : ''}
+            </div>
+            <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4; max-height: 80px; overflow-y: auto;">
+              ${escapeHtml(leftItem.description)}
+            </p>
+            <button class="btn-pick-winner" onclick="window.MooncatApp.pickShowdownWinner(${leftItem.id}, ${rightItem.id})">
+              👑 Pick "${escapeHtml(leftItem.name)}"
+            </button>
+          </div>
+        </div>
+
+        <div class="showdown-vs-divider">
+          <div class="vs-orb">VS</div>
+          <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 700;">THIS OR THAT</span>
+        </div>
+
+        <div class="showdown-card">
+          <img class="showdown-img" src="${escapeHtml(rightItem.image_url)}" alt="${escapeHtml(rightItem.name)}">
+          <div class="showdown-content">
+            <h3 style="font-size: 1.15rem; color: #fff; margin: 0;">${escapeHtml(rightItem.name)}</h3>
+            <div>
+              <span class="tag tag-finish">${escapeHtml(rightItem.type)}</span>
+              <span class="tag tag-color">${escapeHtml(rightItem.color)}</span>
+              ${rightItem.status === 'Dearly Departed' ? '<span class="badge-stock departed" style="position:static; padding: 2px 6px; font-size: 0.7rem;">⚰️ Retiring</span>' : ''}
+              ${rightItem.is_new ? '<span class="badge badge-new" style="font-size: 0.7rem; padding: 2px 6px;">✨ NEW</span>' : ''}
+            </div>
+            <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.4; max-height: 80px; overflow-y: auto;">
+              ${escapeHtml(rightItem.description)}
+            </p>
+            <button class="btn-pick-winner" onclick="window.MooncatApp.pickShowdownWinner(${rightItem.id}, ${leftItem.id})">
+              👑 Pick "${escapeHtml(rightItem.name)}"
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="wizard-footer-actions">
+        <button class="btn-secondary" onclick="window.MooncatApp.goToWizardStep(3)">← Back to Priority Tiers</button>
+        <span style="font-size: 0.82rem; color: var(--text-dim);">
+          Clicking a winner keeps it in your cart and saves the other for your next haul!
+        </span>
+      </div>
+    `;
+
+    container.innerHTML = html;
+  }
+
+  function pickShowdownWinner(winnerId, loserId) {
+    const winner = catalog.find(i => i.id === winnerId);
+    const loser = catalog.find(i => i.id === loserId);
+
+    wizardState.itemTiers[loserId] = 'next';
+    showToast(`🏆 Kept "${winner ? winner.name : 'Winner'}"! Saved "${loser ? loser.name : 'Shade'}" for next haul.`);
+
+    wizardState.currentMatchIndex++;
+    goToWizardStep(4);
+  }
+
+  function renderWizardStep5(container, mainTitle, subTitle) {
+    mainTitle.textContent = "🎉 Stage 5: Your Curated Mooncat Haul!";
+    subTitle.textContent = "Here is your hand-picked, perfectly balanced Mooncat order based on your priorities and budget.";
+
+    const haul = wizardState.curatedHaul;
+    const totalBottles = haul.length;
+    let totalPrice = 0;
+    haul.forEach(it => {
+      const pNum = parseFloat((it.price || '$15.00').replace(/[^0-9\.]/g, '')) || 15.00;
+      totalPrice += pNum;
+    });
+
+    const isFreeShipping = totalPrice >= 55;
+
+    const uniqueFinishes = new Set();
+    const uniqueColors = new Set();
+    haul.forEach(it => {
+      (it.type || '').split(',').forEach(f => uniqueFinishes.add(f.trim()));
+      (it.color || '').split(',').forEach(c => uniqueColors.add(c.trim()));
+    });
+
+    let html = `
+      <div class="haul-winner-box">
+        <div class="haul-summary-banner">
+          <div class="haul-stats">
+            <div class="haul-metric">
+              <span class="haul-metric-num">${totalBottles}</span>
+              <span class="haul-metric-label">Bottles Selected</span>
+            </div>
+            <div class="haul-metric">
+              <span class="haul-metric-num">$${totalPrice.toFixed(2)}</span>
+              <span class="haul-metric-label">Estimated Subtotal</span>
+            </div>
+            <div class="haul-metric">
+              <span class="haul-metric-num" style="color: ${isFreeShipping ? '#10b981' : '#f59e0b'};">
+                ${isFreeShipping ? '🚚 FREE' : 'Standard'}
+              </span>
+              <span class="haul-metric-label">US Shipping</span>
+            </div>
+          </div>
+
+          <div style="font-size: 0.85rem; color: #34d399; font-weight: 600; text-align: right;">
+            🎨 ${uniqueFinishes.size} Formulas • ${uniqueColors.size} Color Families
+          </div>
+        </div>
+
+        <div>
+          <h4 style="font-size: 0.95rem; color: #fff; margin-bottom: 0.75rem;">Your Curated Shades:</h4>
+          <div class="haul-grid">
+            ${haul.map(item => `
+              <div class="haul-item-card">
+                <img class="haul-item-thumb" src="${escapeHtml(item.image_url)}" alt="${escapeHtml(item.name)}">
+                <div class="haul-item-info">
+                  <div style="font-weight: 700; font-size: 0.9rem; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    ${escapeHtml(item.name)}
+                  </div>
+                  <div style="font-size: 0.75rem; color: var(--text-muted);">
+                    ${escapeHtml(item.type)}
+                  </div>
+                  <div style="font-size: 0.75rem; font-family: var(--font-mono); color: var(--badge-owned-text);">
+                    ${escapeHtml(item.price)}
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+
+      <div class="wizard-footer-actions">
+        <button class="btn-secondary" onclick="window.MooncatApp.copyCuratedHaulNames()">
+          📋 Copy Shade Names
+        </button>
+        <button class="btn-primary" style="background: linear-gradient(135deg, #10b981, #059669); border: none;" onclick="window.MooncatApp.markCuratedHaulPurchased()">
+          🛍 Mark All as Purchased (Move to Owned)
+        </button>
+        <button class="btn-secondary" onclick="window.MooncatApp.goToWizardStep(2)">
+          🔄 Try Different Bottle Count
+        </button>
+        <button class="btn-primary" onclick="window.MooncatApp.closeDecisionWizard()">
+          ✓ Done
+        </button>
+      </div>
+    `;
+
+    container.innerHTML = html;
+  }
+
+  function markCuratedHaulPurchased() {
+    if (!requireAuth("mark shades as purchased")) return;
+    if (!wizardState.curatedHaul || wizardState.curatedHaul.length === 0) return;
+
+    if (!confirm(`Mark all ${wizardState.curatedHaul.length} shades from this curated haul as purchased and move them to your inventory?`)) {
+      return;
+    }
+
+    const today = new Date().toISOString().slice(0, 10);
+    wizardState.curatedHaul.forEach(item => {
+      userData.wishlist = userData.wishlist.filter(wId => wId !== item.id);
+
+      if (!userData.inventory[item.id]) {
+        userData.inventory[item.id] = { qty: 0, orderDates: [], notes: '' };
+      }
+      userData.inventory[item.id].qty += 1;
+      userData.inventory[item.id].orderDates.push(today);
+    });
+
+    saveUserData();
+    closeDecisionWizard();
+    renderAll();
+    switchTab('orders');
+    showToast(`🎉 Congratulations on your haul! ${wizardState.curatedHaul.length} shades added to your Owned Inventory!`);
+  }
+
+  function copyCuratedHaulNames() {
+    if (!wizardState.curatedHaul || wizardState.curatedHaul.length === 0) return;
+    const names = wizardState.curatedHaul.map(i => i.name).join(', ');
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(names).then(() => {
+        showToast(`📋 Copied ${wizardState.curatedHaul.length} shades to clipboard!`);
+      });
+    } else {
+      prompt("Copy shade names for Mooncat.com:", names);
+    }
+  }
+
   function onCloudDataLoaded(cloudData, user) {
     if (!cloudData) return;
     
@@ -1294,6 +2065,17 @@
     openImportModal,
     closeImportModal,
     checkLiveNewReleases,
+    openDecisionWizard,
+    closeDecisionWizard,
+    goToWizardStep,
+    setWizardBottleCap,
+    toggleWizardRule,
+    setWizardItemTier,
+    advanceFromStage3,
+    pickShowdownWinner,
+    dropFromWishlistInWizard,
+    markCuratedHaulPurchased,
+    copyCuratedHaulNames,
     onCloudDataLoaded,
     onCloudSignOut,
     getCurrentUserData: () => userData,
