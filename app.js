@@ -13,13 +13,15 @@
   // Current active user data reference (defaults to completely empty for guests)
   let userData = {
     inventory: {},
-    wishlist: []
+    wishlist: [],
+    wishlistRatings: {}
   };
 
   let activeTab = 'catalog';
   let currentView = 'grid'; // 'grid' or 'table'
   let catalogSortKey = 'name';
   let catalogSortAsc = true;
+  let wishlistSortKey = 'rating-desc';
 
   // --- Initialize ---
   function init() {
@@ -86,6 +88,7 @@
       userData = profiles[currentProfileId];
       if (!userData.inventory) userData.inventory = {};
       if (!userData.wishlist) userData.wishlist = [];
+      if (!userData.wishlistRatings) userData.wishlistRatings = {};
     } catch (e) {
       console.error('Failed to load user profiles from storage:', e);
       profiles = {
@@ -93,7 +96,8 @@
           id: 'guest',
           name: 'Guest Vault',
           inventory: {},
-          wishlist: []
+          wishlist: [],
+          wishlistRatings: {}
         }
       };
       currentProfileId = 'guest';
@@ -645,15 +649,82 @@
     }).join('');
   }
 
+  // --- Wishlist Sorting & Rating Controllers ---
+  function setWishlistSort(key) {
+    wishlistSortKey = key;
+    renderWishlist();
+  }
+
+  function setWishlistRating(id, rating) {
+    if (!requireAuth("rate wishlist shades")) return;
+    if (!userData.wishlistRatings) userData.wishlistRatings = {};
+    const num = parseInt(rating, 10) || 0;
+    const item = catalog.find(i => i.id === id);
+    if (num > 0) {
+      userData.wishlistRatings[id] = num;
+      showToast(`⭐ Rated "${item ? item.name : 'Shade'}" ${num}/10!`);
+    } else {
+      delete userData.wishlistRatings[id];
+      showToast(`Cleared love rating for "${item ? item.name : 'Shade'}".`);
+    }
+    saveUserData();
+    renderWishlist();
+  }
+
   // --- Wishlist Tab (Goal 3) ---
   function renderWishlist() {
     const grid = document.getElementById('wishlist-grid');
     const emptyState = document.getElementById('wishlist-empty-state');
+    const statsBadge = document.getElementById('wishlist-stats-badge');
+    const sortSelect = document.getElementById('wishlist-sort-select');
+    if (sortSelect && sortSelect.value !== wishlistSortKey) {
+      sortSelect.value = wishlistSortKey;
+    }
 
-    const wishlistItems = catalog.filter(item => userData.wishlist.includes(item.id));
+    let wishlistItems = catalog.filter(item => userData.wishlist.includes(item.id));
 
-    // Sort alphabetically by name
-    wishlistItems.sort((a, b) => a.name.localeCompare(b.name));
+    // Sort wishlist according to selected sort key
+    wishlistItems.sort((a, b) => {
+      const rA = (userData.wishlistRatings && userData.wishlistRatings[a.id]) || 0;
+      const rB = (userData.wishlistRatings && userData.wishlistRatings[b.id]) || 0;
+
+      if (wishlistSortKey === 'rating-desc') {
+        if (rB !== rA) return rB - rA;
+        return a.name.localeCompare(b.name);
+      }
+      if (wishlistSortKey === 'rating-asc') {
+        if (rA !== rB) return rA - rB;
+        return a.name.localeCompare(b.name);
+      }
+      if (wishlistSortKey === 'name-asc') {
+        return a.name.localeCompare(b.name);
+      }
+      if (wishlistSortKey === 'name-desc') {
+        return b.name.localeCompare(a.name);
+      }
+      if (wishlistSortKey === 'price-asc') {
+        const pA = parseFloat((a.price || '$0').replace(/[^0-9.]/g, '')) || 0;
+        const pB = parseFloat((b.price || '$0').replace(/[^0-9.]/g, '')) || 0;
+        return pA - pB || a.name.localeCompare(b.name);
+      }
+      if (wishlistSortKey === 'price-desc') {
+        const pA = parseFloat((a.price || '$0').replace(/[^0-9.]/g, '')) || 0;
+        const pB = parseFloat((b.price || '$0').replace(/[^0-9.]/g, '')) || 0;
+        return pB - pA || a.name.localeCompare(b.name);
+      }
+      if (wishlistSortKey === 'status') {
+        const depA = (a.status === 'Dearly Departed') ? 1 : 0;
+        const depB = (b.status === 'Dearly Departed') ? 1 : 0;
+        if (depB !== depA) return depB - depA;
+        return a.name.localeCompare(b.name);
+      }
+      return a.name.localeCompare(b.name);
+    });
+
+    if (statsBadge) {
+      const ratedCount = wishlistItems.filter(i => (userData.wishlistRatings && userData.wishlistRatings[i.id] > 0)).length;
+      statsBadge.innerHTML = `<strong>${wishlistItems.length}</strong> shade(s) in wishlist • <strong>${ratedCount}</strong> rated`;
+    }
 
     if (wishlistItems.length === 0) {
       grid.innerHTML = '';
@@ -682,6 +753,7 @@
     emptyState.classList.add('hidden');
 
     grid.innerHTML = wishlistItems.map(item => {
+      const rating = (userData.wishlistRatings && userData.wishlistRatings[item.id]) || 0;
       const finishBadges = item.type.split(',').map(f => `<span class="tag tag-finish">${escapeHtml(f.trim())}</span>`).join('');
       const colorBadges = item.color.split(',').map(c => `<span class="tag tag-color">${escapeHtml(c.trim())}</span>`).join('');
 
@@ -692,6 +764,7 @@
             <div class="card-badges">
               <span class="badge badge-wishlist">Wishlist</span>
             </div>
+            ${rating > 0 ? `<span class="badge-love-rating">⭐ ${rating}/10</span>` : ''}
             <span class="badge-stock ${item.status === 'Discontinued' ? 'discontinued' : ''}">${escapeHtml(item.status)}</span>
           </div>
 
@@ -701,6 +774,31 @@
             <div class="card-tags">
               ${finishBadges}
               ${colorBadges}
+            </div>
+
+            <!-- Love Score Rating: 1-10 -->
+            <div class="card-love-rating">
+              <div class="love-rating-header">
+                <span class="love-rating-title">How much do you love this color?</span>
+                <span class="love-rating-score-badge ${rating > 0 ? 'rated' : ''}">
+                  ${rating > 0 ? `⭐ ${rating}/10` : '☆ Unrated'}
+                </span>
+              </div>
+              <div class="love-star-picker">
+                <select class="love-score-select" onchange="window.MooncatApp.setWishlistRating(${item.id}, this.value)" title="Rate how much you love this color (1-10)">
+                  <option value="0" ${rating === 0 ? 'selected' : ''}>☆ Set Love Score (1–10)...</option>
+                  <option value="10" ${rating === 10 ? 'selected' : ''}>⭐⭐⭐⭐⭐ 10/10 — Holy Grail / Must-Have!</option>
+                  <option value="9" ${rating === 9 ? 'selected' : ''}>⭐⭐⭐⭐½ 9/10 — Obsessed, top priority</option>
+                  <option value="8" ${rating === 8 ? 'selected' : ''}>⭐⭐⭐⭐ 8/10 — Love it, strong haul pick</option>
+                  <option value="7" ${rating === 7 ? 'selected' : ''}>⭐⭐⭐½ 7/10 — Solid like, really pretty</option>
+                  <option value="6" ${rating === 6 ? 'selected' : ''}>⭐⭐⭐ 6/10 — Curious, would enjoy it</option>
+                  <option value="5" ${rating === 5 ? 'selected' : ''}>⭐⭐½ 5/10 — On the fence (50/50)</option>
+                  <option value="4" ${rating === 4 ? 'selected' : ''}>⭐⭐ 4/10 — Mild interest</option>
+                  <option value="3" ${rating === 3 ? 'selected' : ''}>⭐½ 3/10 — Lower priority</option>
+                  <option value="2" ${rating === 2 ? 'selected' : ''}>⭐ 2/10 — Reconsidering</option>
+                  <option value="1" ${rating === 1 ? 'selected' : ''}>½ 1/10 — Probably skipping</option>
+                </select>
+              </div>
             </div>
 
             <p class="card-desc">${escapeHtml(item.description)}</p>
@@ -1480,8 +1578,22 @@
       }
     }
 
-    wizardState.similaritiesOwned.sort((a, b) => b.sim.score - a.sim.score);
-    wizardState.similaritiesTwins.sort((a, b) => b.sim.score - a.sim.score);
+    // Sort owned conflicts: higher rated wishlist items first, then by similarity score
+    wizardState.similaritiesOwned.sort((a, b) => {
+      const rA = (userData.wishlistRatings && userData.wishlistRatings[a.wishItem.id]) || 0;
+      const rB = (userData.wishlistRatings && userData.wishlistRatings[b.wishItem.id]) || 0;
+      if (rB !== rA) return rB - rA;
+      return b.sim.score - a.sim.score;
+    });
+
+    // Sort twin comparisons by number of stars (highest rated shades first!), then similarity score
+    wizardState.similaritiesTwins.sort((a, b) => {
+      const maxA = Math.max((userData.wishlistRatings && userData.wishlistRatings[a.itemA.id]) || 0, (userData.wishlistRatings && userData.wishlistRatings[a.itemB.id]) || 0);
+      const maxB = Math.max((userData.wishlistRatings && userData.wishlistRatings[b.itemA.id]) || 0, (userData.wishlistRatings && userData.wishlistRatings[b.itemB.id]) || 0);
+      if (maxB !== maxA) return maxB - maxA;
+      return b.sim.score - a.sim.score;
+    });
+
     // Keep wishlist twins list reasonable and focused on the top closest conflicts
     if (wizardState.similaritiesTwins.length > 6) {
       wizardState.similaritiesTwins = wizardState.similaritiesTwins.slice(0, 6);
@@ -1575,7 +1687,7 @@
 
   function renderWizardStep1(container, mainTitle, subTitle) {
     mainTitle.textContent = "🔍 Stage 1: Similarity & Duplicates Detector";
-    subTitle.textContent = "Evaluating your wishlist against colors you already own and highlighting near-identical twins so you can make informed choices.";
+    subTitle.textContent = "Evaluating your wishlist against colors you already own and highlighting near-identical twins sorted by your Love Ratings.";
 
     let html = '';
     // Filter out any shades that have already been demoted to 'next' haul:
@@ -1622,10 +1734,10 @@
       html += `
         <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: 8px; padding: 0.85rem 1rem; margin-top: 0.5rem; margin-bottom: 1.25rem;">
           <div style="font-size: 0.92rem; color: #fff; font-weight: 600; margin-bottom: 0.25rem;">
-            💫 Reviewing Your ${activeCount}-Bottle Wishlist
+            💫 Reviewing Your ${activeCount}-Bottle Wishlist (Sorted by Love Rating ⭐)
           </div>
           <p style="font-size: 0.84rem; color: var(--text-muted); margin: 0; line-height: 1.45;">
-            If you plan to order all ${activeCount} shades, you can keep all of them! We only flag true near-identical formula sisters (85%+ matches) below. Demoting any shade removes it immediately from this list and saves it for your next haul.
+            Comparisons are ordered by your Love Score so your highest-rated favorites are reviewed first. Demoting any shade removes it immediately from this list and saves it for your next haul.
           </p>
         </div>
       `;
@@ -1642,6 +1754,7 @@
           const owned = pair.ownedItem;
           const wish = pair.wishItem;
           const sim = pair.sim;
+          const ratingWish = (userData.wishlistRatings && userData.wishlistRatings[wish.id]) || 0;
 
           html += `
             <div class="similarity-card high-match">
@@ -1667,6 +1780,9 @@
                     <span class="pair-tag-wishlist">💫 In Your Wishlist</span>
                     <span class="pair-name" title="${escapeHtml(wish.name)}">${escapeHtml(wish.name)}</span>
                     <span class="pair-meta">${escapeHtml(wish.type)} • ${escapeHtml(wish.color)}</span>
+                    <div style="margin-top: 4px;">
+                      ${ratingWish > 0 ? `<span class="wizard-love-badge">⭐ ${ratingWish}/10 Love</span>` : `<span class="wizard-love-badge unrated">☆ Unrated</span>`}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1698,6 +1814,8 @@
           const itemA = pair.itemA;
           const itemB = pair.itemB;
           const sim = pair.sim;
+          const ratingA = (userData.wishlistRatings && userData.wishlistRatings[itemA.id]) || 0;
+          const ratingB = (userData.wishlistRatings && userData.wishlistRatings[itemB.id]) || 0;
 
           html += `
             <div class="similarity-card">
@@ -1712,6 +1830,9 @@
                     <span class="pair-tag-wishlist">Wishlist Option A</span>
                     <span class="pair-name" title="${escapeHtml(itemA.name)}">${escapeHtml(itemA.name)}</span>
                     <span class="pair-meta">${escapeHtml(itemA.type)} • ${escapeHtml(itemA.color)}</span>
+                    <div style="margin-top: 4px;">
+                      ${ratingA > 0 ? `<span class="wizard-love-badge">⭐ ${ratingA}/10 Love</span>` : `<span class="wizard-love-badge unrated">☆ Unrated</span>`}
+                    </div>
                   </div>
                 </div>
 
@@ -1723,16 +1844,32 @@
                     <span class="pair-tag-wishlist">Wishlist Option B</span>
                     <span class="pair-name" title="${escapeHtml(itemB.name)}">${escapeHtml(itemB.name)}</span>
                     <span class="pair-meta">${escapeHtml(itemB.type)} • ${escapeHtml(itemB.color)}</span>
+                    <div style="margin-top: 4px;">
+                      ${ratingB > 0 ? `<span class="wizard-love-badge">⭐ ${ratingB}/10 Love</span>` : `<span class="wizard-love-badge unrated">☆ Unrated</span>`}
+                    </div>
                   </div>
                 </div>
               </div>
 
+              ${(() => {
+                if (ratingA > 0 || ratingB > 0) {
+                  if (ratingA > ratingB) {
+                    return `<div style="font-size: 0.82rem; color: #fbbf24; margin: 0.5rem 0 0.25rem 0; font-weight: 600;">💡 Your Love Rating Favorite: "${escapeHtml(itemA.name)}" (${ratingA}/10 vs ${ratingB > 0 ? `${ratingB}/10` : 'unrated'})</div>`;
+                  } else if (ratingB > ratingA) {
+                    return `<div style="font-size: 0.82rem; color: #fbbf24; margin: 0.5rem 0 0.25rem 0; font-weight: 600;">💡 Your Love Rating Favorite: "${escapeHtml(itemB.name)}" (${ratingB}/10 vs ${ratingA > 0 ? `${ratingA}/10` : 'unrated'})</div>`;
+                  } else {
+                    return `<div style="font-size: 0.82rem; color: #38bdf8; margin: 0.5rem 0 0.25rem 0; font-weight: 600;">⭐ Both shades are tied at ${ratingA}/10 Love Rating!</div>`;
+                  }
+                }
+                return '';
+              })()}
+
               <div class="similarity-actions">
                 <button class="btn-card-action" onclick="window.MooncatApp.toggleDemoteInWizard(${itemA.id})">
-                  ⬇ Demote ${escapeHtml(itemA.name)}
+                  ⬇ Demote ${escapeHtml(itemA.name)} ${ratingA > 0 ? `(⭐ ${ratingA}/10)` : ''}
                 </button>
                 <button class="btn-card-action" onclick="window.MooncatApp.toggleDemoteInWizard(${itemB.id})">
-                  ⬇ Demote ${escapeHtml(itemB.name)}
+                  ⬇ Demote ${escapeHtml(itemB.name)} ${ratingB > 0 ? `(⭐ ${ratingB}/10)` : ''}
                 </button>
                 <span style="font-size: 0.8rem; color: var(--accent-cyan); align-self: center; margin-left: auto;">
                   Demoting either shade resolves the conflict and removes it from view
@@ -1899,41 +2036,55 @@
       </div>
 
       <div class="priority-items-grid">
-        ${wizardState.wishlistPool.map(item => {
-          const tier = wizardState.itemTiers[item.id] || 'must';
-          return `
-            <div class="priority-card">
-              <div class="priority-card-top">
-                <img class="priority-thumb" src="${escapeHtml(item.image_url)}" alt="${escapeHtml(item.name)}">
-                <div style="min-width: 0; flex: 1;">
-                  <div style="font-weight: 700; font-size: 0.9rem; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                    ${escapeHtml(item.name)}
-                  </div>
-                  <div style="font-size: 0.75rem; color: var(--text-muted);">
-                    ${escapeHtml(item.type)} • ${escapeHtml(item.color)}
-                  </div>
-                  <div style="font-size: 0.75rem; margin-top: 2px;">
-                    ${item.status === 'Dearly Departed' ? '<span class="badge-stock departed" style="font-size: 0.65rem; padding: 1px 5px; position: static;">⚰️ Retiring</span>' : ''}
-                    ${item.is_new ? '<span class="badge badge-new" style="font-size: 0.65rem; padding: 1px 5px;">✨ NEW</span>' : ''}
-                    <span style="color: var(--text-dim); font-family: var(--font-mono);">${escapeHtml(item.price)}</span>
+        ${(() => {
+          // Sort items by Love Rating descending (10 to 1), then alphabetically
+          const sortedWishlist = [...wizardState.wishlistPool].sort((a, b) => {
+            const rA = (userData.wishlistRatings && userData.wishlistRatings[a.id]) || 0;
+            const rB = (userData.wishlistRatings && userData.wishlistRatings[b.id]) || 0;
+            if (rB !== rA) return rB - rA;
+            return a.name.localeCompare(b.name);
+          });
+
+          return sortedWishlist.map(item => {
+            const tier = wizardState.itemTiers[item.id] || 'must';
+            const rating = (userData.wishlistRatings && userData.wishlistRatings[item.id]) || 0;
+            return `
+              <div class="priority-card">
+                <div class="priority-card-top">
+                  <img class="priority-thumb" src="${escapeHtml(item.image_url)}" alt="${escapeHtml(item.name)}">
+                  <div style="min-width: 0; flex: 1;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px;">
+                      <span style="font-weight: 700; font-size: 0.9rem; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        ${escapeHtml(item.name)}
+                      </span>
+                      ${rating > 0 ? `<span class="wizard-love-badge" style="font-size: 0.7rem; padding: 1px 6px;">⭐ ${rating}/10</span>` : ''}
+                    </div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">
+                      ${escapeHtml(item.type)} • ${escapeHtml(item.color)}
+                    </div>
+                    <div style="font-size: 0.75rem; margin-top: 2px;">
+                      ${item.status === 'Dearly Departed' ? '<span class="badge-stock departed" style="font-size: 0.65rem; padding: 1px 5px; position: static;">⚰️ Retiring</span>' : ''}
+                      ${item.is_new ? '<span class="badge badge-new" style="font-size: 0.65rem; padding: 1px 5px;">✨ NEW</span>' : ''}
+                      <span style="color: var(--text-dim); font-family: var(--font-mono);">${escapeHtml(item.price)}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div class="priority-btn-group">
-                <button class="btn-tier ${tier === 'must' ? 'active-must' : ''}" onclick="window.MooncatApp.setWizardItemTier(${item.id}, 'must')">
-                  🔥 Must Have
-                </button>
-                <button class="btn-tier ${tier === 'next' ? 'active-next' : ''}" onclick="window.MooncatApp.setWizardItemTier(${item.id}, 'next')">
-                  ⏳ Next Haul
-                </button>
-                <button class="btn-tier ${tier === 'skip' ? 'active-skip' : ''}" onclick="window.MooncatApp.setWizardItemTier(${item.id}, 'skip')">
-                  ❄️ Skip
-                </button>
+                <div class="priority-btn-group">
+                  <button class="btn-tier ${tier === 'must' ? 'active-must' : ''}" onclick="window.MooncatApp.setWizardItemTier(${item.id}, 'must')">
+                    🔥 Must Have
+                  </button>
+                  <button class="btn-tier ${tier === 'next' ? 'active-next' : ''}" onclick="window.MooncatApp.setWizardItemTier(${item.id}, 'next')">
+                    ⏳ Next Haul
+                  </button>
+                  <button class="btn-tier ${tier === 'skip' ? 'active-skip' : ''}" onclick="window.MooncatApp.setWizardItemTier(${item.id}, 'skip')">
+                    ❄️ Skip
+                  </button>
+                </div>
               </div>
-            </div>
-          `;
-        }).join('')}
+            `;
+          }).join('');
+        })()}
       </div>
 
       <div class="wizard-footer-actions">
@@ -2040,6 +2191,8 @@
 
     const [leftItem, rightItem] = match;
     const sim = calculateSimilarity(leftItem, rightItem);
+    const leftRating = (userData.wishlistRatings && userData.wishlistRatings[leftItem.id]) || 0;
+    const rightRating = (userData.wishlistRatings && userData.wishlistRatings[rightItem.id]) || 0;
 
     let html = `
       <div style="text-align: center; margin-bottom: 0.5rem;">
@@ -2052,7 +2205,10 @@
         <div class="showdown-card">
           <img class="showdown-img" src="${escapeHtml(leftItem.image_url)}" alt="${escapeHtml(leftItem.name)}">
           <div class="showdown-content">
-            <h3 style="font-size: 1.15rem; color: #fff; margin: 0;">${escapeHtml(leftItem.name)}</h3>
+            <h3 style="font-size: 1.15rem; color: #fff; margin: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+              <span>${escapeHtml(leftItem.name)}</span>
+              ${leftRating > 0 ? `<span class="wizard-love-badge">⭐ ${leftRating}/10</span>` : ''}
+            </h3>
             <div>
               <span class="tag tag-finish">${escapeHtml(leftItem.type)}</span>
               <span class="tag tag-color">${escapeHtml(leftItem.color)}</span>
@@ -2063,7 +2219,7 @@
               ${escapeHtml(leftItem.description)}
             </p>
             <button class="btn-pick-winner" onclick="window.MooncatApp.pickShowdownWinner(${leftItem.id}, ${rightItem.id})">
-              👑 Pick "${escapeHtml(leftItem.name)}"
+              👑 Pick "${escapeHtml(leftItem.name)}" ${leftRating > 0 ? `(⭐ ${leftRating}/10)` : ''}
             </button>
           </div>
         </div>
@@ -2076,7 +2232,10 @@
         <div class="showdown-card">
           <img class="showdown-img" src="${escapeHtml(rightItem.image_url)}" alt="${escapeHtml(rightItem.name)}">
           <div class="showdown-content">
-            <h3 style="font-size: 1.15rem; color: #fff; margin: 0;">${escapeHtml(rightItem.name)}</h3>
+            <h3 style="font-size: 1.15rem; color: #fff; margin: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+              <span>${escapeHtml(rightItem.name)}</span>
+              ${rightRating > 0 ? `<span class="wizard-love-badge">⭐ ${rightRating}/10</span>` : ''}
+            </h3>
             <div>
               <span class="tag tag-finish">${escapeHtml(rightItem.type)}</span>
               <span class="tag tag-color">${escapeHtml(rightItem.color)}</span>
@@ -2087,7 +2246,7 @@
               ${escapeHtml(rightItem.description)}
             </p>
             <button class="btn-pick-winner" onclick="window.MooncatApp.pickShowdownWinner(${rightItem.id}, ${leftItem.id})">
-              👑 Pick "${escapeHtml(rightItem.name)}"
+              👑 Pick "${escapeHtml(rightItem.name)}" ${rightRating > 0 ? `(⭐ ${rightRating}/10)` : ''}
             </button>
           </div>
         </div>
@@ -2164,22 +2323,28 @@
         <div>
           <h4 style="font-size: 0.95rem; color: #fff; margin-bottom: 0.75rem;">Your Curated Shades:</h4>
           <div class="haul-grid">
-            ${haul.map(item => `
-              <div class="haul-item-card">
-                <img class="haul-item-thumb" src="${escapeHtml(item.image_url)}" alt="${escapeHtml(item.name)}">
-                <div class="haul-item-info">
-                  <div style="font-weight: 700; font-size: 0.9rem; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                    ${escapeHtml(item.name)}
-                  </div>
-                  <div style="font-size: 0.75rem; color: var(--text-muted);">
-                    ${escapeHtml(item.type)}
-                  </div>
-                  <div style="font-size: 0.75rem; font-family: var(--font-mono); color: var(--badge-owned-text);">
-                    ${escapeHtml(item.price)}
+            ${haul.map(item => {
+              const rating = (userData.wishlistRatings && userData.wishlistRatings[item.id]) || 0;
+              return `
+                <div class="haul-item-card">
+                  <img class="haul-item-thumb" src="${escapeHtml(item.image_url)}" alt="${escapeHtml(item.name)}">
+                  <div class="haul-item-info">
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 4px;">
+                      <span style="font-weight: 700; font-size: 0.9rem; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        ${escapeHtml(item.name)}
+                      </span>
+                      ${rating > 0 ? `<span class="wizard-love-badge" style="font-size: 0.7rem; padding: 1px 5px;">⭐ ${rating}/10</span>` : ''}
+                    </div>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">
+                      ${escapeHtml(item.type)}
+                    </div>
+                    <div style="font-size: 0.75rem; font-family: var(--font-mono); color: var(--badge-owned-text);">
+                      ${escapeHtml(item.price)}
+                    </div>
                   </div>
                 </div>
-              </div>
-            `).join('')}
+              `;
+            }).join('')}
           </div>
         </div>
 
@@ -2290,11 +2455,13 @@
       id: profileId,
       name: profileName,
       inventory: cloudData.inventory || {},
-      wishlist: cloudData.wishlist || []
+      wishlist: cloudData.wishlist || [],
+      wishlistRatings: cloudData.wishlistRatings || {}
     };
 
     currentProfileId = profileId;
     userData = profiles[profileId];
+    if (!userData.wishlistRatings) userData.wishlistRatings = {};
 
     localStorage.setItem(STORAGE_PROFILES_KEY, JSON.stringify(profiles));
     localStorage.setItem(STORAGE_ACTIVE_PROFILE_KEY, currentProfileId);
@@ -2348,6 +2515,8 @@
     dropFromWishlistInWizard,
     markCuratedHaulPurchased,
     copyCuratedHaulNames,
+    setWishlistSort,
+    setWishlistRating,
     onCloudDataLoaded,
     onCloudSignOut,
     getCurrentUserData: () => userData,

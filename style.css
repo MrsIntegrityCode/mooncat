@@ -2018,3 +2018,97 @@ body {
     padding: 0.5rem 0;
   }
 }
+
+/* --- Love Score & Wishlist Star Rating Styles --- */
+.card-love-rating {
+  margin-top: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  background: rgba(244, 114, 182, 0.08);
+  border: 1px solid rgba(244, 114, 182, 0.25);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.love-rating-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.love-rating-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #f472b6;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.love-rating-score-badge {
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-muted);
+}
+
+.love-rating-score-badge.rated {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.love-score-select {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-main);
+  padding: 0.35rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  width: 100%;
+  cursor: pointer;
+  outline: none;
+}
+
+.love-score-select:focus {
+  border-color: #f472b6;
+}
+
+.badge-love-rating {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: rgba(15, 15, 20, 0.85);
+  border: 1px solid rgba(245, 158, 11, 0.6);
+  color: #fbbf24;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 12px;
+  backdrop-filter: blur(6px);
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.wizard-love-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.wizard-love-badge.unrated {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+  font-weight: 500;
+}
+

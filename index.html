@@ -236,6 +236,25 @@
         </div>
       </div>
 
+      <!-- Wishlist Toolbar: Sorting & Stats -->
+      <div class="wishlist-toolbar" style="margin-bottom: 1.25rem; background: var(--bg-surface); padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+        <div class="filter-group">
+          <label for="wishlist-sort-select">Sort Wishlist By:</label>
+          <select id="wishlist-sort-select" onchange="window.MooncatApp.setWishlistSort(this.value)">
+            <option value="rating-desc">⭐ Love Score: High to Low (10 → 1)</option>
+            <option value="rating-asc">⭐ Love Score: Low to High (1 → 10)</option>
+            <option value="name-asc">🔤 Name (A → Z)</option>
+            <option value="name-desc">🔤 Name (Z → A)</option>
+            <option value="price-asc">💲 Price (Low to High)</option>
+            <option value="price-desc">💲 Price (High to Low)</option>
+            <option value="status">⚰️ Retiring / Dearly Departed First</option>
+          </select>
+        </div>
+        <div id="wishlist-stats-badge" style="font-size: 0.85rem; color: var(--text-muted);">
+          <!-- Dynamic count and rated stats -->
+        </div>
+      </div>
+
       <div id="wishlist-grid" class="catalog-grid"></div>
 
       <div id="wishlist-empty-state" class="empty-state hidden">

@@ -134,6 +134,7 @@ async function loadUserDataFromFirestore(user) {
         email: user.email || '',
         inventory: initialData.inventory || {},
         wishlist: initialData.wishlist || [],
+        wishlistRatings: initialData.wishlistRatings || {},
         updatedAt: serverTimestamp()
       });
 
@@ -168,6 +169,7 @@ function saveUserDataToFirestore(userData) {
         email: currentUser.email || '',
         inventory: userData.inventory || {},
         wishlist: userData.wishlist || [],
+        wishlistRatings: userData.wishlistRatings || {},
         updatedAt: serverTimestamp()
       }, { merge: true });
 
