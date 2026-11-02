@@ -19,6 +19,8 @@
 
   let activeTab = 'catalog';
   let currentView = 'grid'; // 'grid' or 'table'
+  let ordersView = 'table'; // 'grid' or 'table'
+  let wishlistView = 'grid'; // 'grid' or 'table'
   let catalogSortKey = 'name';
   let catalogSortAsc = true;
   let ordersSortKey = 'purchase-desc';
@@ -794,13 +796,26 @@
       });
     });
 
-    // View toggle (Grid / Table)
+    // View toggle (Grid / Table) across Catalog, Orders, and Wishlist
     document.querySelectorAll('.btn-toggle').forEach(btn => {
       btn.addEventListener('click', () => {
-        document.querySelectorAll('.btn-toggle').forEach(b => b.classList.remove('active'));
+        const groupEl = btn.closest('.view-toggle');
+        const groupName = groupEl ? (groupEl.getAttribute('data-view-group') || 'catalog') : 'catalog';
+        if (groupEl) {
+          groupEl.querySelectorAll('.btn-toggle').forEach(b => b.classList.remove('active'));
+        }
         btn.classList.add('active');
-        currentView = btn.getAttribute('data-view');
-        renderCatalog();
+        const targetView = btn.getAttribute('data-view');
+        if (groupName === 'orders') {
+          ordersView = targetView;
+          renderOrders();
+        } else if (groupName === 'wishlist') {
+          wishlistView = targetView;
+          renderWishlist();
+        } else {
+          currentView = targetView;
+          renderCatalog();
+        }
       });
     });
 
@@ -874,6 +889,25 @@
         }
         syncCatalogSortDropdown();
         renderCatalog();
+      });
+    });
+
+    // Wishlist table sorting
+    document.querySelectorAll('.wishlist-table th[data-wishlist-sort]').forEach(th => {
+      th.addEventListener('click', () => {
+        const field = th.getAttribute('data-wishlist-sort');
+        if (field === 'name') {
+          wishlistSortKey = wishlistSortKey === 'name-asc' ? 'name-desc' : 'name-asc';
+        } else if (field === 'rating') {
+          wishlistSortKey = wishlistSortKey === 'rating-desc' ? 'rating-asc' : 'rating-desc';
+        } else if (field === 'price') {
+          wishlistSortKey = wishlistSortKey === 'price-asc' ? 'price-desc' : 'price-asc';
+        } else if (field === 'release_date') {
+          wishlistSortKey = wishlistSortKey === 'release-desc' ? 'release-asc' : 'release-desc';
+        } else if (field === 'status') {
+          wishlistSortKey = 'status';
+        }
+        renderWishlist();
       });
     });
 
@@ -1339,6 +1373,13 @@
 
     if (ownedItems.length === 0) {
       tbody.innerHTML = '';
+      const ordersGrid = document.getElementById('orders-grid');
+      const ordersTableEl = document.querySelector('#orders-table-wrapper .orders-table');
+      if (ordersGrid) {
+        ordersGrid.innerHTML = '';
+        ordersGrid.classList.add('hidden');
+      }
+      if (ordersTableEl) ordersTableEl.classList.add('hidden');
       const currentUser = (window.MooncatAuth && window.MooncatAuth.getCurrentUser) ? window.MooncatAuth.getCurrentUser() : null;
       if (!currentUser) {
         emptyState.innerHTML = `
@@ -1362,6 +1403,86 @@
     }
 
     emptyState.classList.add('hidden');
+
+    const ordersGrid = document.getElementById('orders-grid');
+    const ordersTableWrapper = document.getElementById('orders-table-wrapper');
+    const ordersTableEl = document.querySelector('#orders-table-wrapper .orders-table');
+
+    if (ordersView === 'grid' && ordersGrid) {
+      ordersGrid.classList.remove('hidden');
+      if (ordersTableWrapper) ordersTableWrapper.classList.add('hidden');
+      ordersGrid.innerHTML = filtered.map(item => {
+        const invEntry = userData.inventory[item.id] || {};
+        const qtyOnHand = getOwnedQty(item);
+        const totalOrdered = invEntry.ordered_qty || qtyOnHand;
+        const hasGifted = totalOrdered > qtyOnHand;
+        const setInfo = getOwnedSetInfo(item);
+        const dateInfo = getItemPurchaseDateInfo(item);
+        const finishBadges = item.type.split(',').map(f => `<span class="tag tag-finish">${escapeHtml(f.trim())}</span>`).join('');
+        const colorBadges = item.color.split(',').map(c => `<span class="tag tag-color">${escapeHtml(c.trim())}</span>`).join('');
+        const isDeparted = item.status === 'Dearly Departed';
+
+        const setBadgeHtml = setInfo && setInfo.setName
+          ? `<div style="margin: 0.4rem 0; padding: 0.4rem 0.6rem; border-radius: 6px; background: rgba(168, 85, 247, 0.16); border: 1px solid rgba(168, 85, 247, 0.4); color: #e9d5ff; font-size: 0.78rem; font-weight: 600; cursor: ${setInfo.setId ? 'pointer' : 'default'};" ${setInfo.setId ? `onclick="window.MooncatApp.openDetail(${setInfo.setId})"` : ''}>📦 ${escapeHtml(setInfo.setName)}</div>`
+          : `<div style="margin: 0.4rem 0; font-size: 0.76rem; color: var(--text-muted);">Individual Shade</div>`;
+
+        return `
+          <div class="polish-card is-owned" data-id="${item.id}">
+            <div class="card-media" onclick="window.MooncatApp.openDetail(${item.id})">
+              <img class="card-img" src="${escapeHtml(getOptimizedImageUrl(item.image_url, 480))}" alt="${escapeHtml(item.name)}" loading="lazy" decoding="async">
+              <div class="card-badges">
+                ${item.is_new ? '<span class="badge badge-new">✨ NEW</span>' : ''}
+                <span class="badge badge-owned">On Hand: ${qtyOnHand}</span>
+                ${totalOrdered > qtyOnHand ? `<span class="badge badge-unowned">Ordered: ${totalOrdered}</span>` : ''}
+              </div>
+              <span class="badge-stock ${isDeparted ? 'departed' : ''}">${isDeparted ? '⚰️ DEARLY DEPARTED' : escapeHtml(item.status)}</span>
+            </div>
+
+            <div class="card-body">
+              <h3 class="card-title" onclick="window.MooncatApp.openDetail(${item.id})">${escapeHtml(item.name)}</h3>
+              <div class="card-tags">
+                ${finishBadges}
+                ${colorBadges}
+              </div>
+
+              ${setBadgeHtml}
+
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 0.35rem 0.55rem; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 6px; margin-bottom: 0.5rem;">
+                <span style="font-family: var(--font-mono); font-size: 0.78rem; color: #38bdf8; font-weight: 600;">
+                  🗓️ Purchased: ${escapeHtml(dateInfo.primaryDisplay)}
+                </span>
+                <button class="btn-card-action" style="padding: 2px 6px; font-size: 0.72rem;" onclick="window.MooncatApp.editOrderPurchaseDate(${item.id})" title="Edit purchase date">
+                  ✎
+                </button>
+              </div>
+
+              ${hasGifted ? `<div style="font-size: 0.75rem; color: #ec4899; font-weight: 600; margin-bottom: 0.4rem;">🎁 Gifted ${totalOrdered - qtyOnHand} duplicate</div>` : ''}
+
+              <div class="card-footer">
+                <div class="card-meta-row" style="align-items: center;">
+                  <span>Total Ordered: <strong>${totalOrdered}</strong></span>
+                  <div class="table-qty-control" style="margin: 0;">
+                    <button class="btn-qty" onclick="window.MooncatApp.decrementOrder(${item.id})" title="Decrease count">-</button>
+                    <span class="qty-val">${qtyOnHand}</span>
+                    <button class="btn-qty" onclick="window.MooncatApp.quickAddOwned(${item.id})" title="Increase count">+</button>
+                  </div>
+                </div>
+                <div class="card-actions" style="grid-template-columns: 1fr;">
+                  <button class="btn-card-action" style="color: #ef4444;" onclick="window.MooncatApp.removeOrder(${item.id})">
+                    ✕ Remove from Inventory
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      return;
+    }
+
+    if (ordersGrid) ordersGrid.classList.add('hidden');
+    if (ordersTableWrapper) ordersTableWrapper.classList.remove('hidden');
+    if (ordersTableEl) ordersTableEl.classList.remove('hidden');
 
     tbody.innerHTML = filtered.map(item => {
       const invEntry = userData.inventory[item.id] || {};
@@ -1606,6 +1727,10 @@
 
     if (wishlistItems.length === 0) {
       grid.innerHTML = '';
+      const wishlistTableWrapper = document.getElementById('wishlist-table-wrapper');
+      const wishlistTableBody = document.getElementById('wishlist-table-body');
+      if (wishlistTableBody) wishlistTableBody.innerHTML = '';
+      if (wishlistTableWrapper) wishlistTableWrapper.classList.add('hidden');
       const currentUser = (window.MooncatAuth && window.MooncatAuth.getCurrentUser) ? window.MooncatAuth.getCurrentUser() : null;
       if (!currentUser) {
         emptyState.innerHTML = `
@@ -1629,6 +1754,84 @@
     }
 
     emptyState.classList.add('hidden');
+
+    const wishlistTableWrapper = document.getElementById('wishlist-table-wrapper');
+    const wishlistTableBody = document.getElementById('wishlist-table-body');
+
+    if (wishlistView === 'table' && wishlistTableWrapper && wishlistTableBody) {
+      grid.classList.add('hidden');
+      wishlistTableWrapper.classList.remove('hidden');
+      wishlistTableBody.innerHTML = wishlistItems.map(item => {
+        const rating = (userData.wishlistRatings && userData.wishlistRatings[item.id]) || 0;
+        const isSet = isSetItem(item);
+        const setProg = isSet ? getSetOwnedProgress(item) : null;
+        const isDeparted = item.status === 'Dearly Departed';
+
+        let setPillsHtml = '';
+        if (isSet && setProg && setProg.total > 0) {
+          setPillsHtml = `
+            <div style="margin-top: 4px; display: flex; flex-wrap: wrap; gap: 3px;">
+              ${setProg.members.map(m => {
+                const mOwned = getOwnedQty(m) > 0;
+                return `<span style="font-size: 0.68rem; padding: 1px 5px; border-radius: 4px; background: ${mOwned ? 'rgba(16, 185, 129, 0.2)' : 'rgba(168, 85, 247, 0.15)'}; border: 1px solid ${mOwned ? 'rgba(16, 185, 129, 0.45)' : 'rgba(168, 85, 247, 0.35)'}; color: ${mOwned ? '#34d399' : '#e9d5ff'}; cursor: pointer;" onclick="window.MooncatApp.openDetail(${m.id})">${escapeHtml(m.name)}${mOwned ? ' ✓' : ''}</span>`;
+              }).join('')}
+            </div>
+          `;
+        }
+
+        return `
+          <tr data-id="${item.id}">
+            <td>
+              <img class="table-thumb" src="${escapeHtml(getOptimizedImageUrl(item.image_url, 120))}" alt="${escapeHtml(item.name)}" loading="lazy" decoding="async" onclick="window.MooncatApp.openDetail(${item.id})">
+            </td>
+            <td>
+              <span class="table-name" onclick="window.MooncatApp.openDetail(${item.id})">${escapeHtml(item.name)}</span>
+              ${isSet ? `<span class="badge badge-wishlist" style="margin-left: 6px; font-size: 0.65rem; padding: 2px 6px;">📦 Set (${setProg ? setProg.total : ''} Shades)</span>` : ''}
+              ${item.is_new ? '<span class="badge badge-new" style="margin-left: 4px; font-size: 0.65rem; padding: 2px 6px;">✨ NEW</span>' : ''}
+              ${setPillsHtml}
+            </td>
+            <td>
+              <select class="love-score-select" style="width: 100%; font-size: 0.78rem; padding: 4px 6px;" onchange="window.MooncatApp.setWishlistRating(${item.id}, this.value)">
+                <option value="0" ${rating === 0 ? 'selected' : ''}>☆ Unrated (Set 1–10)</option>
+                <option value="10" ${rating === 10 ? 'selected' : ''}>⭐ 10/10 — Holy Grail</option>
+                <option value="9" ${rating === 9 ? 'selected' : ''}>⭐ 9/10 — Obsessed</option>
+                <option value="8" ${rating === 8 ? 'selected' : ''}>⭐ 8/10 — Strong Pick</option>
+                <option value="7" ${rating === 7 ? 'selected' : ''}>⭐ 7/10 — Solid Like</option>
+                <option value="6" ${rating === 6 ? 'selected' : ''}>⭐ 6/10 — Curious</option>
+                <option value="5" ${rating === 5 ? 'selected' : ''}>⭐ 5/10 — 50/50 Fence</option>
+                <option value="4" ${rating === 4 ? 'selected' : ''}>⭐ 4/10 — Mild</option>
+                <option value="3" ${rating === 3 ? 'selected' : ''}>⭐ 3/10 — Low Priority</option>
+                <option value="2" ${rating === 2 ? 'selected' : ''}>⭐ 2/10 — Reconsider</option>
+                <option value="1" ${rating === 1 ? 'selected' : ''}>⭐ 1/10 — Skip</option>
+              </select>
+            </td>
+            <td><span class="tag tag-finish">${escapeHtml(item.type)}</span></td>
+            <td><span class="tag tag-color">${escapeHtml(item.color)}</span></td>
+            <td style="font-family: var(--font-mono); font-size: 0.88rem; font-weight: 600;">${escapeHtml(item.price)}</td>
+            <td style="font-family: var(--font-mono); font-size: 0.8rem;">${escapeHtml(item.release_date || item.last_updated)}</td>
+            <td>
+              <span class="badge-stock ${isDeparted ? 'departed' : ''}" style="position: static; display: inline-block; width: fit-content;">
+                ${isDeparted ? '⚰️ DEARLY DEPARTED' : escapeHtml(item.status)}
+              </span>
+            </td>
+            <td style="text-align: right;">
+              <div style="display: flex; gap: 4px; justify-content: flex-end;">
+                <button class="btn-card-action btn-card-owned" style="padding: 4px 8px; font-size: 0.75rem;" onclick="window.MooncatApp.markPurchased(${item.id})" title="Mark Purchased">
+                  🛍 Buy
+                </button>
+                <button class="btn-card-action" style="padding: 4px 8px; font-size: 0.75rem;" onclick="window.MooncatApp.removeFromWishlist(${item.id})" title="Remove from Wishlist">
+                  ✕
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+      return;
+    }
+
+    grid.classList.remove('hidden');
+    if (wishlistTableWrapper) wishlistTableWrapper.classList.add('hidden');
 
     grid.innerHTML = wishlistItems.map(item => {
       const rating = (userData.wishlistRatings && userData.wishlistRatings[item.id]) || 0;

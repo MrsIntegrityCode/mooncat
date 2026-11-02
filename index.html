@@ -215,10 +215,17 @@
         <div class="search-box small" style="margin-left: 0;">
           <input type="text" id="orders-search" placeholder="Filter by shade, set, or date...">
         </div>
+        <div class="view-toggle" data-view-group="orders">
+          <button class="btn-toggle" data-view="grid" title="Cards View with Photos">🎴 Cards</button>
+          <button class="btn-toggle active" data-view="table" title="Table View">📋 Table</button>
+        </div>
       </div>
 
+      <!-- Orders Grid View (Cards with Pictures) -->
+      <div id="orders-grid" class="catalog-grid hidden"></div>
+
       <!-- Orders List Table -->
-      <div class="orders-table-wrapper">
+      <div id="orders-table-wrapper" class="orders-table-wrapper">
         <table class="data-table orders-table">
           <thead>
             <tr>
@@ -280,12 +287,39 @@
             <option value="status">⚰️ Retiring / Dearly Departed First</option>
           </select>
         </div>
-        <div id="wishlist-stats-badge" style="font-size: 0.85rem; color: var(--text-muted);">
-          <!-- Dynamic count and rated stats -->
+        <div style="display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+          <div id="wishlist-stats-badge" style="font-size: 0.85rem; color: var(--text-muted);">
+            <!-- Dynamic count and rated stats -->
+          </div>
+          <div class="view-toggle" data-view-group="wishlist">
+            <button class="btn-toggle active" data-view="grid" title="Cards View with Photos">🎴 Cards</button>
+            <button class="btn-toggle" data-view="table" title="Table View">📋 Table</button>
+          </div>
         </div>
       </div>
 
+      <!-- Wishlist Grid View (Cards) -->
       <div id="wishlist-grid" class="catalog-grid"></div>
+
+      <!-- Wishlist Table View -->
+      <div id="wishlist-table-wrapper" class="catalog-table-wrapper hidden">
+        <table class="data-table wishlist-table">
+          <thead>
+            <tr>
+              <th style="width: 64px;">Swatch</th>
+              <th data-wishlist-sort="name" style="cursor: pointer;">Name ⬍</th>
+              <th data-wishlist-sort="rating" style="width: 195px; cursor: pointer;">Love Score (1–10) ⬍</th>
+              <th>Type / Finish</th>
+              <th>Color Palette</th>
+              <th data-wishlist-sort="price" style="width: 90px; cursor: pointer;">Price ⬍</th>
+              <th data-wishlist-sort="release_date" style="width: 115px; cursor: pointer;">Release Date ⬍</th>
+              <th data-wishlist-sort="status" style="width: 125px; cursor: pointer;">Status ⬍</th>
+              <th style="width: 165px; text-align: right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="wishlist-table-body"></tbody>
+        </table>
+      </div>
 
       <div id="wishlist-empty-state" class="empty-state hidden">
         <div class="empty-icon">💫</div>
