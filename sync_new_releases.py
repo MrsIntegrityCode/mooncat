@@ -102,7 +102,8 @@ def sync():
         # Skip merch / stickers / tools that aren't nail related
         if p_type in ['Decorative Stickers', 'Baggu Bag', 'Gift Cards', 'Free Gift', 'Cuticle Pushers']:
             continue
-        if any(tag in ['merch', 'stickers', 'apparel', 'bag'] for tag in tags):
+        is_set_candidate = 'set' in tags or 'collection-set' in tags or 'bundle:product' in tags or 'product-bundle' in tags or ('set' in title.lower() and 'offset' not in title.lower() and 'sunset' not in title.lower())
+        if not is_set_candidate and any(tag in ['merch', 'stickers', 'apparel', 'bag'] for tag in tags):
             continue
 
         is_new_in_store = pid not in old_ids

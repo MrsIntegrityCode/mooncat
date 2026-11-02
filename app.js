@@ -25,11 +25,217 @@
 
   // --- Initialize ---
   function init() {
+    loadCachedLiveCatalog();
     loadUserData();
+    syncSetsAndMembersState();
     setupProfileSelector();
     setupFilters();
     bindEvents();
     renderAll();
+    // Automatically check Mooncat in the background for live updates & new releases
+    checkLiveNewReleases(true);
+  }
+
+  // --- Set & Shade Relationship Helpers ---
+  function isSetItem(item) {
+    if (!item) return false;
+    if (item.category === 'Set') return true;
+    const types = (item.type || '').toLowerCase().split(',').map(s => s.trim());
+    return types.includes('set');
+  }
+
+  function normalizeMatchText(str) {
+    if (!str) return '';
+    return str
+      .toString()
+      .replace(/[\u2018\u2019\u201B`]/g, "'")
+      .replace(/[\u201C\u201D]/g, '"')
+      .toUpperCase()
+      .replace(/SUPERVILLIAN/g, 'SUPERVILLAIN')
+      .trim();
+  }
+
+  function escapeRegExp(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  function getSetMembers(setItem) {
+    if (!isSetItem(setItem)) return [];
+    const desc = setItem.description || '';
+    const idx = desc.toLowerCase().indexOf('includes');
+    const rawSearch = idx !== -1 ? desc.slice(idx) : desc;
+    const cleanSearch = rawSearch.split(/all orders with magnetic|note:|warning:|wear\s*\+\s*care:/i)[0];
+    const normSearch = normalizeMatchText(cleanSearch);
+
+    const members = [];
+    for (let i = 0; i < catalog.length; i++) {
+      const candidate = catalog[i];
+      if (!candidate || candidate.id === setItem.id || isSetItem(candidate)) continue;
+      if ((candidate.name || '').toLowerCase() === 'magnetic wand') continue;
+
+      const nameUpper = normalizeMatchText(candidate.name);
+      if (!nameUpper) continue;
+      const baseNameUpper = nameUpper.replace(/\s+TOPPER$/, '');
+
+      const pat1 = new RegExp('(?<![A-Z0-9])' + escapeRegExp(nameUpper) + '(?![A-Z0-9])');
+      const pat2 = baseNameUpper.length > 4
+        ? new RegExp('(?<![A-Z0-9])' + escapeRegExp(baseNameUpper) + '(?![A-Z0-9])')
+        : null;
+
+      if (pat1.test(normSearch) || (pat2 && pat2.test(normSearch))) {
+        members.push(candidate);
+      }
+    }
+
+    // Fallback: match by collection handle tag if description didn't list individual names
+    if (members.length === 0 && setItem.handle) {
+      const baseHandle = setItem.handle
+        .toLowerCase()
+        .replace(/-(set|duo|trio|bundle|collection|box|collectors-set|collector-s-set|lacquer-set)$/i, '');
+      const targetTags = new Set([`collection:${baseHandle}`, `collection:${setItem.handle.toLowerCase()}`]);
+
+      for (let i = 0; i < catalog.length; i++) {
+        const candidate = catalog[i];
+        if (!candidate || candidate.id === setItem.id || isSetItem(candidate)) continue;
+        if ((candidate.name || '').toLowerCase() === 'magnetic wand') continue;
+        const cTags = Array.isArray(candidate.tags)
+          ? candidate.tags.map(t => String(t).toLowerCase().trim())
+          : [];
+        if (cTags.some(t => targetTags.has(t))) {
+          members.push(candidate);
+        }
+      }
+    }
+
+    return members;
+  }
+
+  function getParentSetsForItem(itemId) {
+    const item = catalog.find(i => i.id === itemId);
+    if (!item || isSetItem(item)) return [];
+    return catalog.filter(s => isSetItem(s) && getSetMembers(s).some(m => m.id === itemId));
+  }
+
+  function getSetOwnedProgress(setItem) {
+    const members = getSetMembers(setItem);
+    const ownedMembers = members.filter(m => (userData.inventory[m.id]?.qty || 0) > 0);
+    const unownedMembers = members.filter(m => (userData.inventory[m.id]?.qty || 0) <= 0);
+    return {
+      total: members.length,
+      ownedCount: ownedMembers.length,
+      members,
+      ownedMembers,
+      unownedMembers
+    };
+  }
+
+  function getOwnedQty(item) {
+    if (!item) return 0;
+    if (isSetItem(item)) {
+      const members = getSetMembers(item);
+      if (members.length > 0) {
+        const allOwned = members.every(m => (userData.inventory[m.id]?.qty || 0) > 0);
+        if (allOwned) {
+          return Math.min(...members.map(m => userData.inventory[m.id]?.qty || 0));
+        }
+        return (userData.inventory[item.id]?.qty || 0);
+      }
+      return userData.inventory[item.id]?.qty || 0;
+    }
+
+    const directQty = userData.inventory[item.id]?.qty || 0;
+    if (directQty > 0) return directQty;
+
+    // Also check if any parent set in inventory is owned
+    const parentSets = getParentSetsForItem(item.id);
+    for (const ps of parentSets) {
+      if ((userData.inventory[ps.id]?.qty || 0) > 0) {
+        return userData.inventory[ps.id].qty;
+      }
+    }
+    return 0;
+  }
+
+  function getWishlistedParentSet(item) {
+    if (!item || isSetItem(item)) return null;
+    const parentSets = getParentSetsForItem(item.id);
+    return parentSets.find(ps => userData.wishlist.includes(ps.id)) || null;
+  }
+
+  function isEffectivelyWishlisted(item) {
+    if (!item) return false;
+    return userData.wishlist.includes(item.id) || Boolean(getWishlistedParentSet(item));
+  }
+
+  function syncSetsAndMembersState() {
+    if (!userData) return;
+    if (!userData.inventory) userData.inventory = {};
+    if (!userData.wishlist) userData.wishlist = [];
+
+    let changed = false;
+
+    // 1. If any Set is marked in userData.inventory, ensure all of its individual member colors are marked as owned
+    Object.keys(userData.inventory).forEach(invId => {
+      const entry = userData.inventory[invId];
+      if (!entry || entry.qty <= 0) return;
+      const setItem = catalog.find(c => String(c.id) === String(invId));
+      if (setItem && isSetItem(setItem)) {
+        const members = getSetMembers(setItem);
+        if (members.length > 0) {
+          members.forEach(member => {
+            if (!userData.inventory[member.id] || userData.inventory[member.id].qty <= 0) {
+              userData.inventory[member.id] = {
+                qty: entry.qty,
+                ordered_qty: entry.ordered_qty || entry.qty,
+                orderDates: Array.isArray(entry.orderDates) ? [...entry.orderDates] : [],
+                notes: entry.notes ? `${entry.notes} (${setItem.name})` : `From ${setItem.name}`
+              };
+            }
+            if (userData.wishlist.includes(member.id)) {
+              userData.wishlist = userData.wishlist.filter(wId => wId !== member.id);
+            }
+          });
+          // Remove the Set wrapper from inventory so individual bottles are tracked cleanly without double counting
+          delete userData.inventory[invId];
+          changed = true;
+        }
+      }
+    });
+
+    // 2. For any Set in userData.wishlist:
+    //    - Remove individual member IDs from userData.wishlist so the wishlist displays the Set, not individual colors
+    //    - If all member colors of the Set are now owned, remove the Set from userData.wishlist
+    const currentWishlist = [...userData.wishlist];
+    currentWishlist.forEach(wId => {
+      const item = catalog.find(c => c.id === wId);
+      if (item && isSetItem(item)) {
+        const members = getSetMembers(item);
+        if (members.length > 0) {
+          const memberIds = new Set(members.map(m => m.id));
+          const beforeLen = userData.wishlist.length;
+          userData.wishlist = userData.wishlist.filter(id => !memberIds.has(id));
+          if (userData.wishlist.length !== beforeLen) changed = true;
+
+          const allOwned = members.every(m => (userData.inventory[m.id]?.qty || 0) > 0);
+          if (allOwned) {
+            userData.wishlist = userData.wishlist.filter(id => id !== item.id);
+            changed = true;
+          }
+        }
+      } else if (item && (userData.inventory[item.id]?.qty || 0) > 0) {
+        userData.wishlist = userData.wishlist.filter(id => id !== item.id);
+        changed = true;
+      }
+    });
+
+    if (changed) {
+      try {
+        profiles[currentProfileId] = userData;
+        localStorage.setItem(STORAGE_PROFILES_KEY, JSON.stringify(profiles));
+      } catch (e) {
+        // Ignore storage errors
+      }
+    }
   }
 
   // --- Multi-User Profile Persistence ---
@@ -160,6 +366,7 @@
     userData = profiles[profileId];
     if (!userData.inventory) userData.inventory = {};
     if (!userData.wishlist) userData.wishlist = [];
+    syncSetsAndMembersState();
 
     localStorage.setItem(STORAGE_ACTIVE_PROFILE_KEY, currentProfileId);
     renderAll();
@@ -209,16 +416,27 @@
   function setupFilters() {
     const finishSelect = document.getElementById('filter-finish');
     const colorSelect = document.getElementById('filter-color');
+    if (!finishSelect || !colorSelect) return;
+
+    const prevFinish = finishSelect.value || 'all';
+    const prevColor = colorSelect.value || 'all';
+
+    finishSelect.innerHTML = '<option value="all">All Types</option>';
+    colorSelect.innerHTML = '<option value="all">All Colors</option>';
 
     const finishes = new Set();
     const colors = new Set();
 
     catalog.forEach(item => {
       if (item.type) {
-        item.type.split(',').forEach(f => finishes.add(f.trim()));
+        item.type.split(',').forEach(f => {
+          if (f.trim()) finishes.add(f.trim());
+        });
       }
       if (item.color) {
-        item.color.split(',').forEach(c => colors.add(c.trim()));
+        item.color.split(',').forEach(c => {
+          if (c.trim()) colors.add(c.trim());
+        });
       }
     });
 
@@ -235,6 +453,13 @@
       opt.textContent = color;
       colorSelect.appendChild(opt);
     });
+
+    if ([...finishSelect.options].some(o => o.value === prevFinish)) {
+      finishSelect.value = prevFinish;
+    }
+    if ([...colorSelect.options].some(o => o.value === prevColor)) {
+      colorSelect.value = prevColor;
+    }
   }
 
   // --- Event Bindings ---
@@ -268,6 +493,20 @@
     document.getElementById('filter-status').addEventListener('change', renderCatalog);
     const filterOwned = document.getElementById('filter-owned');
     if (filterOwned) filterOwned.addEventListener('change', renderCatalog);
+    const filterSort = document.getElementById('filter-sort');
+    if (filterSort) {
+      filterSort.addEventListener('change', () => {
+        const val = filterSort.value;
+        if (val === 'name-asc') { catalogSortKey = 'name'; catalogSortAsc = true; }
+        else if (val === 'name-desc') { catalogSortKey = 'name'; catalogSortAsc = false; }
+        else if (val === 'release-desc') { catalogSortKey = 'release_date'; catalogSortAsc = false; }
+        else if (val === 'release-asc') { catalogSortKey = 'release_date'; catalogSortAsc = true; }
+        else if (val === 'price-asc') { catalogSortKey = 'price'; catalogSortAsc = true; }
+        else if (val === 'price-desc') { catalogSortKey = 'price'; catalogSortAsc = false; }
+        else if (val === 'owned-desc') { catalogSortKey = 'owned'; catalogSortAsc = false; }
+        renderCatalog();
+      });
+    }
 
     // Orders search
     document.getElementById('orders-search').addEventListener('input', debounce(renderOrders, 200));
@@ -280,8 +519,9 @@
           catalogSortAsc = !catalogSortAsc;
         } else {
           catalogSortKey = sortField;
-          catalogSortAsc = true;
+          catalogSortAsc = sortField === 'release_date' ? false : true;
         }
+        syncCatalogSortDropdown();
         renderCatalog();
       });
     });
@@ -338,13 +578,16 @@
     // Live New Releases Sync
     const syncBtn = document.getElementById('btn-sync-new-releases');
     if (syncBtn) {
-      syncBtn.addEventListener('click', checkLiveNewReleases);
+      syncBtn.addEventListener('click', () => checkLiveNewReleases(false));
     }
 
-    // Backup & Restore
-    document.getElementById('btn-export-backup').addEventListener('click', exportJSONBackup);
-    document.getElementById('file-import-backup').addEventListener('change', importJSONBackup);
-    document.getElementById('btn-reset-demo').addEventListener('click', confirmResetData);
+    // Backup & Restore (optional if elements exist)
+    const exportBackupBtn = document.getElementById('btn-export-backup');
+    if (exportBackupBtn) exportBackupBtn.addEventListener('click', exportJSONBackup);
+    const importBackupInput = document.getElementById('file-import-backup');
+    if (importBackupInput) importBackupInput.addEventListener('change', importJSONBackup);
+    const resetDemoBtn = document.getElementById('btn-reset-demo');
+    if (resetDemoBtn) resetDemoBtn.addEventListener('click', confirmResetData);
   }
 
   // --- Tab Switcher ---
@@ -364,6 +607,7 @@
 
   // --- Rendering ---
   function renderAll() {
+    syncSetsAndMembersState();
     updateHeaderStats();
     renderCatalog();
     renderOrders();
@@ -373,10 +617,17 @@
   function updateHeaderStats() {
     const totalCatalog = catalog.length;
     let totalOwnedCount = 0;
-    Object.values(userData.inventory).forEach(item => {
-      if (item && item.qty > 0) totalOwnedCount += item.qty;
+    let uniqueOwnedCount = 0;
+
+    catalog.forEach(item => {
+      if (isSetItem(item)) return;
+      const qty = getOwnedQty(item);
+      if (qty > 0) {
+        uniqueOwnedCount += 1;
+        totalOwnedCount += qty;
+      }
     });
-    const uniqueOwnedCount = Object.keys(userData.inventory).filter(id => userData.inventory[id]?.qty > 0).length;
+
     const wishlistCount = userData.wishlist.length;
 
     document.getElementById('stat-total-catalog').textContent = totalCatalog;
@@ -397,8 +648,8 @@
     const ownedFilter = document.getElementById('filter-owned') ? document.getElementById('filter-owned').value : 'unowned';
 
     return catalog.filter(item => {
-      const owned = (userData.inventory[item.id]?.qty || 0) > 0;
-      const inWishlist = userData.wishlist.includes(item.id);
+      const owned = getOwnedQty(item) > 0;
+      const inWishlist = isEffectivelyWishlisted(item);
 
       // Search query
       if (query) {
@@ -420,7 +671,7 @@
       }
 
       // Availability / Status filter (In Stock, Dearly Departed, New, Out of Stock, or All)
-      if (statusFilter === 'in_stock' && item.status !== 'In Stock') return false;
+      if (statusFilter === 'in_stock' && item.status !== 'In Stock' && !query) return false;
       if (statusFilter === 'departed' && item.status !== 'Dearly Departed') return false;
       if (statusFilter === 'new' && !item.is_new) return false;
       if (statusFilter === 'out_of_stock' && item.status !== 'Out of Stock') return false;
@@ -434,6 +685,19 @@
     });
   }
 
+  function syncCatalogSortDropdown() {
+    const filterSort = document.getElementById('filter-sort');
+    if (!filterSort) return;
+    let targetVal = '';
+    if (catalogSortKey === 'name') targetVal = catalogSortAsc ? 'name-asc' : 'name-desc';
+    else if (catalogSortKey === 'release_date' || catalogSortKey === 'last_updated') targetVal = catalogSortAsc ? 'release-asc' : 'release-desc';
+    else if (catalogSortKey === 'price') targetVal = catalogSortAsc ? 'price-asc' : 'price-desc';
+    else if (catalogSortKey === 'owned') targetVal = 'owned-desc';
+    if (targetVal && [...filterSort.options].some(o => o.value === targetVal)) {
+      filterSort.value = targetVal;
+    }
+  }
+
   function renderCatalog() {
     let items = getFilteredCatalog();
 
@@ -441,18 +705,30 @@
     items.sort((a, b) => {
       let valA, valB;
       if (catalogSortKey === 'owned') {
-        valA = userData.inventory[a.id]?.qty || 0;
-        valB = userData.inventory[b.id]?.qty || 0;
+        valA = getOwnedQty(a);
+        valB = getOwnedQty(b);
       } else if (catalogSortKey === 'price') {
         valA = parseFloat((a.price || '$0').replace(/[^0-9\.]/g, '')) || 0;
         valB = parseFloat((b.price || '$0').replace(/[^0-9\.]/g, '')) || 0;
+      } else if (catalogSortKey === 'release_date' || catalogSortKey === 'last_updated') {
+        valA = (a.release_date || a.last_updated || '').toString();
+        valB = (b.release_date || b.last_updated || '').toString();
+        if (valA !== valB) {
+          return catalogSortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+        }
+        const idA = Number(a.id) || 0;
+        const idB = Number(b.id) || 0;
+        if (idA !== idB) {
+          return catalogSortAsc ? idA - idB : idB - idA;
+        }
+        return a.name.localeCompare(b.name);
       } else {
         valA = (a[catalogSortKey] || '').toString().toLowerCase();
         valB = (b[catalogSortKey] || '').toString().toLowerCase();
       }
       if (valA < valB) return catalogSortAsc ? -1 : 1;
       if (valA > valB) return catalogSortAsc ? 1 : -1;
-      return 0;
+      return a.name.localeCompare(b.name);
     });
 
     document.getElementById('results-count').textContent = `Showing ${items.length} of ${catalog.length} Mooncat items`;
@@ -473,13 +749,39 @@
   }
 
   function createCardHTML(item) {
-    const ownedQty = userData.inventory[item.id]?.qty || 0;
+    const ownedQty = getOwnedQty(item);
     const isOwned = ownedQty > 0;
-    const inWishlist = userData.wishlist.includes(item.id);
+    const isSet = isSetItem(item);
+    const setProg = isSet ? getSetOwnedProgress(item) : null;
+    const inWishlistDirect = userData.wishlist.includes(item.id);
+    const wishlistedSet = getWishlistedParentSet(item);
+    const inWishlist = inWishlistDirect || Boolean(wishlistedSet);
 
     const finishBadges = item.type.split(',').map(f => `<span class="tag tag-finish">${escapeHtml(f.trim())}</span>`).join('');
     const colorBadges = item.color.split(',').map(c => `<span class="tag tag-color">${escapeHtml(c.trim())}</span>`).join('');
     const isDeparted = item.status === 'Dearly Departed';
+
+    let ownedBadgeHtml = '';
+    if (isSet && setProg && setProg.total > 0) {
+      if (isOwned) {
+        ownedBadgeHtml = `<span class="badge badge-owned">Set Owned (${setProg.total}/${setProg.total})</span>`;
+      } else if (setProg.ownedCount > 0) {
+        ownedBadgeHtml = `<span class="badge badge-owned" style="background: rgba(245, 158, 11, 0.25); color: #fbbf24; border-color: rgba(245, 158, 11, 0.45);">Own ${setProg.ownedCount}/${setProg.total} Shades</span>`;
+      } else {
+        ownedBadgeHtml = `<span class="badge badge-unowned">Set (${setProg.total} Shades)</span>`;
+      }
+    } else {
+      ownedBadgeHtml = isOwned
+        ? `<span class="badge badge-owned">Owned: ${ownedQty}</span>`
+        : `<span class="badge badge-unowned">Not Owned</span>`;
+    }
+
+    let wishlistBadgeHtml = '';
+    if (wishlistedSet) {
+      wishlistBadgeHtml = `<span class="badge badge-wishlist" title="Wishlisted via ${escapeHtml(wishlistedSet.name)}">Wishlist (Set)</span>`;
+    } else if (inWishlistDirect) {
+      wishlistBadgeHtml = `<span class="badge badge-wishlist">Wishlist</span>`;
+    }
 
     return `
       <div class="polish-card ${isOwned ? 'is-owned' : ''}" data-id="${item.id}">
@@ -487,10 +789,8 @@
           <img class="card-img" src="${escapeHtml(item.image_url)}" alt="${escapeHtml(item.name)}" loading="lazy" onerror="this.src='https://via.placeholder.com/300?text=Mooncat'">
           <div class="card-badges">
             ${item.is_new ? '<span class="badge badge-new">✨ NEW</span>' : ''}
-            ${isOwned 
-              ? `<span class="badge badge-owned">Owned: ${ownedQty}</span>` 
-              : `<span class="badge badge-unowned">Not Owned</span>`}
-            ${inWishlist ? `<span class="badge badge-wishlist">Wishlist</span>` : ''}
+            ${ownedBadgeHtml}
+            ${wishlistBadgeHtml}
           </div>
           <span class="badge-stock ${isDeparted ? 'departed' : ''}">${isDeparted ? '⚰️ DEARLY DEPARTED' : escapeHtml(item.status)}</span>
         </div>
@@ -507,19 +807,23 @@
 
           <div class="card-footer">
             <div class="card-meta-row">
-              <span>Updated: ${escapeHtml(item.last_updated)}</span>
+              <span>Released: ${escapeHtml(item.release_date || item.last_updated)}</span>
               <span>${escapeHtml(item.price)}</span>
             </div>
 
             <div class="card-actions">
               <button class="btn-card-action btn-card-owned" onclick="window.MooncatApp.quickAddOwned(${item.id})">
-                ${isOwned ? `+ Add More (${ownedQty})` : '+ Add to Owned'}
+                ${isSet && setProg && setProg.total > 0
+                  ? (isOwned ? `+ Add Set Again` : `+ Own Set (${setProg.total})`)
+                  : (isOwned ? `+ Add More (${ownedQty})` : '+ Add to Owned')}
               </button>
 
               <button class="btn-card-action btn-card-wishlist ${inWishlist ? 'active' : ''}" 
                 onclick="window.MooncatApp.toggleWishlist(${item.id})"
-                ${isOwned ? 'disabled title="You already own this color! Cannot add to wishlist."' : ''}>
-                ${inWishlist ? '✓ On Wishlist' : (isOwned ? 'Owned' : '✦ Wishlist')}
+                ${isOwned ? 'disabled title="You already own this! Cannot add to wishlist."' : ''}>
+                ${wishlistedSet
+                  ? '✓ In Set Wishlist'
+                  : (inWishlistDirect ? '✓ On Wishlist' : (isOwned ? 'Owned' : '✦ Wishlist'))}
               </button>
             </div>
           </div>
@@ -529,9 +833,9 @@
   }
 
   function createTableRowHTML(item) {
-    const ownedQty = userData.inventory[item.id]?.qty || 0;
+    const ownedQty = getOwnedQty(item);
     const isOwned = ownedQty > 0;
-    const inWishlist = userData.wishlist.includes(item.id);
+    const inWishlist = isEffectivelyWishlisted(item);
 
     return `
       <tr data-id="${item.id}">
@@ -546,7 +850,7 @@
         <td><span class="tag tag-color">${escapeHtml(item.color)}</span></td>
         <td class="table-desc-cell" title="${escapeHtml(item.description)}">${escapeHtml(item.description)}</td>
         <td style="font-family: var(--font-mono); font-size: 0.88rem; font-weight: 600;">${escapeHtml(item.price)}</td>
-        <td style="font-family: var(--font-mono); font-size: 0.8rem;">${escapeHtml(item.last_updated)}</td>
+        <td style="font-family: var(--font-mono); font-size: 0.8rem;">${escapeHtml(item.release_date || item.last_updated)}</td>
         <td>
           ${isOwned 
             ? `<span class="badge badge-owned">Yes (${ownedQty})</span>` 
@@ -554,7 +858,7 @@
         </td>
         <td>
           <div style="display: flex; gap: 4px;">
-            <button class="btn-card-action" style="padding: 4px 8px;" onclick="window.MooncatApp.quickAddOwned(${item.id})" title="Add 1 to Owned">+1</button>
+            <button class="btn-card-action" style="padding: 4px 8px;" onclick="window.MooncatApp.quickAddOwned(${item.id})" title="Add to Owned">+1</button>
             <button class="btn-card-action" style="padding: 4px 8px;" onclick="window.MooncatApp.toggleWishlist(${item.id})" ${isOwned ? 'disabled title="Already Owned"' : ''} title="Wishlist">
               ${inWishlist ? '★' : '☆'}
             </button>
@@ -570,8 +874,8 @@
     const tbody = document.getElementById('orders-table-body');
     const emptyState = document.getElementById('orders-empty-state');
 
-    // Get all owned items
-    const ownedItems = catalog.filter(item => (userData.inventory[item.id]?.qty || 0) > 0);
+    // Get all owned individual shades/items (sets expand into their individual shades)
+    const ownedItems = catalog.filter(item => !isSetItem(item) && getOwnedQty(item) > 0);
 
     // Sort strictly by name alphabetically (Goal 2)
     ownedItems.sort((a, b) => a.name.localeCompare(b.name));
@@ -611,9 +915,10 @@
 
     tbody.innerHTML = filtered.map(item => {
       const invEntry = userData.inventory[item.id] || {};
-      const qtyOnHand = invEntry.qty || 0;
+      const qtyOnHand = getOwnedQty(item);
       const totalOrdered = invEntry.ordered_qty || qtyOnHand;
       const hasGifted = totalOrdered > qtyOnHand;
+      const noteText = invEntry.notes || '';
 
       return `
         <tr data-id="${item.id}">
@@ -639,6 +944,7 @@
             <div style="display: flex; flex-direction: column; gap: 4px;">
               <span class="badge-stock ${item.status === 'Discontinued' ? 'discontinued' : ''}" style="position: static; display: inline-block; width: fit-content;">${escapeHtml(item.status)}</span>
               ${hasGifted ? `<span style="font-size: 0.72rem; color: #ec4899; font-weight: 600;">🎁 Gifted ${totalOrdered - qtyOnHand} duplicate</span>` : ''}
+              ${noteText.startsWith('From ') ? `<span style="font-size: 0.72rem; color: #a855f7;">📦 ${escapeHtml(noteText)}</span>` : ''}
             </div>
           </td>
           <td style="text-align: right;">
@@ -681,6 +987,7 @@
       sortSelect.value = wishlistSortKey;
     }
 
+    // Show items directly wishlisted (so Sets are shown as the Set, not individual colors!)
     let wishlistItems = catalog.filter(item => userData.wishlist.includes(item.id));
 
     // Sort wishlist according to selected sort key
@@ -695,6 +1002,18 @@
       if (wishlistSortKey === 'rating-asc') {
         if (rA !== rB) return rA - rB;
         return a.name.localeCompare(b.name);
+      }
+      if (wishlistSortKey === 'release-desc') {
+        const dA = (a.release_date || a.last_updated || '').toString();
+        const dB = (b.release_date || b.last_updated || '').toString();
+        if (dB !== dA) return dB.localeCompare(dA);
+        return (Number(b.id) || 0) - (Number(a.id) || 0) || a.name.localeCompare(b.name);
+      }
+      if (wishlistSortKey === 'release-asc') {
+        const dA = (a.release_date || a.last_updated || '').toString();
+        const dB = (b.release_date || b.last_updated || '').toString();
+        if (dA !== dB) return dA.localeCompare(dB);
+        return (Number(a.id) || 0) - (Number(b.id) || 0) || a.name.localeCompare(b.name);
       }
       if (wishlistSortKey === 'name-asc') {
         return a.name.localeCompare(b.name);
@@ -723,7 +1042,8 @@
 
     if (statsBadge) {
       const ratedCount = wishlistItems.filter(i => (userData.wishlistRatings && userData.wishlistRatings[i.id] > 0)).length;
-      statsBadge.innerHTML = `<strong>${wishlistItems.length}</strong> shade(s) in wishlist • <strong>${ratedCount}</strong> rated`;
+      const setCount = wishlistItems.filter(i => isSetItem(i)).length;
+      statsBadge.innerHTML = `<strong>${wishlistItems.length}</strong> item(s) in wishlist${setCount > 0 ? ` (${setCount} set${setCount > 1 ? 's' : ''})` : ''} • <strong>${ratedCount}</strong> rated`;
     }
 
     if (wishlistItems.length === 0) {
@@ -742,7 +1062,7 @@
         emptyState.innerHTML = `
           <div class="empty-icon">💫</div>
           <h3>Your Wishlist is Empty</h3>
-          <p>Explore the Main Catalog and click "✦ Wishlist" on any unowned shade you'd love to add to your collection!</p>
+          <p>Explore the Main Catalog and click "✦ Wishlist" on any unowned shade or set you'd love to add to your collection!</p>
           <button class="btn-primary" onclick="document.querySelector('[data-tab=catalog]').click()">Browse Main Catalog</button>
         `;
       }
@@ -754,15 +1074,37 @@
 
     grid.innerHTML = wishlistItems.map(item => {
       const rating = (userData.wishlistRatings && userData.wishlistRatings[item.id]) || 0;
+      const isSet = isSetItem(item);
+      const setProg = isSet ? getSetOwnedProgress(item) : null;
       const finishBadges = item.type.split(',').map(f => `<span class="tag tag-finish">${escapeHtml(f.trim())}</span>`).join('');
       const colorBadges = item.color.split(',').map(c => `<span class="tag tag-color">${escapeHtml(c.trim())}</span>`).join('');
+
+      let setShadesBoxHtml = '';
+      if (isSet && setProg && setProg.total > 0) {
+        const shadePills = setProg.members.map(m => {
+          const mOwned = getOwnedQty(m) > 0;
+          return `<span style="display: inline-block; font-size: 0.72rem; padding: 2px 6px; border-radius: 4px; background: ${mOwned ? 'rgba(16, 185, 129, 0.2)' : 'rgba(168, 85, 247, 0.15)'}; border: 1px solid ${mOwned ? 'rgba(16, 185, 129, 0.45)' : 'rgba(168, 85, 247, 0.35)'}; color: ${mOwned ? '#34d399' : '#e9d5ff'}; cursor: pointer;" onclick="window.MooncatApp.openDetail(${m.id})" title="${mOwned ? 'You already own this shade' : 'Included in wishlisted set'}">${escapeHtml(m.name)}${mOwned ? ' ✓' : ''}</span>`;
+        }).join(' ');
+
+        setShadesBoxHtml = `
+          <div style="margin: 0.5rem 0; padding: 0.5rem 0.65rem; background: rgba(168, 85, 247, 0.08); border: 1px solid rgba(168, 85, 247, 0.25); border-radius: 6px;">
+            <div style="font-size: 0.75rem; font-weight: 600; color: #c084fc; margin-bottom: 0.35rem;">
+              📦 Set Includes ${setProg.total} Shades${setProg.ownedCount > 0 ? ` (${setProg.ownedCount} already owned)` : ' (all assumed wishlisted)'}:
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+              ${shadePills}
+            </div>
+          </div>
+        `;
+      }
 
       return `
         <div class="polish-card" data-id="${item.id}">
           <div class="card-media" onclick="window.MooncatApp.openDetail(${item.id})">
             <img class="card-img" src="${escapeHtml(item.image_url)}" alt="${escapeHtml(item.name)}" loading="lazy">
             <div class="card-badges">
-              <span class="badge badge-wishlist">Wishlist</span>
+              <span class="badge badge-wishlist">${isSet ? 'Wishlisted Set' : 'Wishlist'}</span>
+              ${isSet && setProg && setProg.total > 0 ? `<span class="badge badge-unowned">${setProg.total} Shades</span>` : ''}
             </div>
             ${rating > 0 ? `<span class="badge-love-rating">⭐ ${rating}/10</span>` : ''}
             <span class="badge-stock ${item.status === 'Discontinued' ? 'discontinued' : ''}">${escapeHtml(item.status)}</span>
@@ -776,16 +1118,18 @@
               ${colorBadges}
             </div>
 
+            ${setShadesBoxHtml}
+
             <!-- Love Score Rating: 1-10 -->
             <div class="card-love-rating">
               <div class="love-rating-header">
-                <span class="love-rating-title">How much do you love this color?</span>
+                <span class="love-rating-title">How much do you love this ${isSet ? 'set' : 'color'}?</span>
                 <span class="love-rating-score-badge ${rating > 0 ? 'rated' : ''}">
                   ${rating > 0 ? `⭐ ${rating}/10` : '☆ Unrated'}
                 </span>
               </div>
               <div class="love-star-picker">
-                <select class="love-score-select" onchange="window.MooncatApp.setWishlistRating(${item.id}, this.value)" title="Rate how much you love this color (1-10)">
+                <select class="love-score-select" onchange="window.MooncatApp.setWishlistRating(${item.id}, this.value)" title="Rate how much you love this (1-10)">
                   <option value="0" ${rating === 0 ? 'selected' : ''}>☆ Set Love Score (1–10)...</option>
                   <option value="10" ${rating === 10 ? 'selected' : ''}>⭐⭐⭐⭐⭐ 10/10 — Holy Grail / Must-Have!</option>
                   <option value="9" ${rating === 9 ? 'selected' : ''}>⭐⭐⭐⭐½ 9/10 — Obsessed, top priority</option>
@@ -805,7 +1149,7 @@
 
             <div class="card-footer">
               <div class="card-meta-row">
-                <span>Updated: ${escapeHtml(item.last_updated)}</span>
+                <span>Released: ${escapeHtml(item.release_date || item.last_updated)}</span>
                 <span>${escapeHtml(item.price)}</span>
               </div>
 
@@ -827,22 +1171,60 @@
   // --- Wishlist Enforcement & Workflow (Goal 3) ---
   function toggleWishlist(id) {
     if (!requireAuth("save colors to your wishlist")) return;
-    const isOwned = (userData.inventory[id]?.qty || 0) > 0;
     const item = catalog.find(i => i.id === id);
+    if (!item) return;
+
+    const isSet = isSetItem(item);
+    const isOwned = getOwnedQty(item) > 0;
 
     // Strict Enforcement Rule (Goal 3): "I should not be able to add colors I already own to a wishlist"
     if (isOwned) {
-      showToast(`⚠️ You already own "${item.name}"! Colors you already own cannot be added to your wishlist.`);
+      showToast(
+        isSet
+          ? `⚠️ You already own all shades in "${item.name}"! Cannot add to wishlist.`
+          : `⚠️ You already own "${item.name}"! Colors you already own cannot be added to your wishlist.`
+      );
       return;
+    }
+
+    // If this is an individual color and a Set containing it is already on the wishlist:
+    if (!isSet) {
+      const parentSet = getWishlistedParentSet(item);
+      if (parentSet) {
+        showToast(`💫 "${item.name}" is already wishlisted via "${parentSet.name}" (shown as the set on your Wishlist)!`);
+        return;
+      }
     }
 
     const index = userData.wishlist.indexOf(id);
     if (index > -1) {
       userData.wishlist.splice(index, 1);
-      showToast(`Removed "${item.name}" from Wishlist`);
+      if (isSet) {
+        const members = getSetMembers(item);
+        showToast(`Removed "${item.name}"${members.length ? ` (and its ${members.length} shades)` : ''} from Wishlist`);
+      } else {
+        showToast(`Removed "${item.name}" from Wishlist`);
+      }
     } else {
       userData.wishlist.push(id);
-      showToast(`✨ Added "${item.name}" to Wishlist!`);
+      if (isSet) {
+        // When marking a set to wishlist: assume the colors on that set are wishlisted,
+        // and show it on the wishlist as the set, NOT the individual colors.
+        const setProg = getSetOwnedProgress(item);
+        if (setProg.total > 0) {
+          const memberIds = new Set(setProg.members.map(m => m.id));
+          userData.wishlist = userData.wishlist.filter(wId => wId === id || !memberIds.has(wId));
+          if (setProg.ownedCount > 0) {
+            showToast(`✨ Added "${item.name}" to Wishlist as a set! (${setProg.total} shades assumed wishlisted; ${setProg.ownedCount} already owned)`);
+          } else {
+            showToast(`✨ Added "${item.name}" to Wishlist as a set! All ${setProg.total} shades are now assumed wishlisted.`);
+          }
+        } else {
+          showToast(`✨ Added "${item.name}" to Wishlist!`);
+        }
+      } else {
+        showToast(`✨ Added "${item.name}" to Wishlist!`);
+      }
     }
 
     saveUserData();
@@ -864,16 +1246,43 @@
     const item = catalog.find(i => i.id === id);
     if (!item) return;
 
+    const today = new Date().toISOString().slice(0, 10);
+
     // 1. Remove from wishlist
     userData.wishlist = userData.wishlist.filter(wId => wId !== id);
 
-    // 2. Add to inventory
+    // 2. If it's a Set, mark all individual shades in the set as owned so they don't get purchased again
+    if (isSetItem(item)) {
+      const members = getSetMembers(item);
+      if (members.length > 0) {
+        members.forEach(member => {
+          if (!userData.inventory[member.id]) {
+            userData.inventory[member.id] = { qty: 0, orderDates: [], notes: `From ${item.name}` };
+          }
+          userData.inventory[member.id].qty += 1;
+          userData.inventory[member.id].orderDates.push(today);
+          if (!userData.inventory[member.id].notes) {
+            userData.inventory[member.id].notes = `From ${item.name}`;
+          }
+          userData.wishlist = userData.wishlist.filter(wId => wId !== member.id);
+        });
+
+        syncSetsAndMembersState();
+        saveUserData();
+        renderAll();
+        showToast(`🎉 "${item.name}" marked purchased! Removed from Wishlist and marked all ${members.length} individual shades as Owned!`);
+        return;
+      }
+    }
+
+    // 3. Individual shade purchase
     if (!userData.inventory[id]) {
       userData.inventory[id] = { qty: 0, orderDates: [], notes: '' };
     }
     userData.inventory[id].qty += 1;
-    userData.inventory[id].orderDates.push(new Date().toISOString().slice(0, 10));
+    userData.inventory[id].orderDates.push(today);
 
+    syncSetsAndMembersState();
     saveUserData();
     renderAll();
 
@@ -886,6 +1295,35 @@
     const item = catalog.find(i => i.id === id);
     if (!item) return;
 
+    const today = new Date().toISOString().slice(0, 10);
+
+    // If marking a Set as owned: ensure all individual colors on that set are marked owned so they aren't purchased again
+    if (isSetItem(item)) {
+      const members = getSetMembers(item);
+      if (members.length > 0) {
+        members.forEach(member => {
+          if (!userData.inventory[member.id]) {
+            userData.inventory[member.id] = { qty: 0, orderDates: [], notes: `From ${item.name}` };
+          }
+          userData.inventory[member.id].qty += 1;
+          if (Array.isArray(userData.inventory[member.id].orderDates)) {
+            userData.inventory[member.id].orderDates.push(today);
+          }
+          if (!userData.inventory[member.id].notes) {
+            userData.inventory[member.id].notes = `From ${item.name}`;
+          }
+          userData.wishlist = userData.wishlist.filter(wId => wId !== member.id);
+        });
+
+        userData.wishlist = userData.wishlist.filter(wId => wId !== id);
+        syncSetsAndMembersState();
+        saveUserData();
+        renderAll();
+        showToast(`🎉 Marked "${item.name}" as Owned! All ${members.length} individual shades are now in your Owned Inventory.`);
+        return;
+      }
+    }
+
     if (!userData.inventory[id]) {
       userData.inventory[id] = { qty: 0, orderDates: [], notes: '' };
     }
@@ -896,6 +1334,7 @@
       userData.wishlist = userData.wishlist.filter(wId => wId !== id);
     }
 
+    syncSetsAndMembersState();
     saveUserData();
     renderAll();
     showToast(`Added 1 bottle of "${item.name}" to your Orders & Inventory (Total: ${userData.inventory[id].qty})`);
@@ -1026,6 +1465,23 @@
     let addedCount = 0;
     matchedIds.forEach(id => {
       const qty = matches[id];
+      const item = catalog.find(i => String(i.id) === String(id));
+      if (item && isSetItem(item)) {
+        const members = getSetMembers(item);
+        if (members.length > 0) {
+          members.forEach(m => {
+            if (!userData.inventory[m.id]) {
+              userData.inventory[m.id] = { qty: 0, orderDates: [], notes: `From ${item.name}` };
+            }
+            userData.inventory[m.id].qty += qty;
+            addedCount += qty;
+            userData.wishlist = userData.wishlist.filter(wId => wId != m.id);
+          });
+          userData.wishlist = userData.wishlist.filter(wId => wId != id);
+          return;
+        }
+      }
+
       if (!userData.inventory[id]) {
         userData.inventory[id] = { qty: 0, orderDates: [], notes: '' };
       }
@@ -1036,11 +1492,12 @@
       userData.wishlist = userData.wishlist.filter(wId => wId != id);
     });
 
+    syncSetsAndMembersState();
     saveUserData();
     closeImportModal();
     renderAll();
     switchTab('orders');
-    showToast(`🎉 Successfully added ${addedCount} bottle(s) across ${matchedIds.length} shades to your order inventory!`);
+    showToast(`🎉 Successfully added ${addedCount} bottle(s) to your order inventory!`);
   }
 
   // --- Detail Modal ---
@@ -1048,12 +1505,37 @@
     const item = catalog.find(i => i.id === id);
     if (!item) return;
 
-    const ownedQty = userData.inventory[item.id]?.qty || 0;
+    const ownedQty = getOwnedQty(item);
     const isOwned = ownedQty > 0;
-    const inWishlist = userData.wishlist.includes(item.id);
+    const isSet = isSetItem(item);
+    const setProg = isSet ? getSetOwnedProgress(item) : null;
+    const wishlistedSet = getWishlistedParentSet(item);
+    const inWishlistDirect = userData.wishlist.includes(item.id);
+    const inWishlist = inWishlistDirect || Boolean(wishlistedSet);
 
     const finishBadges = item.type.split(',').map(f => `<span class="tag tag-finish">${escapeHtml(f.trim())}</span>`).join('');
     const colorBadges = item.color.split(',').map(c => `<span class="tag tag-color">${escapeHtml(c.trim())}</span>`).join('');
+
+    let setMembersHtml = '';
+    if (isSet && setProg && setProg.total > 0) {
+      setMembersHtml = `
+        <div style="margin: 0.85rem 0; padding: 0.75rem 1rem; background: rgba(168, 85, 247, 0.08); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 8px;">
+          <div style="font-size: 0.85rem; font-weight: 700; color: #c084fc; margin-bottom: 0.5rem;">
+            📦 Shades Included in This Set (${setProg.ownedCount}/${setProg.total} Owned):
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+            ${setProg.members.map(m => {
+              const mOwned = getOwnedQty(m) > 0;
+              return `
+                <span style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.78rem; padding: 3px 8px; border-radius: 6px; background: ${mOwned ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255,255,255,0.06)'}; border: 1px solid ${mOwned ? 'rgba(16, 185, 129, 0.45)' : 'rgba(255,255,255,0.15)'}; color: ${mOwned ? '#34d399' : '#fff'}; cursor: pointer;" onclick="window.MooncatApp.openDetail(${m.id})">
+                  ${escapeHtml(m.name)} ${mOwned ? '✓ Owned' : ''}
+                </span>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
 
     const modalContent = document.getElementById('modal-content');
     modalContent.innerHTML = `
@@ -1098,6 +1580,10 @@
               <td>${escapeHtml(item.price)}</td>
             </tr>
             <tr>
+              <td>Release Date:</td>
+              <td style="font-family: var(--font-mono);">${escapeHtml(item.release_date || item.last_updated)}</td>
+            </tr>
+            <tr>
               <td>Last Updated:</td>
               <td style="font-family: var(--font-mono);">${escapeHtml(item.last_updated)}</td>
             </tr>
@@ -1105,11 +1591,15 @@
               <td>Owned?</td>
               <td>
                 ${isOwned 
-                  ? `<span class="badge badge-owned">Yes (${ownedQty} ordered)</span>` 
-                  : `<span class="badge badge-unowned">No</span>`}
+                  ? `<span class="badge badge-owned">Yes (${isSet && setProg ? `All ${setProg.total} shades owned` : `${ownedQty} ordered`})</span>` 
+                  : (isSet && setProg && setProg.ownedCount > 0
+                    ? `<span class="badge badge-unowned">Partially (${setProg.ownedCount}/${setProg.total} shades owned)</span>`
+                    : `<span class="badge badge-unowned">No</span>`)}
               </td>
             </tr>
           </table>
+
+          ${setMembersHtml}
 
           ${item.status === 'Dearly Departed' ? `
             <div style="background: rgba(185, 28, 28, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); padding: 0.75rem 1rem; border-radius: 8px; margin: 0.85rem 0; font-size: 0.84rem; color: #fecaca; line-height: 1.45;">
@@ -1124,10 +1614,14 @@
 
           <div class="modal-action-bar">
             <button class="btn-primary" onclick="window.MooncatApp.quickAddOwned(${item.id}); window.MooncatApp.openDetail(${item.id});">
-              ${isOwned ? `+ Add Another (${ownedQty})` : '+ Add to Owned Inventory'}
+              ${isSet && setProg && setProg.total > 0
+                ? (isOwned ? `+ Add Set Again` : `+ Mark Set Owned (All ${setProg.total} Shades)`)
+                : (isOwned ? `+ Add Another (${ownedQty})` : '+ Add to Owned Inventory')}
             </button>
             <button class="btn-secondary" onclick="window.MooncatApp.toggleWishlist(${item.id}); window.MooncatApp.openDetail(${item.id});" ${isOwned ? 'disabled title="Already Owned!"' : ''}>
-              ${inWishlist ? '✓ On Wishlist' : (isOwned ? 'Already Owned' : '✦ Add to Wishlist')}
+              ${wishlistedSet
+                ? `✓ Wishlisted in ${escapeHtml(wishlistedSet.name)}`
+                : (inWishlistDirect ? '✓ On Wishlist' : (isOwned ? 'Already Owned' : '✦ Add to Wishlist'))}
             </button>
             <a href="${escapeHtml(item.product_url)}" target="_blank" rel="noopener" class="btn-secondary">
               View on Mooncat.com ↗
@@ -1146,15 +1640,16 @@
 
   // --- CSV Exports ---
   function exportCatalogCSV() {
-    // Goal 1: Columns: name, type, color(s), description, last updated date, plus owned? y/n
-    const headers = ['Name', 'Type', 'Color(s)', 'Description', 'Last Updated', 'Owned? (Y/N)', 'Number Owned', 'Status', 'Price'];
+    // Goal 1: Columns: name, type, color(s), description, release date, last updated date, plus owned? y/n
+    const headers = ['Name', 'Type', 'Color(s)', 'Description', 'Release Date', 'Last Updated', 'Owned? (Y/N)', 'Number Owned', 'Status', 'Price'];
     const rows = catalog.map(item => {
-      const ownedQty = userData.inventory[item.id]?.qty || 0;
+      const ownedQty = getOwnedQty(item);
       return [
         csvEscape(item.name),
         csvEscape(item.type),
         csvEscape(item.color),
         csvEscape(item.description),
+        csvEscape(item.release_date || item.last_updated),
         csvEscape(item.last_updated),
         ownedQty > 0 ? 'Y' : 'N',
         ownedQty,
@@ -1168,13 +1663,13 @@
 
   function exportOrdersCSV() {
     // Goal 2: 1 single list of all the mooncat nail colors ordered, including duplicates sorted by name that identifies them by type, color palette, and number ordered
-    const ownedItems = catalog.filter(item => (userData.inventory[item.id]?.qty || 0) > 0);
+    const ownedItems = catalog.filter(item => !isSetItem(item) && getOwnedQty(item) > 0);
     ownedItems.sort((a, b) => a.name.localeCompare(b.name));
 
     const headers = ['Name', 'Type (mooncat.com)', 'Color Palette', 'Total Ordered', 'Currently On Hand', 'Status', 'Price', 'Notes'];
     const rows = ownedItems.map(item => {
       const invEntry = userData.inventory[item.id] || {};
-      const onHand = invEntry.qty || 0;
+      const onHand = getOwnedQty(item);
       const ordered = invEntry.ordered_qty || onHand;
       const notes = invEntry.notes || (ordered > onHand ? `Gifted ${ordered - onHand} duplicate` : '');
 
@@ -1304,42 +1799,371 @@
     };
   }
 
-  async function checkLiveNewReleases() {
+  // --- Live Mooncat Store Sync & Product Classification ---
+  const LIVE_CATALOG_CACHE_KEY = 'mooncat_live_catalog_cache_v2';
+
+  const KNOWN_FINISHES_LIST = [
+    'linear holographic', 'holographic', 'magnetic', 'multichrome',
+    'shimmer', 'creme', 'crème', 'flakie', 'glitter', 'matte',
+    'metallic', 'thermal', 'solar', 'jelly', 'topper', 'glow-in-the-dark'
+  ];
+
+  const COLOR_KEYWORDS_MAP = {
+    'Purple': ['purple', 'violet', 'lavender', 'lilac', 'plum', 'amethyst', 'orchid', 'periwinkle'],
+    'Blue': ['blue', 'cobalt', 'sapphire', 'navy', 'indigo', 'cyan', 'azure', 'sky blue', 'cornflower'],
+    'Green': ['green', 'emerald', 'mint', 'olive', 'jade', 'sage', 'chartreuse', 'forest green'],
+    'Pink': ['pink', 'magenta', 'coral', 'blush', 'mauve', 'fuchsia', 'rose', 'bubblegum'],
+    'Red': ['red', 'crimson', 'scarlet', 'burgundy', 'wine', 'maroon', 'cherry', 'ruby', 'blood red'],
+    'Brown': ['brown', 'chocolate', 'espresso', 'mocha', 'taupe', 'sepia', 'caramel'],
+    'Black': ['black', 'onyx', 'midnight', 'jet black', 'charcoal'],
+    'White': ['white', 'ivory', 'pearl', 'alabaster', 'snow'],
+    'Gold': ['gold', 'golden', 'champagne', 'honey'],
+    'Silver': ['silver', 'platinum', 'pewter'],
+    'Gray': ['gray', 'grey', 'charcoal', 'slate', 'ash'],
+    'Orange': ['orange', 'peach', 'tangerine', 'apricot', 'terracotta'],
+    'Yellow': ['yellow', 'lemon', 'canary', 'sunflower', 'mustard'],
+    'Teal': ['teal', 'turquoise', 'aqua', 'seafoam', 'cyan'],
+    'Copper/Bronze': ['copper', 'bronze', 'rust', 'rose gold', 'rose-gold'],
+    'Multichrome/Shift': ['multichrome', 'color shifting', 'duochrome', 'iridescent', 'chromatic', 'chameleon', 'shift']
+  };
+
+  function stripHtmlAndDecode(rawHtml) {
+    if (!rawHtml) return '';
+    const tmp = document.createElement('div');
+    tmp.innerHTML = rawHtml.replace(/<[^>]+>/g, ' ');
+    return (tmp.textContent || tmp.innerText || '').replace(/\s+/g, ' ').trim();
+  }
+
+  function transformShopifyProduct(p, isInWhatsNew = false) {
+    if (!p || !p.id) return null;
+    const pType = (p.product_type || '').trim();
+    const rawTitle = (p.title || '').trim();
+    const handle = (p.handle || '').trim();
+    const rawTags = Array.isArray(p.tags)
+      ? p.tags
+      : (typeof p.tags === 'string' ? p.tags.split(',').map(t => t.trim()).filter(Boolean) : []);
+    const tags = rawTags.map(t => String(t).toLowerCase().trim());
+
+    // Skip non-nail merchandise (stickers, apparel, gift cards), but NEVER skip nail sets/collector boxes
+    if (['Decorative Stickers', 'Baggu Bag', 'Gift Cards', 'Free Gift', 'Cuticle Pushers'].includes(pType)) {
+      return null;
+    }
+
+    const cleanDesc = stripHtmlAndDecode(p.body_html || '');
+    const titleLower = rawTitle.toLowerCase();
+    const descLower = cleanDesc.toLowerCase();
+
+    const isSet =
+      tags.includes('set') ||
+      tags.includes('collection-set') ||
+      tags.includes('bundle:product') ||
+      tags.includes('product-bundle') ||
+      (/\b(set|duo|trio|bundle|collector'?s?\s+box|collector'?s?\s+set)\b/i.test(rawTitle) && !titleLower.includes('offset') && !titleLower.includes('sunset')) ||
+      /\b(set|duo|collection|box)\s+includes\s+\d+\s+(?:special[\s-]effect\s+)?(?:nail\s+)?lacquers/i.test(cleanDesc);
+
+    if (!isSet && tags.some(t => ['merch', 'stickers', 'apparel', 'bag'].includes(t))) {
+      return null;
+    }
+
+    const isCare =
+      ['base coat', 'top coat', 'primer', 'elixir', 'oil', 'treatment', 'lacquer remover', 'thinner'].some(c => titleLower.includes(c)) ||
+      tags.includes('nail care') ||
+      pType === 'Nail Tools';
+
+    const category = isSet ? 'Set' : (isCare ? 'Care & Tools' : 'Nail Lacquer');
+
+    const finishesFound = new Set();
+    tags.forEach(t => {
+      if (t.startsWith('finish:')) {
+        const val = t.replace('finish:', '').trim().replace(/-/g, ' ');
+        if (val) finishesFound.add(val.replace(/\b\w/g, l => l.toUpperCase()));
+      } else if (KNOWN_FINISHES_LIST.map(f => f.replace(/\s+/g, '-')).includes(t)) {
+        finishesFound.add(t.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()));
+      }
+    });
+
+    const colorsFound = new Set();
+    tags.forEach(t => {
+      if (t.startsWith('color:')) {
+        const val = t.replace('color:', '').trim().replace(/-/g, ' ');
+        if (val) colorsFound.add(val.replace(/\b\w/g, l => l.toUpperCase()));
+      }
+    });
+
+    const corpus = `${rawTitle} ${cleanDesc}`.toLowerCase();
+    if (finishesFound.size === 0 && category === 'Nail Lacquer') {
+      KNOWN_FINISHES_LIST.forEach(f => {
+        const re = new RegExp('\\b' + escapeRegExp(f) + '\\b', 'i');
+        if (re.test(corpus)) {
+          finishesFound.add(f.replace('crème', 'creme').replace(/\b\w/g, l => l.toUpperCase()));
+        }
+      });
+    }
+
+    if (colorsFound.size === 0 && category === 'Nail Lacquer') {
+      Object.entries(COLOR_KEYWORDS_MAP).forEach(([colName, kws]) => {
+        for (const kw of kws) {
+          const re = new RegExp('\\b' + escapeRegExp(kw) + '\\b', 'i');
+          if (re.test(corpus)) {
+            colorsFound.add(colName);
+            break;
+          }
+        }
+      });
+    }
+
+    if (isCare && finishesFound.size === 0) {
+      if (titleLower.includes('top coat')) finishesFound.add('Top Coat');
+      else if (titleLower.includes('base coat')) finishesFound.add('Base Coat');
+      else if (titleLower.includes('primer')) finishesFound.add('Primer');
+      else if (titleLower.includes('elixir') || titleLower.includes('oil')) finishesFound.add('Nail Care');
+    }
+
+    if (isSet) {
+      finishesFound.add('Set');
+    }
+
+    const typeStr = finishesFound.size > 0
+      ? Array.from(finishesFound).sort().join(', ')
+      : (isSet ? 'Set' : 'Special Effect');
+    const colorStr = colorsFound.size > 0
+      ? Array.from(colorsFound).sort().join(', ')
+      : (isSet ? 'Multi' : 'Special');
+
+    const images = Array.isArray(p.images) ? p.images : [];
+    const imageUrl = images[0]?.src || '';
+    const swatchImages = images.slice(0, 4).map(img => img.src).filter(Boolean);
+
+    const variants = Array.isArray(p.variants) && p.variants.length > 0 ? p.variants : [{}];
+    let price = variants[0]?.price || '15.00';
+    if (!price || price === '0.00' || price === '0') {
+      price = '15.00';
+    }
+    const available = variants.some(v => Boolean(v.available));
+
+    const updatedRaw = p.updated_at || p.published_at || new Date().toISOString();
+    const updatedDate = String(updatedRaw).slice(0, 10);
+
+    const publishedRaw = p.published_at || p.created_at || '';
+    let releaseDate = publishedRaw ? String(publishedRaw).slice(0, 10) : '';
+    if (!releaseDate && swatchImages.length > 0) {
+      const vMatch = swatchImages[0].match(/\?v=(\d+)/);
+      if (vMatch) {
+        releaseDate = new Date(parseInt(vMatch[1], 10) * 1000).toISOString().slice(0, 10);
+      }
+    }
+    if (!releaseDate) {
+      releaseDate = updatedDate;
+    }
+
+    const isDiscontinued =
+      tags.includes('status:discontinued') ||
+      tags.includes('collection:dearly-departed') ||
+      tags.includes('status:no-restock');
+
+    const isNewFlag =
+      isInWhatsNew ||
+      tags.includes('collection:whats-new') ||
+      tags.includes('whats-new');
+
+    return {
+      id: p.id,
+      name: rawTitle,
+      handle: handle,
+      category: category,
+      type: typeStr,
+      color: colorStr,
+      description: cleanDesc,
+      release_date: releaseDate,
+      last_updated: updatedDate,
+      price: price.startsWith('$') ? price : `$${price}`,
+      available: available,
+      status: isDiscontinued ? 'Dearly Departed' : (available ? 'In Stock' : 'Out of Stock'),
+      image_url: imageUrl,
+      swatch_images: swatchImages,
+      product_url: `https://www.mooncat.com/products/${handle}`,
+      tags: rawTags,
+      is_new: isNewFlag
+    };
+  }
+
+  function mergeLiveItemIntoCatalog(transformed) {
+    if (!transformed) return { added: false, updated: false };
+
+    let existing = catalog.find(c => c.id === transformed.id);
+    if (!existing && transformed.handle) {
+      existing = catalog.find(c => (c.handle || '').toLowerCase() === transformed.handle.toLowerCase());
+    }
+    if (!existing) {
+      const normName = normalizeMatchText(transformed.name);
+      existing = catalog.find(c => normalizeMatchText(c.name) === normName);
+    }
+    if (!existing && isSetItem(transformed)) {
+      const descLower = (transformed.description || '').toLowerCase();
+      if (descLower.includes('death note') || descLower.includes('shinigami realm')) {
+        existing = catalog.find(c => c.handle === 'death-note-collectors-set');
+      }
+    }
+
+    if (existing) {
+      const oldId = existing.id;
+      const newId = transformed.id;
+      if (oldId !== newId && userData) {
+        if (userData.inventory && userData.inventory[oldId]) {
+          userData.inventory[newId] = userData.inventory[oldId];
+          delete userData.inventory[oldId];
+        }
+        if (Array.isArray(userData.wishlist)) {
+          const wIdx = userData.wishlist.indexOf(oldId);
+          if (wIdx !== -1) userData.wishlist[wIdx] = newId;
+        }
+        if (userData.wishlistRatings && userData.wishlistRatings[oldId]) {
+          userData.wishlistRatings[newId] = userData.wishlistRatings[oldId];
+          delete userData.wishlistRatings[oldId];
+        }
+      }
+
+      const wasNew = existing.is_new;
+      existing.id = transformed.id;
+      if (transformed.handle) existing.handle = transformed.handle;
+      if (transformed.image_url) existing.image_url = transformed.image_url;
+      if (transformed.swatch_images && transformed.swatch_images.length > 0) {
+        existing.swatch_images = transformed.swatch_images;
+      }
+      if (transformed.price) existing.price = transformed.price;
+      existing.available = transformed.available;
+      existing.status = transformed.status;
+      if (transformed.description) existing.description = transformed.description;
+      if (transformed.product_url) existing.product_url = transformed.product_url;
+      if (transformed.tags && transformed.tags.length > 0) existing.tags = transformed.tags;
+      if (!existing.release_date && transformed.release_date) existing.release_date = transformed.release_date;
+      if (transformed.last_updated) existing.last_updated = transformed.last_updated;
+      existing.is_new = Boolean(existing.is_new || transformed.is_new);
+
+      return { added: false, updated: !wasNew && existing.is_new };
+    }
+
+    catalog.push(transformed);
+    return { added: true, updated: false };
+  }
+
+  function loadCachedLiveCatalog() {
+    try {
+      const raw = localStorage.getItem(LIVE_CATALOG_CACHE_KEY);
+      if (!raw) return;
+      const cachedItems = JSON.parse(raw);
+      if (Array.isArray(cachedItems)) {
+        cachedItems.forEach(item => mergeLiveItemIntoCatalog(item));
+        catalog.sort((a, b) => a.name.localeCompare(b.name));
+      }
+    } catch (e) {
+      console.warn('Could not load cached live catalog:', e);
+    }
+  }
+
+  async function checkLiveNewReleases(silent = false) {
     const btn = document.getElementById('btn-sync-new-releases');
-    if (btn) {
+    if (btn && !silent) {
       btn.disabled = true;
       btn.textContent = '⏳ Checking...';
     }
-    showToast('🔍 Checking Mooncat.com for brand new releases...');
+    if (!silent) {
+      showToast('🔍 Checking Mooncat.com for brand new releases & sets...');
+    }
 
     try {
-      const resp = await fetch('https://www.mooncat.com/collections/whats-new/products.json?limit=250');
-      if (resp.ok) {
-        const data = await resp.json();
-        const liveProducts = data.products || [];
-        let newFound = 0;
-        
-        liveProducts.forEach(lp => {
-          const existing = catalog.find(c => c.id === lp.id);
-          if (existing) {
-            if (!existing.is_new) {
-              existing.is_new = true;
-              newFound++;
-            }
-          }
-        });
+      const [wnResp, p1Resp, p2Resp] = await Promise.allSettled([
+        fetch('https://www.mooncat.com/collections/whats-new/products.json?limit=250'),
+        fetch('https://www.mooncat.com/products.json?limit=250&page=1'),
+        fetch('https://www.mooncat.com/products.json?limit=250&page=2')
+      ]);
 
-        renderCatalog();
-        showToast(`✨ Synchronized! ${liveProducts.length} new releases active on Mooncat.com!`);
-      } else {
-        throw new Error('Store returned ' + resp.status);
+      const whatsNewIds = new Set();
+      const productMap = new Map();
+
+      if (wnResp.status === 'fulfilled' && wnResp.value.ok) {
+        const wnData = await wnResp.value.json();
+        (wnData.products || []).forEach(p => {
+          whatsNewIds.add(p.id);
+          productMap.set(p.id, p);
+        });
+      }
+
+      for (const r of [p1Resp, p2Resp]) {
+        if (r.status === 'fulfilled' && r.value.ok) {
+          const pData = await r.value.json();
+          (pData.products || []).forEach(p => {
+            if (!productMap.has(p.id)) {
+              productMap.set(p.id, p);
+            }
+          });
+        }
+      }
+
+      if (productMap.size === 0) {
+        throw new Error('Could not reach Mooncat live feed');
+      }
+
+      let newlyAddedCount = 0;
+      const cachedToSave = [];
+
+      productMap.forEach(lp => {
+        const isInWhatsNew = whatsNewIds.has(lp.id);
+        const transformed = transformShopifyProduct(lp, isInWhatsNew);
+        if (!transformed) return;
+        const res = mergeLiveItemIntoCatalog(transformed);
+        if (res.added) {
+          newlyAddedCount++;
+        }
+        if (transformed.is_new || res.added) {
+          cachedToSave.push(transformed);
+        }
+      });
+
+      catalog.sort((a, b) => a.name.localeCompare(b.name));
+
+      try {
+        localStorage.setItem(LIVE_CATALOG_CACHE_KEY, JSON.stringify(cachedToSave));
+      } catch (e) {
+        // Ignore storage quota errors
+      }
+
+      syncSetsAndMembersState();
+      setupFilters();
+
+      if (!silent) {
+        // Switch filter to show New Releases sorted by Release Date (Newest First) so the user immediately sees the new sets & shades
+        const statusSelect = document.getElementById('filter-status');
+        if (statusSelect) statusSelect.value = 'new';
+        catalogSortKey = 'release_date';
+        catalogSortAsc = false;
+        syncCatalogSortDropdown();
+      }
+
+      renderAll();
+
+      const totalNewCount = catalog.filter(c => c.is_new).length;
+      if (!silent) {
+        if (newlyAddedCount > 0) {
+          showToast(`✨ Added ${newlyAddedCount} brand new Mooncat release(s) to the database! Showing all ${totalNewCount} New Releases.`);
+        } else {
+          showToast(`✨ Synchronized! Showing all ${totalNewCount} New Releases (including the Oct 30 Death Note Set & shades).`);
+        }
       }
     } catch (err) {
       console.log('Live fetch status:', err);
-      renderCatalog();
-      showToast('✨ Catalog is up to date with the latest Mooncat releases!');
+      if (!silent) {
+        const statusSelect = document.getElementById('filter-status');
+        if (statusSelect) statusSelect.value = 'new';
+        catalogSortKey = 'release_date';
+        catalogSortAsc = false;
+        syncCatalogSortDropdown();
+        renderAll();
+        const totalNewCount = catalog.filter(c => c.is_new).length;
+        showToast(`✨ Showing all ${totalNewCount} New Releases in the database (including the Death Note Set & shades)!`);
+      }
     } finally {
-      if (btn) {
+      if (btn && !silent) {
         btn.disabled = false;
         btn.textContent = '⚡ Check New Releases';
       }
@@ -2473,26 +3297,49 @@
     if (!requireAuth("mark shades as purchased")) return;
     if (!wizardState.curatedHaul || wizardState.curatedHaul.length === 0) return;
 
-    if (!confirm(`Mark all ${wizardState.curatedHaul.length} shades from this curated haul as purchased and move them to your inventory?`)) {
+    if (!confirm(`Mark all ${wizardState.curatedHaul.length} item(s) from this curated haul as purchased and move them to your inventory?`)) {
       return;
     }
 
     const today = new Date().toISOString().slice(0, 10);
+    let totalBottlesAdded = 0;
+
     wizardState.curatedHaul.forEach(item => {
       userData.wishlist = userData.wishlist.filter(wId => wId !== item.id);
+
+      if (isSetItem(item)) {
+        const members = getSetMembers(item);
+        if (members.length > 0) {
+          members.forEach(member => {
+            if (!userData.inventory[member.id]) {
+              userData.inventory[member.id] = { qty: 0, orderDates: [], notes: `From ${item.name}` };
+            }
+            userData.inventory[member.id].qty += 1;
+            userData.inventory[member.id].orderDates.push(today);
+            if (!userData.inventory[member.id].notes) {
+              userData.inventory[member.id].notes = `From ${item.name}`;
+            }
+            userData.wishlist = userData.wishlist.filter(wId => wId !== member.id);
+            totalBottlesAdded += 1;
+          });
+          return;
+        }
+      }
 
       if (!userData.inventory[item.id]) {
         userData.inventory[item.id] = { qty: 0, orderDates: [], notes: '' };
       }
       userData.inventory[item.id].qty += 1;
       userData.inventory[item.id].orderDates.push(today);
+      totalBottlesAdded += 1;
     });
 
+    syncSetsAndMembersState();
     saveUserData();
     closeDecisionWizard();
     renderAll();
     switchTab('orders');
-    showToast(`🎉 Congratulations on your haul! ${wizardState.curatedHaul.length} shades added to your Owned Inventory!`);
+    showToast(`🎉 Congratulations on your haul! ${totalBottlesAdded} shade(s) added to your Owned Inventory!`);
   }
 
   function copyCuratedHaulNames() {
@@ -2531,6 +3378,7 @@
     userData = profiles[profileId];
     if (!userData.wishlistRatings) userData.wishlistRatings = {};
 
+    syncSetsAndMembersState();
     localStorage.setItem(STORAGE_PROFILES_KEY, JSON.stringify(profiles));
     localStorage.setItem(STORAGE_ACTIVE_PROFILE_KEY, currentProfileId);
 

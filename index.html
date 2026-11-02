@@ -63,9 +63,6 @@
       <button class="nav-tab" data-tab="wishlist">
         <span class="tab-icon">💫</span> Wishlist
       </button>
-      <button class="nav-tab" data-tab="sync">
-        <span class="tab-icon">☁️</span> Sync & Online Access
-      </button>
     </nav>
   </header>
 
@@ -115,6 +112,19 @@
             </select>
           </div>
 
+          <div class="filter-group">
+            <label for="filter-sort">Sort By:</label>
+            <select id="filter-sort">
+              <option value="name-asc" selected>🔤 Name (A → Z)</option>
+              <option value="name-desc">🔤 Name (Z → A)</option>
+              <option value="release-desc">🗓️ Release Date: Newest First</option>
+              <option value="release-asc">🗓️ Release Date: Oldest First</option>
+              <option value="price-asc">💲 Price: Low to High</option>
+              <option value="price-desc">💲 Price: High to Low</option>
+              <option value="owned-desc">✓ Owned First</option>
+            </select>
+          </div>
+
           <div class="view-toggle">
             <button class="btn-toggle active" data-view="grid" title="Cards View with Photos">🎴 Cards</button>
             <button class="btn-toggle" data-view="table" title="Table View">📋 Table</button>
@@ -150,7 +160,7 @@
               <th data-sort="color">Color Palette ⬍</th>
               <th>Description</th>
               <th data-sort="price" style="width: 85px;">Price ⬍</th>
-              <th data-sort="last_updated">Last Updated ⬍</th>
+              <th data-sort="release_date">Release Date ⬍</th>
               <th data-sort="owned">Owned? ⬍</th>
               <th style="width: 140px;">Actions</th>
             </tr>
@@ -243,6 +253,8 @@
           <select id="wishlist-sort-select" onchange="window.MooncatApp.setWishlistSort(this.value)">
             <option value="rating-desc">⭐ Love Score: High to Low (10 → 1)</option>
             <option value="rating-asc">⭐ Love Score: Low to High (1 → 10)</option>
+            <option value="release-desc">🗓️ Release Date: Newest First</option>
+            <option value="release-asc">🗓️ Release Date: Oldest First</option>
             <option value="name-asc">🔤 Name (A → Z)</option>
             <option value="name-desc">🔤 Name (Z → A)</option>
             <option value="price-asc">💲 Price (Low to High)</option>
@@ -262,61 +274,6 @@
         <h3>Your Wishlist is Empty</h3>
         <p>Explore the Main Catalog and click "✦ Wishlist" on any unowned shade you'd love to add to your collection!</p>
         <button class="btn-primary" onclick="document.querySelector('[data-tab=catalog]').click()">Browse Main Catalog</button>
-      </div>
-    </section>
-
-    <!-- TAB 4: SYNC & ONLINE HOSTING -->
-    <section id="tab-sync" class="tab-content">
-      <div class="sync-container">
-        <h2>Access from Any Device & Online Hosting</h2>
-        <p class="section-desc">You can easily host this entire app online for free so you can access it from your iPhone, Android, iPad, or any computer, anytime.</p>
-
-        <div class="hosting-options-grid">
-          <div class="host-card">
-            <div class="host-badge">Option 1 • Instant & Free</div>
-            <h3>GitHub Pages</h3>
-            <p>100% free permanent hosting with your own custom link (e.g. <code>username.github.io/mooncat</code>).</p>
-            <ol>
-              <li>Create a new free repository on <a href="https://github.com" target="_blank" rel="noopener">GitHub</a> named <code>mooncat-vault</code>.</li>
-              <li>Push or upload these files (<code>index.html</code>, <code>style.css</code>, <code>app.js</code>, <code>catalog_data.js</code>).</li>
-              <li>Go to <strong>Settings &gt; Pages</strong> and enable GitHub Pages on branch <code>main</code>.</li>
-              <li>Your app is live online within seconds!</li>
-            </ol>
-          </div>
-
-          <div class="host-card">
-            <div class="host-badge">Option 2 • Drag & Drop</div>
-            <h3>Netlify or Vercel</h3>
-            <p>Drag this folder into Netlify Drop (<a href="https://app.netlify.com/drop" target="_blank" rel="noopener">app.netlify.com/drop</a>) to get an instant live website URL without needing git.</p>
-            <ul>
-              <li>Open your browser to <a href="https://app.netlify.com/drop" target="_blank" rel="noopener">netlify.com/drop</a>.</li>
-              <li>Drag the <code>/Users/melissaruth/Documents/Mooncat</code> folder onto the page.</li>
-              <li>Instantly receive a live shareable URL!</li>
-            </ul>
-          </div>
-
-          <div class="host-card">
-            <div class="host-badge">Option 3 • Firebase Hosting</div>
-            <h3>Google Firebase</h3>
-            <p>Deploy using Firebase Hosting CLI. We have pre-configured Firebase support in your project.</p>
-            <pre><code>firebase init hosting
-firebase deploy</code></pre>
-          </div>
-        </div>
-
-        <!-- Data Backup & Transfer -->
-        <div class="backup-card">
-          <h3>Data Backup & Cross-Device Transfer</h3>
-          <p>Your orders, inventory counts, and wishlist are saved in your browser. You can export a backup file anytime and restore it on your phone or other devices.</p>
-          <div class="backup-actions">
-            <button id="btn-export-backup" class="btn-primary">💾 Export All Data (JSON)</button>
-            <label class="btn-secondary file-upload-label">
-              📥 Import Backup (JSON)
-              <input type="file" id="file-import-backup" accept=".json" style="display: none;">
-            </label>
-            <button id="btn-reset-demo" class="btn-danger-outline">⚠️ Clear All User Data</button>
-          </div>
-        </div>
       </div>
     </section>
   </main>
@@ -469,28 +426,17 @@ Speed Demon Top Coat"></textarea>
               <td>My Orders Tab</td>
               <td>Opens a window where you can paste order confirmations or a list of polish names. The app matches them automatically!</td>
             </tr>
-            <tr>
-              <td><code>💾 Export Backup (JSON)</code></td>
-              <td>Sync Tab</td>
-              <td>Downloads a backup file of your collection and wishlist so you can transfer it to your phone or keep it safe.</td>
-            </tr>
-            <tr>
-              <td><code>📥 Import Backup (JSON)</code></td>
-              <td>Sync Tab</td>
-              <td>Restores your personal collection and wishlist from a backup file on any device.</td>
-            </tr>
           </tbody>
         </table>
       </div>
 
       <!-- Section 3: Understanding the Tabs -->
       <div class="help-section">
-        <h3>📑 3. The 4 Tabs</h3>
+        <h3>📑 3. The 3 Tabs</h3>
         <ul class="help-list">
-          <li><strong>✨ Main Catalog:</strong> Mooncat's full 304 colors with photos, finishes, color palettes, official descriptions, and your Owned (Y/N) status. Filter by finish, color, new releases, or retired shades.</li>
+          <li><strong>✨ Main Catalog:</strong> Mooncat's full catalog of colors and sets with photos, finishes, color palettes, official descriptions, and your Owned (Y/N) status. Filter by finish, color, new releases, or retired shades.</li>
           <li><strong>📦 My Orders & Inventory:</strong> Your personal alphabetical list of ordered shades, showing your total ordered count, physical bottles on hand, and notes.</li>
-          <li><strong>💫 Wishlist:</strong> Your dream list of unowned shades to buy next. Move them to your inventory in 1 click once purchased.</li>
-          <li><strong>☁️ Sync & Online Access:</strong> Explains how to access the site on your phone and backup or transfer data.</li>
+          <li><strong>💫 Wishlist:</strong> Your dream list of unowned shades and sets to buy next. Move them to your inventory in 1 click once purchased.</li>
         </ul>
       </div>
 
