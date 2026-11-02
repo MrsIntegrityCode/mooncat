@@ -28,6 +28,7 @@
 
   // --- Initialize ---
   function init() {
+    startLoadingPhrasesRotation();
     loadCachedLiveCatalog();
     ensureSetRelationshipCache();
     loadUserData();
@@ -1092,8 +1093,115 @@
     }
   }
 
+  // --- Cutesy Mooncat Loading & Herding Phrases ---
+  const CUTESY_HERDING_PHRASES = [
+    "Herding all the Mooncat colors into one easy to use access list for you... 🐾✨",
+    "Corraling 300+ shimmers, holos, magnetics & multichrome sorceries... 🔮💅",
+    "Tapping our claws while organizing every sparkle & lacquer bottle... 🐾✨",
+    "Lining up all the Dearly Departed ghosts & newest drops in pristine order... 🖤",
+    "Polishing every bottle and preparing your ultimate nail art playground! 🌙💅"
+  ];
+  let loadingPhraseIndex = 0;
+  let loadingPhraseTimer = null;
+
+  function startLoadingPhrasesRotation() {
+    if (loadingPhraseTimer) clearInterval(loadingPhraseTimer);
+    loadingPhraseTimer = setInterval(() => {
+      const subEl = document.getElementById('catalog-loading-sub');
+      if (!subEl) {
+        clearInterval(loadingPhraseTimer);
+        loadingPhraseTimer = null;
+        return;
+      }
+      loadingPhraseIndex = (loadingPhraseIndex + 1) % CUTESY_HERDING_PHRASES.length;
+      subEl.style.opacity = '0';
+      setTimeout(() => {
+        subEl.textContent = CUTESY_HERDING_PHRASES[loadingPhraseIndex];
+        subEl.style.opacity = '1';
+      }, 300);
+    }, 2800);
+  }
+
+  function getCatalogLoadingHTML() {
+    startLoadingPhrasesRotation();
+    return `
+      <div class="catalog-loading-card">
+        <div class="loading-animation-stage">
+          <span class="loading-paw p-left">🐾</span>
+          <span class="loading-sparkle s-left">✨</span>
+          <span class="loading-bottle">💅</span>
+          <span class="loading-sparkle s-right">🌙</span>
+          <span class="loading-paw p-right">🐾</span>
+        </div>
+        <span class="loading-badge">✦ MOONCAT LACQUER VAULT ✦</span>
+        <h2 class="loading-title">Herding all the Mooncat colors...</h2>
+        <p class="loading-subtitle" id="catalog-loading-sub">${CUTESY_HERDING_PHRASES[0]}</p>
+        <div class="loading-progress-track">
+          <div class="loading-progress-fill"></div>
+        </div>
+        <div class="loading-paws-trail">
+          <span>🐾</span><span>🐾</span><span>🐾</span><span>🐾</span>
+        </div>
+      </div>
+    `;
+  }
+
+  function resetCatalogFilters() {
+    const searchInput = document.getElementById('catalog-search');
+    if (searchInput) searchInput.value = '';
+    const finishSelect = document.getElementById('filter-finish');
+    if (finishSelect) finishSelect.value = 'all';
+    const colorSelect = document.getElementById('filter-color');
+    if (colorSelect) colorSelect.value = 'all';
+    const statusSelect = document.getElementById('filter-status');
+    if (statusSelect) statusSelect.value = 'in_stock';
+    const ownedSelect = document.getElementById('filter-owned');
+    if (ownedSelect) ownedSelect.value = 'unowned';
+    const sortSelect = document.getElementById('filter-sort');
+    if (sortSelect) sortSelect.value = 'name-asc';
+    catalogSortKey = 'name';
+    catalogSortAsc = true;
+    renderCatalog();
+  }
+
   function renderCatalog() {
+    const gridContainer = document.getElementById('catalog-grid');
+    const tableWrapper = document.getElementById('catalog-table-wrapper');
+    const tableBody = document.getElementById('catalog-table-body');
+    const emptyState = document.getElementById('catalog-empty-state');
+
+    // If catalog hasn't loaded or is empty, show the cutesy loading card
+    if (!catalog || catalog.length === 0) {
+      const resultsCountEl = document.getElementById('results-count');
+      if (resultsCountEl) resultsCountEl.textContent = '🐾 Herding Mooncat colors...';
+      if (emptyState) emptyState.classList.add('hidden');
+      if (currentView === 'grid') {
+        gridContainer.classList.remove('hidden');
+        tableWrapper.classList.add('hidden');
+        gridContainer.innerHTML = getCatalogLoadingHTML();
+      } else {
+        gridContainer.classList.add('hidden');
+        tableWrapper.classList.remove('hidden');
+        if (tableBody) {
+          tableBody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 2rem;">${getCatalogLoadingHTML()}</td></tr>`;
+        }
+      }
+      return;
+    }
+
     let items = getFilteredCatalog();
+
+    // If no filtered items match the user's search
+    if (items.length === 0) {
+      const resultsCountEl = document.getElementById('results-count');
+      if (resultsCountEl) resultsCountEl.textContent = `Showing 0 of ${catalog.length} Mooncat items`;
+      gridContainer.classList.add('hidden');
+      tableWrapper.classList.add('hidden');
+      if (emptyState) emptyState.classList.remove('hidden');
+      return;
+    }
+
+    if (emptyState) emptyState.classList.add('hidden');
 
     // Sort items
     items.sort((a, b) => {
@@ -1125,11 +1233,8 @@
       return a.name.localeCompare(b.name);
     });
 
-    document.getElementById('results-count').textContent = `Showing ${items.length} of ${catalog.length} Mooncat items`;
-
-    const gridContainer = document.getElementById('catalog-grid');
-    const tableWrapper = document.getElementById('catalog-table-wrapper');
-    const tableBody = document.getElementById('catalog-table-body');
+    const resultsCountEl = document.getElementById('results-count');
+    if (resultsCountEl) resultsCountEl.textContent = `Showing ${items.length} of ${catalog.length} Mooncat items`;
 
     if (currentView === 'grid') {
       gridContainer.classList.remove('hidden');
@@ -2910,10 +3015,10 @@
     const btn = document.getElementById('btn-sync-new-releases');
     if (btn && !silent) {
       btn.disabled = true;
-      btn.textContent = '⏳ Checking...';
+      btn.textContent = '🐾 Herding colors...';
     }
     if (!silent) {
-      showToast('🔍 Checking Mooncat.com for brand new releases & sets...');
+      showToast('🐾 Herding all the latest Mooncat colors & new releases into your vault... ✨💅');
     }
 
     try {
@@ -2998,9 +3103,9 @@
       const totalNewCount = catalog.filter(c => c.is_new).length;
       if (!silent) {
         if (newlyAddedCount > 0) {
-          showToast(`✨ Added ${newlyAddedCount} brand new Mooncat release(s) to the database! Showing all ${totalNewCount} New Releases.`);
+          showToast(`✨ Successfully herded ${newlyAddedCount} brand new Mooncat release(s) into your vault! Showing all ${totalNewCount} New Releases. 🐾💅`);
         } else {
-          showToast(`✨ Synchronized! Showing all ${totalNewCount} New Releases (including the Oct 30 Death Note Set & shades).`);
+          showToast(`🐾 All caught up! All ${totalNewCount} New Releases are neatly herded in your vault. ✨💅`);
         }
       }
     } catch (err) {
@@ -3013,7 +3118,7 @@
         syncCatalogSortDropdown();
         renderAll();
         const totalNewCount = catalog.filter(c => c.is_new).length;
-        showToast(`✨ Showing all ${totalNewCount} New Releases in the database (including the Death Note Set & shades)!`);
+        showToast(`🐾 Herded all ${totalNewCount} New Releases into your vault (including the Death Note Set & shades)! ✨💅`);
       }
     } finally {
       if (btn && !silent) {
@@ -4292,7 +4397,10 @@
     onCloudDataLoaded,
     onCloudSignOut,
     getCurrentUserData: () => userData,
-    showToast
+    showToast,
+    resetCatalogFilters,
+    getCatalogLoadingHTML,
+    startLoadingPhrasesRotation
   };
 
   // Run on load

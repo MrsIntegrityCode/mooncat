@@ -144,8 +144,8 @@ async function loadUserDataFromFirestore(user) {
 
       if (window.MooncatApp && window.MooncatApp.showToast) {
         window.MooncatApp.showToast(isMelissa 
-          ? "☁️ Welcome Melissa! Your 28 colors are safely loaded in your private Google Cloud account." 
-          : "☁️ Welcome! Your private Google Cloud vault is ready.");
+          ? "☁️🐾 Welcome Melissa! All 28 of your Mooncat colors are safely herded into your private Google Cloud vault! ✨💅" 
+          : "☁️🐾 Welcome! Your private Google Cloud Mooncat vault is ready. ✨💅");
       }
     }
   } catch (err) {

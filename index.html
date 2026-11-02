@@ -142,12 +142,39 @@
       </div>
 
       <div class="results-meta">
-        <span id="results-count">Showing 0 lacquers</span>
+        <span id="results-count">🐾 Herding Mooncat colors...</span>
         <span class="last-updated-hint">Official mooncat.com data synchronized with last updated dates</span>
       </div>
 
       <!-- Grid View (Cards with Pictures) -->
-      <div id="catalog-grid" class="catalog-grid"></div>
+      <div id="catalog-grid" class="catalog-grid">
+        <div class="catalog-loading-card" id="catalog-initial-loader">
+          <div class="loading-animation-stage">
+            <span class="loading-paw p-left">🐾</span>
+            <span class="loading-sparkle s-left">✨</span>
+            <span class="loading-bottle">💅</span>
+            <span class="loading-sparkle s-right">🌙</span>
+            <span class="loading-paw p-right">🐾</span>
+          </div>
+          <span class="loading-badge">✦ MOONCAT LACQUER VAULT ✦</span>
+          <h2 class="loading-title">Herding all the Mooncat colors...</h2>
+          <p class="loading-subtitle" id="catalog-loading-sub">Herding all the Mooncat colors into one easy to use access list for you! Gathering 300+ shimmers, holos, magnetics, multichromes & cremes... 🐾✨</p>
+          <div class="loading-progress-track">
+            <div class="loading-progress-fill"></div>
+          </div>
+          <div class="loading-paws-trail">
+            <span>🐾</span><span>🐾</span><span>🐾</span><span>🐾</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State when 0 search/filter results -->
+      <div id="catalog-empty-state" class="empty-state hidden">
+        <div class="empty-icon">🐾🔮</div>
+        <h3>No Mooncat Shades Found</h3>
+        <p>We peeked under every claw and couldn't find a shade matching your current search or filter combination.</p>
+        <button class="btn-primary" onclick="window.MooncatApp && window.MooncatApp.resetCatalogFilters && window.MooncatApp.resetCatalogFilters()">Reset All Filters</button>
+      </div>
 
       <!-- Table View -->
       <div id="catalog-table-wrapper" class="catalog-table-wrapper hidden">

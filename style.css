@@ -2172,3 +2172,168 @@ body {
   box-shadow: 0 4px 15px rgba(236, 72, 153, 0.25);
 }
 
+/* ==========================================================================
+   Cutesy Mooncat Loading & Herding State
+   ========================================================================== */
+
+.catalog-loading-card {
+  grid-column: 1 / -1;
+  background: radial-gradient(circle at 50% 0%, rgba(168, 85, 247, 0.2), rgba(24, 24, 36, 0.95) 75%);
+  border: 1px solid rgba(168, 85, 247, 0.35);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), 0 0 35px rgba(168, 85, 247, 0.22);
+  border-radius: 20px;
+  padding: 3.5rem 2rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  max-width: 650px;
+  width: 100%;
+  margin: 2rem auto;
+  backdrop-filter: blur(12px);
+  animation: fadeInLoader 0.4s ease-out;
+}
+
+@keyframes fadeInLoader {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.loading-animation-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  font-size: 2.2rem;
+  margin-bottom: 1.25rem;
+}
+
+.loading-paw {
+  display: inline-block;
+  animation: pawWiggle 1.8s infinite ease-in-out;
+}
+
+.loading-paw.p-left {
+  animation-delay: 0s;
+}
+
+.loading-paw.p-right {
+  animation-delay: 0.9s;
+}
+
+.loading-bottle {
+  font-size: 2.8rem;
+  display: inline-block;
+  animation: bottlePulse 2s infinite ease-in-out;
+  filter: drop-shadow(0 0 16px rgba(236, 72, 153, 0.55));
+}
+
+.loading-sparkle {
+  font-size: 1.6rem;
+  display: inline-block;
+  animation: sparkleTwinkle 1.6s infinite alternate ease-in-out;
+}
+
+.loading-sparkle.s-left {
+  animation-delay: 0.3s;
+}
+
+.loading-sparkle.s-right {
+  animation-delay: 0.8s;
+}
+
+@keyframes pawWiggle {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-8px) rotate(-12deg); }
+}
+
+@keyframes bottlePulse {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.1) rotate(6deg); }
+}
+
+@keyframes sparkleTwinkle {
+  0% { opacity: 0.3; transform: scale(0.8) rotate(0deg); }
+  100% { opacity: 1; transform: scale(1.25) rotate(25deg); }
+}
+
+.loading-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.12em;
+  padding: 4px 14px;
+  border-radius: 20px;
+  background: rgba(168, 85, 247, 0.18);
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  color: #d8b4fe;
+  margin-bottom: 1.1rem;
+}
+
+.loading-title {
+  font-family: var(--font-heading);
+  font-size: 1.65rem;
+  margin-bottom: 0.75rem;
+  background: linear-gradient(135deg, #ffffff 25%, #e9d5ff 70%, #f472b6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.loading-subtitle {
+  color: var(--text-muted);
+  font-size: 0.98rem;
+  max-width: 520px;
+  margin: 0 auto 1.5rem;
+  line-height: 1.6;
+  min-height: 48px;
+  transition: opacity 0.3s ease;
+}
+
+.loading-progress-track {
+  width: 100%;
+  max-width: 380px;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  margin: 0 auto 1.3rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.loading-progress-fill {
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, #a855f7, #ec4899, #06b6d4, #a855f7);
+  background-size: 200% 100%;
+  border-radius: 999px;
+  animation: progressSlide 2s infinite linear;
+}
+
+@keyframes progressSlide {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(250%); }
+}
+
+.loading-paws-trail {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  font-size: 1.05rem;
+  opacity: 0.7;
+}
+
+.loading-paws-trail span {
+  display: inline-block;
+  animation: pawFade 1.6s infinite ease-in-out;
+}
+
+.loading-paws-trail span:nth-child(1) { animation-delay: 0s; }
+.loading-paws-trail span:nth-child(2) { animation-delay: 0.4s; }
+.loading-paws-trail span:nth-child(3) { animation-delay: 0.8s; }
+.loading-paws-trail span:nth-child(4) { animation-delay: 1.2s; }
+
+@keyframes pawFade {
+  0%, 100% { opacity: 0.2; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-4px); }
+}
+
+
