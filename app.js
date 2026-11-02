@@ -27,17 +27,35 @@
   // --- Initialize ---
   function init() {
     loadCachedLiveCatalog();
+    ensureSetRelationshipCache();
     loadUserData();
     syncSetsAndMembersState();
     setupProfileSelector();
     setupFilters();
     bindEvents();
     renderAll();
-    // Automatically check Mooncat in the background for live updates & new releases
-    checkLiveNewReleases(true);
+    // Defer background check for live updates so initial page load & images are 100% instant
+    setTimeout(() => checkLiveNewReleases(true), 2500);
   }
 
-  // --- Set & Shade Relationship Helpers ---
+  // --- Image Optimization Helper ---
+  function getOptimizedImageUrl(url, width = 480) {
+    if (!url) return '';
+    if (url.includes('cdn.shopify.com') && !url.includes('width=')) {
+      return url + (url.includes('?') ? '&' : '?') + `width=${width}`;
+    }
+    return url;
+  }
+
+  // --- Set & Shade Relationship Helpers (O(1) Cached) ---
+  let setMembersCache = null; // Map<setId, item[]>
+  let parentSetsCache = null; // Map<itemId, setItem[]>
+
+  function invalidateSetRelationshipCache() {
+    setMembersCache = null;
+    parentSetsCache = null;
+  }
+
   function isSetItem(item) {
     if (!item) return false;
     if (item.category === 'Set') return true;
@@ -60,18 +78,17 @@
     return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 
-  function getSetMembers(setItem) {
-    if (!isSetItem(setItem)) return [];
-    const desc = setItem.description || '';
-    const idx = desc.toLowerCase().indexOf('includes');
-    const rawSearch = idx !== -1 ? desc.slice(idx) : desc;
-    const cleanSearch = rawSearch.split(/all orders with magnetic|note:|warning:|wear\s*\+\s*care:/i)[0];
-    const normSearch = normalizeMatchText(cleanSearch);
+  function ensureSetRelationshipCache() {
+    if (setMembersCache && parentSetsCache) return;
 
-    const members = [];
+    setMembersCache = new Map();
+    parentSetsCache = new Map();
+
+    // Pre-compile candidate regexes once across the catalog
+    const compiledCandidates = [];
     for (let i = 0; i < catalog.length; i++) {
       const candidate = catalog[i];
-      if (!candidate || candidate.id === setItem.id || isSetItem(candidate)) continue;
+      if (!candidate || isSetItem(candidate)) continue;
       if ((candidate.name || '').toLowerCase() === 'magnetic wand') continue;
 
       const nameUpper = normalizeMatchText(candidate.name);
@@ -79,42 +96,73 @@
       const baseNameUpper = nameUpper.replace(/\s+TOPPER$/, '');
 
       const pat1 = new RegExp('(?<![A-Z0-9])' + escapeRegExp(nameUpper) + '(?![A-Z0-9])');
-      const pat2 = baseNameUpper.length > 4
+      const pat2 = baseNameUpper.length > 4 && baseNameUpper !== nameUpper
         ? new RegExp('(?<![A-Z0-9])' + escapeRegExp(baseNameUpper) + '(?![A-Z0-9])')
         : null;
+      const cTags = Array.isArray(candidate.tags)
+        ? candidate.tags.map(t => String(t).toLowerCase().trim())
+        : [];
 
-      if (pat1.test(normSearch) || (pat2 && pat2.test(normSearch))) {
-        members.push(candidate);
-      }
+      compiledCandidates.push({
+        item: candidate,
+        pat1,
+        pat2,
+        cTags
+      });
+      parentSetsCache.set(candidate.id, []);
     }
 
-    // Fallback: match by collection handle tag if description didn't list individual names
-    if (members.length === 0 && setItem.handle) {
-      const baseHandle = setItem.handle
-        .toLowerCase()
-        .replace(/-(set|duo|trio|bundle|collection|box|collectors-set|collector-s-set|lacquer-set)$/i, '');
-      const targetTags = new Set([`collection:${baseHandle}`, `collection:${setItem.handle.toLowerCase()}`]);
+    for (let sIdx = 0; sIdx < catalog.length; sIdx++) {
+      const setItem = catalog[sIdx];
+      if (!setItem || !isSetItem(setItem)) continue;
 
-      for (let i = 0; i < catalog.length; i++) {
-        const candidate = catalog[i];
-        if (!candidate || candidate.id === setItem.id || isSetItem(candidate)) continue;
-        if ((candidate.name || '').toLowerCase() === 'magnetic wand') continue;
-        const cTags = Array.isArray(candidate.tags)
-          ? candidate.tags.map(t => String(t).toLowerCase().trim())
-          : [];
-        if (cTags.some(t => targetTags.has(t))) {
-          members.push(candidate);
+      const desc = setItem.description || '';
+      const idx = desc.toLowerCase().indexOf('includes');
+      const rawSearch = idx !== -1 ? desc.slice(idx) : desc;
+      const cleanSearch = rawSearch.split(/all orders with magnetic|note:|warning:|wear\s*\+\s*care:/i)[0];
+      const normSearch = normalizeMatchText(cleanSearch);
+
+      const members = [];
+      for (let cIdx = 0; cIdx < compiledCandidates.length; cIdx++) {
+        const cand = compiledCandidates[cIdx];
+        if (cand.pat1.test(normSearch) || (cand.pat2 && cand.pat2.test(normSearch))) {
+          members.push(cand.item);
         }
       }
-    }
 
-    return members;
+      // Fallback: match by collection handle tag if description didn't list individual names
+      if (members.length === 0 && setItem.handle) {
+        const baseHandle = setItem.handle
+          .toLowerCase()
+          .replace(/-(set|duo|trio|bundle|collection|box|collectors-set|collector-s-set|lacquer-set)$/i, '');
+        const targetTags = new Set([`collection:${baseHandle}`, `collection:${setItem.handle.toLowerCase()}`]);
+
+        for (let cIdx = 0; cIdx < compiledCandidates.length; cIdx++) {
+          const cand = compiledCandidates[cIdx];
+          if (cand.cTags.some(t => targetTags.has(t))) {
+            members.push(cand.item);
+          }
+        }
+      }
+
+      setMembersCache.set(setItem.id, members);
+      for (let mIdx = 0; mIdx < members.length; mIdx++) {
+        const m = members[mIdx];
+        const pList = parentSetsCache.get(m.id);
+        if (pList) pList.push(setItem);
+      }
+    }
+  }
+
+  function getSetMembers(setItem) {
+    if (!isSetItem(setItem)) return [];
+    ensureSetRelationshipCache();
+    return setMembersCache.get(setItem.id) || [];
   }
 
   function getParentSetsForItem(itemId) {
-    const item = catalog.find(i => i.id === itemId);
-    if (!item || isSetItem(item)) return [];
-    return catalog.filter(s => isSetItem(s) && getSetMembers(s).some(m => m.id === itemId));
+    ensureSetRelationshipCache();
+    return parentSetsCache.get(itemId) || [];
   }
 
   function getSetOwnedProgress(setItem) {
@@ -912,9 +960,9 @@
   function renderAll() {
     syncSetsAndMembersState();
     updateHeaderStats();
-    renderCatalog();
-    renderOrders();
-    renderWishlist();
+    if (activeTab === 'catalog') renderCatalog();
+    else if (activeTab === 'orders') renderOrders();
+    else if (activeTab === 'wishlist') renderWishlist();
   }
 
   function updateHeaderStats() {
@@ -1098,7 +1146,7 @@
     return `
       <div class="polish-card ${isOwned ? 'is-owned' : ''}" data-id="${item.id}">
         <div class="card-media" onclick="window.MooncatApp.openDetail(${item.id})">
-          <img class="card-img" src="${escapeHtml(item.image_url)}" alt="${escapeHtml(item.name)}" loading="lazy" onerror="this.src='https://via.placeholder.com/300?text=Mooncat'">
+          <img class="card-img" src="${escapeHtml(getOptimizedImageUrl(item.image_url, 480))}" alt="${escapeHtml(item.name)}" loading="lazy" decoding="async" onerror="this.src='https://via.placeholder.com/300?text=Mooncat'">
           <div class="card-badges">
             ${item.is_new ? '<span class="badge badge-new">✨ NEW</span>' : ''}
             ${ownedBadgeHtml}
@@ -1152,7 +1200,7 @@
     return `
       <tr data-id="${item.id}">
         <td>
-          <img class="table-thumb" src="${escapeHtml(item.image_url)}" alt="${escapeHtml(item.name)}" loading="lazy" onclick="window.MooncatApp.openDetail(${item.id})">
+          <img class="table-thumb" src="${escapeHtml(getOptimizedImageUrl(item.image_url, 120))}" alt="${escapeHtml(item.name)}" loading="lazy" decoding="async" onclick="window.MooncatApp.openDetail(${item.id})">
         </td>
         <td>
           <span class="table-name" onclick="window.MooncatApp.openDetail(${item.id})">${escapeHtml(item.name)}</span>
@@ -1380,7 +1428,7 @@
       return `
         <tr data-id="${item.id}">
           <td>
-            <img class="table-thumb" src="${escapeHtml(item.image_url)}" alt="${escapeHtml(item.name)}" onclick="window.MooncatApp.openDetail(${item.id})">
+            <img class="table-thumb" src="${escapeHtml(getOptimizedImageUrl(item.image_url, 120))}" alt="${escapeHtml(item.name)}" loading="lazy" decoding="async" onclick="window.MooncatApp.openDetail(${item.id})">
           </td>
           <td>
             <span class="table-name" onclick="window.MooncatApp.openDetail(${item.id})">${escapeHtml(item.name)}</span>
@@ -1611,7 +1659,7 @@
       return `
         <div class="polish-card" data-id="${item.id}">
           <div class="card-media" onclick="window.MooncatApp.openDetail(${item.id})">
-            <img class="card-img" src="${escapeHtml(item.image_url)}" alt="${escapeHtml(item.name)}" loading="lazy">
+            <img class="card-img" src="${escapeHtml(getOptimizedImageUrl(item.image_url, 480))}" alt="${escapeHtml(item.name)}" loading="lazy" decoding="async">
             <div class="card-badges">
               <span class="badge badge-wishlist">${isSet ? 'Wishlisted Set' : 'Wishlist'}</span>
               ${isSet && setProg && setProg.total > 0 ? `<span class="badge badge-unowned">${setProg.total} Shades</span>` : ''}
@@ -2637,6 +2685,7 @@
       if (Array.isArray(cachedItems)) {
         cachedItems.forEach(item => mergeLiveItemIntoCatalog(item));
         catalog.sort((a, b) => a.name.localeCompare(b.name));
+        invalidateSetRelationshipCache();
       }
     } catch (e) {
       console.warn('Could not load cached live catalog:', e);
@@ -2644,6 +2693,17 @@
   }
 
   async function checkLiveNewReleases(silent = false) {
+    if (silent) {
+      try {
+        const lastCheck = parseInt(localStorage.getItem('mooncat_last_silent_sync_ts') || '0', 10);
+        if (Date.now() - lastCheck < 15 * 60 * 1000) {
+          return; // Skip silent network check if synced within the last 15 minutes
+        }
+      } catch (e) {
+        // Ignore storage errors
+      }
+    }
+
     const btn = document.getElementById('btn-sync-new-releases');
     if (btn && !silent) {
       btn.disabled = true;
@@ -2687,6 +2747,7 @@
       }
 
       let newlyAddedCount = 0;
+      let updatedCount = 0;
       const cachedToSave = [];
 
       productMap.forEach(lp => {
@@ -2697,15 +2758,21 @@
         if (res.added) {
           newlyAddedCount++;
         }
+        if (res.updated) {
+          updatedCount++;
+        }
         if (transformed.is_new || res.added) {
           cachedToSave.push(transformed);
         }
       });
 
       catalog.sort((a, b) => a.name.localeCompare(b.name));
+      invalidateSetRelationshipCache();
+      ensureSetRelationshipCache();
 
       try {
         localStorage.setItem(LIVE_CATALOG_CACHE_KEY, JSON.stringify(cachedToSave));
+        localStorage.setItem('mooncat_last_silent_sync_ts', String(Date.now()));
       } catch (e) {
         // Ignore storage quota errors
       }
@@ -2720,9 +2787,10 @@
         catalogSortKey = 'release_date';
         catalogSortAsc = false;
         syncCatalogSortDropdown();
+        renderAll();
+      } else if (newlyAddedCount > 0 || updatedCount > 0) {
+        renderAll();
       }
-
-      renderAll();
 
       const totalNewCount = catalog.filter(c => c.is_new).length;
       if (!silent) {
