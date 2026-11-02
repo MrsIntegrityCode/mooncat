@@ -21,6 +21,7 @@
   let currentView = 'grid'; // 'grid' or 'table'
   let catalogSortKey = 'name';
   let catalogSortAsc = true;
+  let ordersSortKey = 'purchase-desc';
   let wishlistSortKey = 'rating-desc';
 
   // --- Initialize ---
@@ -167,12 +168,242 @@
     return userData.wishlist.includes(item.id) || Boolean(getWishlistedParentSet(item));
   }
 
+  const MONTH_MAP = {
+    jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06',
+    jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12'
+  };
+  const MONTH_NAMES_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  function formatIsoToDisplayDate(isoStr) {
+    if (!isoStr || !/^\d{4}-\d{2}-\d{2}$/.test(isoStr)) return isoStr || '';
+    const [y, m, d] = isoStr.split('-');
+    const mIdx = parseInt(m, 10) - 1;
+    if (mIdx >= 0 && mIdx < 12) {
+      return `${MONTH_NAMES_SHORT[mIdx]} ${d}, ${y}`;
+    }
+    return isoStr;
+  }
+
+  function parseOrderDateEntry(rawStr) {
+    if (!rawStr) return null;
+    const str = String(rawStr).trim();
+    if (!str) return null;
+
+    // 1. Direct ISO YYYY-MM-DD (e.g. "2026-11-02" or "2026-10-30")
+    const isoMatch = str.match(/(\d{4})-(\d{2})-(\d{2})/);
+    if (isoMatch) {
+      const isoDate = `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
+      const prefix = str.replace(isoMatch[0], '').replace(/^[\s\-–—:]+|[\s\-–—:]+$/g, '').trim();
+      return {
+        isoDate,
+        displayDate: formatIsoToDisplayDate(isoDate),
+        orderRef: prefix && prefix.toLowerCase() !== 'order' ? prefix : '',
+        raw: str
+      };
+    }
+
+    // 2. Natural date like "MC381501799 - Aug 25, 2026" or "Order - Jun 09, 2026" or "Oct 30, 2026"
+    const natMatch = str.match(/\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+(\d{1,2}),?\s+(\d{4})\b/i);
+    if (natMatch) {
+      const mNum = MONTH_MAP[natMatch[1].slice(0, 3).toLowerCase()] || '01';
+      const dNum = String(natMatch[2]).padStart(2, '0');
+      const yNum = natMatch[3];
+      const isoDate = `${yNum}-${mNum}-${dNum}`;
+      const displayDate = `${MONTH_NAMES_SHORT[parseInt(mNum, 10) - 1]} ${dNum}, ${yNum}`;
+      const prefix = str.slice(0, natMatch.index).replace(/^[\s\-–—:]+|[\s\-–—:]+$/g, '').trim();
+      return {
+        isoDate,
+        displayDate,
+        orderRef: prefix && prefix.toLowerCase() !== 'order' ? prefix : '',
+        raw: str
+      };
+    }
+
+    // 3. Slash date MM/DD/YYYY
+    const slashMatch = str.match(/\b(\d{1,2})\/(\d{1,2})\/(\d{4})\b/);
+    if (slashMatch) {
+      const mNum = String(slashMatch[1]).padStart(2, '0');
+      const dNum = String(slashMatch[2]).padStart(2, '0');
+      const yNum = slashMatch[3];
+      const isoDate = `${yNum}-${mNum}-${dNum}`;
+      return {
+        isoDate,
+        displayDate: formatIsoToDisplayDate(isoDate),
+        orderRef: '',
+        raw: str
+      };
+    }
+
+    // 4. Order reference without known calendar date (e.g. "Order 1")
+    return {
+      isoDate: '',
+      displayDate: 'Date Unknown',
+      orderRef: str,
+      raw: str
+    };
+  }
+
+  function getOwnedSetInfo(item) {
+    if (!item || isSetItem(item)) return null;
+    const invEntry = (userData && userData.inventory && userData.inventory[item.id]) || {};
+
+    // 1. Explicit setName stored on inventory entry
+    if (invEntry.setName) {
+      const matchedSet = catalog.find(c => isSetItem(c) && (c.id === invEntry.setId || c.name.toLowerCase() === invEntry.setName.toLowerCase()));
+      return {
+        setName: matchedSet ? matchedSet.name : invEntry.setName,
+        setId: matchedSet ? matchedSet.id : (invEntry.setId || null),
+        isFullSet: true
+      };
+    }
+
+    // 2. Extracted from notes ("From <Set Name>" or "(<Set Name>)")
+    const noteText = invEntry.notes || '';
+    if (noteText) {
+      const fromMatch = noteText.match(/From\s+([^;()]+)/i);
+      if (fromMatch) {
+        const candidateName = fromMatch[1].trim();
+        const matchedSet = catalog.find(c => isSetItem(c) && c.name.toLowerCase() === candidateName.toLowerCase());
+        return {
+          setName: matchedSet ? matchedSet.name : candidateName,
+          setId: matchedSet ? matchedSet.id : null,
+          isFullSet: true
+        };
+      }
+      const parenMatch = noteText.match(/\(([^)]+)\)\s*$/);
+      if (parenMatch) {
+        const candidateName = parenMatch[1].trim();
+        const matchedSet = catalog.find(c => isSetItem(c) && c.name.toLowerCase() === candidateName.toLowerCase());
+        if (matchedSet) {
+          return {
+            setName: matchedSet.name,
+            setId: matchedSet.id,
+            isFullSet: true
+          };
+        }
+      }
+    }
+
+    // 3. Check if any parent Set in the catalog has all of its member shades owned
+    const parentSets = getParentSetsForItem(item.id);
+    if (parentSets.length > 0) {
+      const fullyOwnedSets = parentSets.filter(ps => {
+        const prog = getSetOwnedProgress(ps);
+        return prog.total > 0 && prog.ownedCount === prog.total;
+      });
+      if (fullyOwnedSets.length > 0) {
+        // Prefer larger/collector sets if multiple sets are fully owned
+        fullyOwnedSets.sort((a, b) => getSetMembers(b).length - getSetMembers(a).length);
+        const chosen = fullyOwnedSets[0];
+        return {
+          setName: chosen.name,
+          setId: chosen.id,
+          isFullSet: true
+        };
+      }
+    }
+
+    return null;
+  }
+
+  function getItemPurchaseDateInfo(item) {
+    if (!item) {
+      return { latestIso: '', earliestIso: '', parsedDates: [], hasKnownDate: false, primaryDisplay: 'Unknown' };
+    }
+    const invEntry = (userData && userData.inventory && userData.inventory[item.id]) || {};
+    const rawList = [];
+
+    if (invEntry.purchaseDate) {
+      rawList.push(invEntry.purchaseDate);
+    }
+    if (Array.isArray(invEntry.orderDates)) {
+      invEntry.orderDates.forEach(d => {
+        if (d && !rawList.includes(d)) rawList.push(d);
+      });
+    }
+
+    // If this shade has no recorded dates of its own, check if it belongs to an owned Set whose other members have a date
+    if (rawList.length === 0) {
+      const setInfo = getOwnedSetInfo(item);
+      if (setInfo && setInfo.setId) {
+        const setItem = catalog.find(c => c.id === setInfo.setId);
+        if (setItem) {
+          const siblings = getSetMembers(setItem);
+          for (const sib of siblings) {
+            const sibEntry = userData.inventory[sib.id];
+            if (sibEntry) {
+              if (sibEntry.purchaseDate) {
+                rawList.push(sibEntry.purchaseDate);
+                break;
+              }
+              if (Array.isArray(sibEntry.orderDates) && sibEntry.orderDates.length > 0) {
+                rawList.push(...sibEntry.orderDates);
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    const parsedDates = rawList.map(parseOrderDateEntry).filter(Boolean);
+    const knownIsoList = parsedDates.map(p => p.isoDate).filter(Boolean).sort();
+    const hasKnownDate = knownIsoList.length > 0;
+    const latestIso = hasKnownDate ? knownIsoList[knownIsoList.length - 1] : '';
+    const earliestIso = hasKnownDate ? knownIsoList[0] : '';
+
+    let primaryDisplay = 'Unknown';
+    if (parsedDates.length > 0) {
+      const withKnown = parsedDates.filter(p => p.isoDate);
+      if (withKnown.length > 0) {
+        primaryDisplay = withKnown[withKnown.length - 1].displayDate;
+      } else {
+        primaryDisplay = parsedDates[0].orderRef
+          ? `Unknown (${parsedDates[0].orderRef})`
+          : 'Unknown';
+      }
+    }
+
+    return {
+      latestIso,
+      earliestIso,
+      parsedDates,
+      hasKnownDate,
+      primaryDisplay
+    };
+  }
+
   function syncSetsAndMembersState() {
     if (!userData) return;
     if (!userData.inventory) userData.inventory = {};
     if (!userData.wishlist) userData.wishlist = [];
 
     let changed = false;
+
+    // 0. Migrate any legacy synthetic IDs if live sync updated catalog IDs before cloud data arrived
+    catalog.forEach(c => {
+      if (c.legacy_id && c.legacy_id !== c.id) {
+        const oldId = c.legacy_id;
+        const newId = c.id;
+        if (userData.inventory[oldId]) {
+          if (!userData.inventory[newId]) {
+            userData.inventory[newId] = userData.inventory[oldId];
+          }
+          delete userData.inventory[oldId];
+          changed = true;
+        }
+        const wIdx = userData.wishlist.indexOf(oldId);
+        if (wIdx !== -1) {
+          userData.wishlist[wIdx] = newId;
+          changed = true;
+        }
+        if (userData.wishlistRatings && userData.wishlistRatings[oldId]) {
+          userData.wishlistRatings[newId] = userData.wishlistRatings[oldId];
+          delete userData.wishlistRatings[oldId];
+          changed = true;
+        }
+      }
+    });
 
     // 1. If any Set is marked in userData.inventory, ensure all of its individual member colors are marked as owned
     Object.keys(userData.inventory).forEach(invId => {
@@ -188,8 +419,20 @@
                 qty: entry.qty,
                 ordered_qty: entry.ordered_qty || entry.qty,
                 orderDates: Array.isArray(entry.orderDates) ? [...entry.orderDates] : [],
+                setName: setItem.name,
+                setId: setItem.id,
                 notes: entry.notes ? `${entry.notes} (${setItem.name})` : `From ${setItem.name}`
               };
+            } else {
+              const mEntry = userData.inventory[member.id];
+              mEntry.setName = mEntry.setName || setItem.name;
+              mEntry.setId = mEntry.setId || setItem.id;
+              if (Array.isArray(entry.orderDates) && entry.orderDates.length > 0) {
+                if (!Array.isArray(mEntry.orderDates)) mEntry.orderDates = [];
+                entry.orderDates.forEach(d => {
+                  if (!mEntry.orderDates.includes(d)) mEntry.orderDates.push(d);
+                });
+              }
             }
             if (userData.wishlist.includes(member.id)) {
               userData.wishlist = userData.wishlist.filter(wId => wId !== member.id);
@@ -199,6 +442,37 @@
           delete userData.inventory[invId];
           changed = true;
         }
+      }
+    });
+
+    // 1b. For any Set where all members are owned, ensure setName and shared purchase dates are propagated across its members
+    catalog.filter(isSetItem).forEach(setItem => {
+      const prog = getSetOwnedProgress(setItem);
+      if (prog.total > 0 && prog.ownedCount === prog.total) {
+        let sharedDates = [];
+        prog.members.forEach(m => {
+          const mEntry = userData.inventory[m.id];
+          if (mEntry && Array.isArray(mEntry.orderDates) && mEntry.orderDates.length > 0 && sharedDates.length === 0) {
+            sharedDates = [...mEntry.orderDates];
+          }
+        });
+        if (sharedDates.length === 0 && setItem.release_date && setItem.release_date >= '2026-10-01') {
+          sharedDates = [setItem.release_date];
+        }
+        prog.members.forEach(m => {
+          const mEntry = userData.inventory[m.id];
+          if (mEntry) {
+            if (!mEntry.setName) {
+              mEntry.setName = setItem.name;
+              mEntry.setId = setItem.id;
+              changed = true;
+            }
+            if ((!Array.isArray(mEntry.orderDates) || mEntry.orderDates.length === 0) && sharedDates.length > 0) {
+              mEntry.orderDates = [...sharedDates];
+              changed = true;
+            }
+          }
+        });
       }
     });
 
@@ -508,11 +782,40 @@
       });
     }
 
-    // Orders search
+    // Orders search & sorting
     document.getElementById('orders-search').addEventListener('input', debounce(renderOrders, 200));
+    const ordersSortSelect = document.getElementById('orders-sort-select');
+    if (ordersSortSelect) {
+      ordersSortSelect.addEventListener('change', () => {
+        ordersSortKey = ordersSortSelect.value;
+        renderOrders();
+      });
+    }
+    document.querySelectorAll('.orders-table th[data-orders-sort]').forEach(th => {
+      th.addEventListener('click', () => {
+        const field = th.getAttribute('data-orders-sort');
+        if (field === 'purchase_date') {
+          ordersSortKey = ordersSortKey === 'purchase-desc' ? 'purchase-asc' : 'purchase-desc';
+        } else if (field === 'set') {
+          ordersSortKey = ordersSortKey === 'set-asc' ? 'set-desc' : 'set-asc';
+        } else if (field === 'name') {
+          ordersSortKey = ordersSortKey === 'name-asc' ? 'name-desc' : 'name-asc';
+        } else if (field === 'on_hand' || field === 'ordered') {
+          ordersSortKey = ordersSortKey === 'qty-desc' ? 'qty-asc' : 'qty-desc';
+        } else if (field === 'type') {
+          ordersSortKey = ordersSortKey === 'type-asc' ? 'type-desc' : 'type-asc';
+        } else if (field === 'color') {
+          ordersSortKey = ordersSortKey === 'color-asc' ? 'color-desc' : 'color-asc';
+        }
+        if (ordersSortSelect && [...ordersSortSelect.options].some(o => o.value === ordersSortKey)) {
+          ordersSortSelect.value = ordersSortKey;
+        }
+        renderOrders();
+      });
+    });
 
     // Table sorting
-    document.querySelectorAll('.data-table th[data-sort]').forEach(th => {
+    document.querySelectorAll('#catalog-table-wrapper .data-table th[data-sort]').forEach(th => {
       th.addEventListener('click', () => {
         const sortField = th.getAttribute('data-sort');
         if (catalogSortKey === sortField) {
@@ -618,9 +921,16 @@
     const totalCatalog = catalog.length;
     let totalOwnedCount = 0;
     let uniqueOwnedCount = 0;
+    let ownedSetsCount = 0;
 
     catalog.forEach(item => {
-      if (isSetItem(item)) return;
+      if (isSetItem(item)) {
+        const prog = getSetOwnedProgress(item);
+        if (prog.total > 0 && prog.ownedCount === prog.total) {
+          ownedSetsCount += 1;
+        }
+        return;
+      }
       const qty = getOwnedQty(item);
       if (qty > 0) {
         uniqueOwnedCount += 1;
@@ -637,6 +947,8 @@
     // In orders view
     document.getElementById('orders-unique-count').textContent = uniqueOwnedCount;
     document.getElementById('orders-total-bottles').textContent = totalOwnedCount;
+    const setsCountEl = document.getElementById('orders-sets-count');
+    if (setsCountEl) setsCountEl.textContent = ownedSetsCount;
   }
 
   // --- Catalog Rendering ---
@@ -873,18 +1185,108 @@
     const searchFilter = (document.getElementById('orders-search')?.value || '').toLowerCase().trim();
     const tbody = document.getElementById('orders-table-body');
     const emptyState = document.getElementById('orders-empty-state');
+    const ordersSortSelect = document.getElementById('orders-sort-select');
+    if (ordersSortSelect && [...ordersSortSelect.options].some(o => o.value === ordersSortKey)) {
+      ordersSortSelect.value = ordersSortKey;
+    }
 
     // Get all owned individual shades/items (sets expand into their individual shades)
     const ownedItems = catalog.filter(item => !isSetItem(item) && getOwnedQty(item) > 0);
 
-    // Sort strictly by name alphabetically (Goal 2)
-    ownedItems.sort((a, b) => a.name.localeCompare(b.name));
+    // Sort according to selected Orders sort key
+    ownedItems.sort((a, b) => {
+      const setA = getOwnedSetInfo(a)?.setName || '';
+      const setB = getOwnedSetInfo(b)?.setName || '';
+      const dateA = getItemPurchaseDateInfo(a);
+      const dateB = getItemPurchaseDateInfo(b);
+
+      if (ordersSortKey === 'purchase-desc') {
+        if (dateA.hasKnownDate !== dateB.hasKnownDate) {
+          return dateA.hasKnownDate ? -1 : 1;
+        }
+        if (dateA.latestIso !== dateB.latestIso) {
+          return dateB.latestIso.localeCompare(dateA.latestIso);
+        }
+        if (Boolean(setA) !== Boolean(setB)) {
+          return setA ? -1 : 1;
+        }
+        if (setA !== setB) {
+          return setA.localeCompare(setB);
+        }
+        return a.name.localeCompare(b.name);
+      }
+
+      if (ordersSortKey === 'purchase-asc') {
+        // Treat "Order 1" as earliest batch (0000-01-01) when sorting oldest first
+        const isoA = dateA.earliestIso || (dateA.primaryDisplay.includes('Order 1') ? '0000-01-01' : '9999-12-31');
+        const isoB = dateB.earliestIso || (dateB.primaryDisplay.includes('Order 1') ? '0000-01-01' : '9999-12-31');
+        if (isoA !== isoB) {
+          return isoA.localeCompare(isoB);
+        }
+        if (setA !== setB) {
+          return setA.localeCompare(setB);
+        }
+        return a.name.localeCompare(b.name);
+      }
+
+      if (ordersSortKey === 'set-asc' || ordersSortKey === 'set-desc') {
+        if (Boolean(setA) !== Boolean(setB)) {
+          return setA ? -1 : 1; // Always show Set items first
+        }
+        if (setA !== setB) {
+          return ordersSortKey === 'set-asc' ? setA.localeCompare(setB) : setB.localeCompare(setA);
+        }
+        return a.name.localeCompare(b.name);
+      }
+
+      if (ordersSortKey === 'name-desc') {
+        return b.name.localeCompare(a.name);
+      }
+
+      if (ordersSortKey === 'release-desc') {
+        const rA = (a.release_date || a.last_updated || '').toString();
+        const rB = (b.release_date || b.last_updated || '').toString();
+        if (rB !== rA) return rB.localeCompare(rA);
+        return a.name.localeCompare(b.name);
+      }
+
+      if (ordersSortKey === 'qty-desc' || ordersSortKey === 'qty-asc') {
+        const qA = getOwnedQty(a);
+        const qB = getOwnedQty(b);
+        if (qA !== qB) return ordersSortKey === 'qty-desc' ? qB - qA : qA - qB;
+        return a.name.localeCompare(b.name);
+      }
+
+      if (ordersSortKey === 'type-asc' || ordersSortKey === 'type-desc') {
+        const cmp = (a.type || '').localeCompare(b.type || '');
+        if (cmp !== 0) return ordersSortKey === 'type-asc' ? cmp : -cmp;
+        return a.name.localeCompare(b.name);
+      }
+
+      if (ordersSortKey === 'color-asc' || ordersSortKey === 'color-desc') {
+        const cmp = (a.color || '').localeCompare(b.color || '');
+        if (cmp !== 0) return ordersSortKey === 'color-asc' ? cmp : -cmp;
+        return a.name.localeCompare(b.name);
+      }
+
+      return a.name.localeCompare(b.name);
+    });
 
     const filtered = ownedItems.filter(item => {
       if (!searchFilter) return true;
+      const setInfo = getOwnedSetInfo(item);
+      const dateInfo = getItemPurchaseDateInfo(item);
+      const setMatch = setInfo && setInfo.setName.toLowerCase().includes(searchFilter);
+      const dateMatch =
+        dateInfo.primaryDisplay.toLowerCase().includes(searchFilter) ||
+        dateInfo.latestIso.toLowerCase().includes(searchFilter) ||
+        dateInfo.parsedDates.some(p => (p.raw || '').toLowerCase().includes(searchFilter));
+
       return item.name.toLowerCase().includes(searchFilter) ||
              item.type.toLowerCase().includes(searchFilter) ||
-             item.color.toLowerCase().includes(searchFilter);
+             item.color.toLowerCase().includes(searchFilter) ||
+             Boolean(setMatch) ||
+             Boolean(dateMatch);
     });
 
     if (ownedItems.length === 0) {
@@ -918,7 +1320,62 @@
       const qtyOnHand = getOwnedQty(item);
       const totalOrdered = invEntry.ordered_qty || qtyOnHand;
       const hasGifted = totalOrdered > qtyOnHand;
-      const noteText = invEntry.notes || '';
+      const setInfo = getOwnedSetInfo(item);
+      const dateInfo = getItemPurchaseDateInfo(item);
+
+      // Build Set / Collection cell HTML
+      let setCellHtml = '';
+      if (setInfo && setInfo.setName) {
+        const clickAttr = setInfo.setId
+          ? `onclick="window.MooncatApp.openDetail(${setInfo.setId})" style="cursor: pointer; display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border-radius: 6px; background: rgba(168, 85, 247, 0.18); border: 1px solid rgba(168, 85, 247, 0.45); color: #e9d5ff; font-size: 0.78rem; font-weight: 600;" title="Click to view set details"`
+          : `style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border-radius: 6px; background: rgba(168, 85, 247, 0.18); border: 1px solid rgba(168, 85, 247, 0.45); color: #e9d5ff; font-size: 0.78rem; font-weight: 600;"`;
+        setCellHtml = `<span ${clickAttr}>📦 ${escapeHtml(setInfo.setName)}</span>`;
+      } else {
+        setCellHtml = `<span style="color: var(--text-muted); font-size: 0.78rem;">Individual Shade</span>`;
+      }
+
+      // Build Purchase Date cell HTML
+      let dateCellHtml = '';
+      if (dateInfo.parsedDates.length > 0) {
+        const dateBadges = dateInfo.parsedDates.map(pd => {
+          if (pd.isoDate) {
+            return `
+              <div style="display: flex; flex-direction: column; gap: 1px;">
+                <span style="font-family: var(--font-mono); font-size: 0.82rem; font-weight: 600; color: #38bdf8;">
+                  🗓️ ${escapeHtml(pd.displayDate)}
+                </span>
+                ${pd.orderRef ? `<span style="font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-muted);">#${escapeHtml(pd.orderRef)}</span>` : ''}
+              </div>
+            `;
+          }
+          return `
+            <div style="display: flex; flex-direction: column; gap: 1px;">
+              <span style="font-size: 0.78rem; color: var(--text-muted); font-style: italic;">Date Unknown</span>
+              ${pd.orderRef ? `<span style="font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-muted);">${escapeHtml(pd.orderRef)}</span>` : ''}
+            </div>
+          `;
+        }).join('');
+
+        dateCellHtml = `
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+              ${dateBadges}
+            </div>
+            <button class="btn-card-action" style="padding: 2px 6px; font-size: 0.72rem; opacity: 0.8;" onclick="window.MooncatApp.editOrderPurchaseDate(${item.id})" title="Set or edit purchase date">
+              ✎
+            </button>
+          </div>
+        `;
+      } else {
+        dateCellHtml = `
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <span style="font-size: 0.78rem; color: var(--text-muted); font-style: italic;">Unknown</span>
+            <button class="btn-card-action" style="padding: 2px 7px; font-size: 0.72rem;" onclick="window.MooncatApp.editOrderPurchaseDate(${item.id})" title="Add purchase date">
+              📅 Set Date
+            </button>
+          </div>
+        `;
+      }
 
       return `
         <tr data-id="${item.id}">
@@ -927,7 +1384,10 @@
           </td>
           <td>
             <span class="table-name" onclick="window.MooncatApp.openDetail(${item.id})">${escapeHtml(item.name)}</span>
+            ${item.is_new ? '<span class="badge badge-new" style="margin-left: 6px; font-size: 0.65rem; padding: 2px 6px;">✨ NEW</span>' : ''}
           </td>
+          <td>${setCellHtml}</td>
+          <td>${dateCellHtml}</td>
           <td><span class="tag tag-finish">${escapeHtml(item.type)}</span></td>
           <td><span class="tag tag-color">${escapeHtml(item.color)}</span></td>
           <td style="text-align: center;">
@@ -942,9 +1402,8 @@
           </td>
           <td>
             <div style="display: flex; flex-direction: column; gap: 4px;">
-              <span class="badge-stock ${item.status === 'Discontinued' ? 'discontinued' : ''}" style="position: static; display: inline-block; width: fit-content;">${escapeHtml(item.status)}</span>
+              <span class="badge-stock ${item.status === 'Dearly Departed' ? 'departed' : (item.status === 'Discontinued' ? 'discontinued' : '')}" style="position: static; display: inline-block; width: fit-content;">${escapeHtml(item.status)}</span>
               ${hasGifted ? `<span style="font-size: 0.72rem; color: #ec4899; font-weight: 600;">🎁 Gifted ${totalOrdered - qtyOnHand} duplicate</span>` : ''}
-              ${noteText.startsWith('From ') ? `<span style="font-size: 0.72rem; color: #a855f7;">📦 ${escapeHtml(noteText)}</span>` : ''}
             </div>
           </td>
           <td style="text-align: right;">
@@ -953,6 +1412,57 @@
         </tr>
       `;
     }).join('');
+  }
+
+  function editOrderPurchaseDate(id) {
+    if (!requireAuth("edit order purchase dates")) return;
+    const item = catalog.find(i => i.id === id);
+    if (!item) return;
+
+    const dateInfo = getItemPurchaseDateInfo(item);
+    const setInfo = getOwnedSetInfo(item);
+    const defaultVal = dateInfo.latestIso || new Date().toISOString().slice(0, 10);
+
+    const input = prompt(
+      `Enter Purchase Date for "${item.name}"${setInfo ? ` (part of ${setInfo.setName})` : ''}:\nFormat: YYYY-MM-DD or MMM DD, YYYY (e.g. 2026-10-30 or Oct 30, 2026)`,
+      defaultVal
+    );
+    if (input === null) return;
+
+    const cleanInput = input.trim();
+    const parsed = parseOrderDateEntry(cleanInput);
+    const valueToStore = parsed && parsed.isoDate ? parsed.isoDate : cleanInput;
+
+    let applyToWholeSet = false;
+    if (setInfo && setInfo.setId) {
+      applyToWholeSet = confirm(
+        `Apply purchase date "${valueToStore || 'Unknown'}" to all shades in "${setInfo.setName}"?`
+      );
+    }
+
+    if (applyToWholeSet && setInfo && setInfo.setId) {
+      const setItem = catalog.find(c => c.id === setInfo.setId);
+      const members = setItem ? getSetMembers(setItem) : [];
+      members.forEach(m => {
+        if (userData.inventory[m.id]) {
+          userData.inventory[m.id].purchaseDate = valueToStore;
+          userData.inventory[m.id].orderDates = valueToStore ? [valueToStore] : [];
+          userData.inventory[m.id].setName = setInfo.setName;
+          userData.inventory[m.id].setId = setInfo.setId;
+        }
+      });
+      showToast(`🗓️ Updated purchase date for all shades in "${setInfo.setName}"!`);
+    } else {
+      if (!userData.inventory[id]) {
+        userData.inventory[id] = { qty: 1, orderDates: [], notes: '' };
+      }
+      userData.inventory[id].purchaseDate = valueToStore;
+      userData.inventory[id].orderDates = valueToStore ? [valueToStore] : [];
+      showToast(`🗓️ Updated purchase date for "${item.name}"!`);
+    }
+
+    saveUserData();
+    renderAll();
   }
 
   // --- Wishlist Sorting & Rating Controllers ---
@@ -1257,10 +1767,17 @@
       if (members.length > 0) {
         members.forEach(member => {
           if (!userData.inventory[member.id]) {
-            userData.inventory[member.id] = { qty: 0, orderDates: [], notes: `From ${item.name}` };
+            userData.inventory[member.id] = { qty: 0, orderDates: [], setName: item.name, setId: item.id, notes: `From ${item.name}` };
           }
           userData.inventory[member.id].qty += 1;
-          userData.inventory[member.id].orderDates.push(today);
+          if (!Array.isArray(userData.inventory[member.id].orderDates)) {
+            userData.inventory[member.id].orderDates = [];
+          }
+          if (!userData.inventory[member.id].orderDates.includes(today)) {
+            userData.inventory[member.id].orderDates.push(today);
+          }
+          userData.inventory[member.id].setName = item.name;
+          userData.inventory[member.id].setId = item.id;
           if (!userData.inventory[member.id].notes) {
             userData.inventory[member.id].notes = `From ${item.name}`;
           }
@@ -1280,7 +1797,12 @@
       userData.inventory[id] = { qty: 0, orderDates: [], notes: '' };
     }
     userData.inventory[id].qty += 1;
-    userData.inventory[id].orderDates.push(today);
+    if (!Array.isArray(userData.inventory[id].orderDates)) {
+      userData.inventory[id].orderDates = [];
+    }
+    if (!userData.inventory[id].orderDates.includes(today)) {
+      userData.inventory[id].orderDates.push(today);
+    }
 
     syncSetsAndMembersState();
     saveUserData();
@@ -1303,12 +1825,17 @@
       if (members.length > 0) {
         members.forEach(member => {
           if (!userData.inventory[member.id]) {
-            userData.inventory[member.id] = { qty: 0, orderDates: [], notes: `From ${item.name}` };
+            userData.inventory[member.id] = { qty: 0, orderDates: [], setName: item.name, setId: item.id, notes: `From ${item.name}` };
           }
           userData.inventory[member.id].qty += 1;
-          if (Array.isArray(userData.inventory[member.id].orderDates)) {
+          if (!Array.isArray(userData.inventory[member.id].orderDates)) {
+            userData.inventory[member.id].orderDates = [];
+          }
+          if (!userData.inventory[member.id].orderDates.includes(today)) {
             userData.inventory[member.id].orderDates.push(today);
           }
+          userData.inventory[member.id].setName = item.name;
+          userData.inventory[member.id].setId = item.id;
           if (!userData.inventory[member.id].notes) {
             userData.inventory[member.id].notes = `From ${item.name}`;
           }
@@ -1328,6 +1855,12 @@
       userData.inventory[id] = { qty: 0, orderDates: [], notes: '' };
     }
     userData.inventory[id].qty += 1;
+    if (!Array.isArray(userData.inventory[id].orderDates)) {
+      userData.inventory[id].orderDates = [];
+    }
+    if (!userData.inventory[id].orderDates.includes(today)) {
+      userData.inventory[id].orderDates.push(today);
+    }
 
     // If it was in wishlist, automatically remove it now that it's owned
     if (userData.wishlist.includes(id)) {
@@ -1454,11 +1987,15 @@
   function confirmImport() {
     if (!requireAuth("import orders to your inventory")) return;
     const text = document.getElementById('import-text').value;
+    const customDateInput = (document.getElementById('import-purchase-date')?.value || '').trim();
+    const customSetOrOrder = (document.getElementById('import-set-name')?.value || '').trim();
+    const dateToRecord = customDateInput || new Date().toISOString().slice(0, 10);
+
     const matches = parseInputOrders(text);
     const matchedIds = Object.keys(matches);
 
     if (matchedIds.length === 0) {
-      alert('Please enter at least one recognizable Mooncat shade name.');
+      alert('Please enter at least one recognizable Mooncat shade or set name.');
       return;
     }
 
@@ -1471,9 +2008,17 @@
         if (members.length > 0) {
           members.forEach(m => {
             if (!userData.inventory[m.id]) {
-              userData.inventory[m.id] = { qty: 0, orderDates: [], notes: `From ${item.name}` };
+              userData.inventory[m.id] = { qty: 0, orderDates: [], setName: item.name, setId: item.id, notes: `From ${item.name}` };
             }
             userData.inventory[m.id].qty += qty;
+            userData.inventory[m.id].setName = item.name;
+            userData.inventory[m.id].setId = item.id;
+            if (!Array.isArray(userData.inventory[m.id].orderDates)) {
+              userData.inventory[m.id].orderDates = [];
+            }
+            if (!userData.inventory[m.id].orderDates.includes(dateToRecord)) {
+              userData.inventory[m.id].orderDates.push(dateToRecord);
+            }
             addedCount += qty;
             userData.wishlist = userData.wishlist.filter(wId => wId != m.id);
           });
@@ -1486,6 +2031,18 @@
         userData.inventory[id] = { qty: 0, orderDates: [], notes: '' };
       }
       userData.inventory[id].qty += qty;
+      if (!Array.isArray(userData.inventory[id].orderDates)) {
+        userData.inventory[id].orderDates = [];
+      }
+      const dateEntry = customSetOrOrder && !customSetOrOrder.toLowerCase().includes('set')
+        ? `${customSetOrOrder} - ${dateToRecord}`
+        : dateToRecord;
+      if (!userData.inventory[id].orderDates.includes(dateEntry)) {
+        userData.inventory[id].orderDates.push(dateEntry);
+      }
+      if (customSetOrOrder && customSetOrOrder.toLowerCase().includes('set')) {
+        userData.inventory[id].setName = customSetOrOrder;
+      }
       addedCount += qty;
 
       // Remove from wishlist if owned
@@ -1597,6 +2154,21 @@
                     : `<span class="badge badge-unowned">No</span>`)}
               </td>
             </tr>
+            ${isOwned && !isSet ? (() => {
+              const setInfo = getOwnedSetInfo(item);
+              const dateInfo = getItemPurchaseDateInfo(item);
+              return `
+                ${setInfo ? `
+                <tr>
+                  <td>Purchased Set:</td>
+                  <td><strong style="color: #c084fc;">📦 ${escapeHtml(setInfo.setName)}</strong></td>
+                </tr>` : ''}
+                <tr>
+                  <td>Purchase Date:</td>
+                  <td style="font-family: var(--font-mono); color: #38bdf8;">${escapeHtml(dateInfo.primaryDisplay)}</td>
+                </tr>
+              `;
+            })() : ''}
           </table>
 
           ${setMembersHtml}
@@ -1662,19 +2234,22 @@
   }
 
   function exportOrdersCSV() {
-    // Goal 2: 1 single list of all the mooncat nail colors ordered, including duplicates sorted by name that identifies them by type, color palette, and number ordered
     const ownedItems = catalog.filter(item => !isSetItem(item) && getOwnedQty(item) > 0);
     ownedItems.sort((a, b) => a.name.localeCompare(b.name));
 
-    const headers = ['Name', 'Type (mooncat.com)', 'Color Palette', 'Total Ordered', 'Currently On Hand', 'Status', 'Price', 'Notes'];
+    const headers = ['Name', 'Set / Collection', 'Purchase Date', 'Type (mooncat.com)', 'Color Palette', 'Total Ordered', 'Currently On Hand', 'Status', 'Price', 'Notes'];
     const rows = ownedItems.map(item => {
       const invEntry = userData.inventory[item.id] || {};
       const onHand = getOwnedQty(item);
       const ordered = invEntry.ordered_qty || onHand;
+      const setInfo = getOwnedSetInfo(item);
+      const dateInfo = getItemPurchaseDateInfo(item);
       const notes = invEntry.notes || (ordered > onHand ? `Gifted ${ordered - onHand} duplicate` : '');
 
       return [
         csvEscape(item.name),
+        csvEscape(setInfo ? setInfo.setName : 'Individual Shade'),
+        csvEscape(dateInfo.primaryDisplay),
         csvEscape(item.type),
         csvEscape(item.color),
         ordered,
@@ -2024,6 +2599,9 @@
       }
 
       const wasNew = existing.is_new;
+      if (oldId !== newId) {
+        existing.legacy_id = oldId;
+      }
       existing.id = transformed.id;
       if (transformed.handle) existing.handle = transformed.handle;
       if (transformed.image_url) existing.image_url = transformed.image_url;
@@ -2033,9 +2611,13 @@
       if (transformed.price) existing.price = transformed.price;
       existing.available = transformed.available;
       existing.status = transformed.status;
-      if (transformed.description) existing.description = transformed.description;
+      if (transformed.description && (!isSetItem(existing) || transformed.description.toLowerCase().includes('includes'))) {
+        existing.description = transformed.description;
+      }
       if (transformed.product_url) existing.product_url = transformed.product_url;
-      if (transformed.tags && transformed.tags.length > 0) existing.tags = transformed.tags;
+      if (transformed.tags && transformed.tags.length > 0) {
+        existing.tags = Array.from(new Set([...(existing.tags || []), ...transformed.tags]));
+      }
       if (!existing.release_date && transformed.release_date) existing.release_date = transformed.release_date;
       if (transformed.last_updated) existing.last_updated = transformed.last_updated;
       existing.is_new = Boolean(existing.is_new || transformed.is_new);
@@ -3416,6 +3998,7 @@
     markPurchased,
     decrementOrder,
     removeOrder,
+    editOrderPurchaseDate,
     openImportModal,
     closeImportModal,
     checkLiveNewReleases,

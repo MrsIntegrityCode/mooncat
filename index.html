@@ -175,7 +175,7 @@
       <div class="section-banner">
         <div>
           <h2>My Ordered Mooncat Nail Colors</h2>
-          <p class="section-desc">Single unified list of all ordered Mooncat polishes sorted alphabetically by name, showing official type, color palette, and total number ordered (including duplicates).</p>
+          <p class="section-desc">Unified inventory of all your ordered Mooncat polishes showing Set / Collection names, purchase dates, official types, color palettes, and quantities on hand.</p>
         </div>
         <div class="banner-buttons">
           <button id="btn-open-order-import" class="btn-primary">
@@ -187,7 +187,7 @@
         </div>
       </div>
 
-      <div class="orders-summary-bar">
+      <div class="orders-summary-bar" style="flex-wrap: wrap; gap: 1rem;">
         <div class="summary-metric">
           <span class="metric-num" id="orders-unique-count">0</span>
           <span class="metric-title">Unique Shades</span>
@@ -196,8 +196,24 @@
           <span class="metric-num" id="orders-total-bottles">0</span>
           <span class="metric-title">Total Bottles Ordered</span>
         </div>
-        <div class="search-box small">
-          <input type="text" id="orders-search" placeholder="Filter ordered colors...">
+        <div class="summary-metric">
+          <span class="metric-num" id="orders-sets-count">0</span>
+          <span class="metric-title">Complete Sets Owned</span>
+        </div>
+        <div class="filter-group" style="margin-left: auto;">
+          <label for="orders-sort-select">Sort Inventory By:</label>
+          <select id="orders-sort-select">
+            <option value="purchase-desc" selected>🗓️ Purchase Date: Newest First</option>
+            <option value="purchase-asc">🗓️ Purchase Date: Oldest First</option>
+            <option value="set-asc">📦 Set Name (Sets First, A → Z)</option>
+            <option value="name-asc">🔤 Shade Name (A → Z)</option>
+            <option value="name-desc">🔤 Shade Name (Z → A)</option>
+            <option value="release-desc">✨ Release Date: Newest First</option>
+            <option value="qty-desc">🔢 Quantity On Hand (High → Low)</option>
+          </select>
+        </div>
+        <div class="search-box small" style="margin-left: 0;">
+          <input type="text" id="orders-search" placeholder="Filter by shade, set, or date...">
         </div>
       </div>
 
@@ -206,14 +222,16 @@
         <table class="data-table orders-table">
           <thead>
             <tr>
-              <th style="width: 70px;">Swatch</th>
-              <th>Name</th>
-              <th>Type (mooncat.com)</th>
-              <th>Color Palette</th>
-              <th style="width: 130px; text-align: center;">Total Ordered</th>
-              <th style="width: 130px; text-align: center;">On Hand</th>
-              <th style="width: 140px;">Notes / Status</th>
-              <th style="width: 100px; text-align: right;">Actions</th>
+              <th style="width: 64px;">Swatch</th>
+              <th data-orders-sort="name" style="cursor: pointer;">Name ⬍</th>
+              <th data-orders-sort="set" style="cursor: pointer;">Set / Collection ⬍</th>
+              <th data-orders-sort="purchase_date" style="cursor: pointer;">Purchase Date ⬍</th>
+              <th data-orders-sort="type" style="cursor: pointer;">Type (mooncat.com) ⬍</th>
+              <th data-orders-sort="color" style="cursor: pointer;">Color Palette ⬍</th>
+              <th data-orders-sort="ordered" style="width: 110px; text-align: center; cursor: pointer;">Total Ordered ⬍</th>
+              <th data-orders-sort="on_hand" style="width: 115px; text-align: center; cursor: pointer;">On Hand ⬍</th>
+              <th style="width: 135px;">Status / Notes</th>
+              <th style="width: 90px; text-align: right;">Actions</th>
             </tr>
           </thead>
           <tbody id="orders-table-body">
@@ -295,8 +313,19 @@
       <h3>Add or Import Ordered Colors</h3>
       <p class="modal-sub">Paste nail polish names, receipt text, or order list. Duplicates will be counted automatically and matched against Mooncat's official types and color palettes!</p>
       
+      <div class="import-input-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+        <div>
+          <label for="import-purchase-date"><strong>Purchase Date (Optional):</strong></label>
+          <input type="date" id="import-purchase-date" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 8px; border: 1px solid var(--border-subtle); background: var(--bg-deep); color: var(--text-main); font-family: var(--font-mono); margin-top: 0.25rem;">
+        </div>
+        <div>
+          <label for="import-set-name"><strong>Set Name / Order # (Optional):</strong></label>
+          <input type="text" id="import-set-name" placeholder="e.g. Death Note Collector's Set or MC381..." style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 8px; border: 1px solid var(--border-subtle); background: var(--bg-deep); color: var(--text-main); margin-top: 0.25rem;">
+        </div>
+      </div>
+
       <div class="import-input-group">
-        <label for="import-text"><strong>Paste Orders or Color Names:</strong> (one per line, e.g. "House of Hades", or "2x Merkitten")</label>
+        <label for="import-text"><strong>Paste Orders, Set Names, or Color Names:</strong> (one per line, e.g. "Death Note Collector's Set", "House of Hades", or "2x Merkitten")</label>
         <textarea id="import-text" rows="8" placeholder="Example:
 House of Hades
 House of Hades (duplicate example)
