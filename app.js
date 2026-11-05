@@ -47,6 +47,7 @@
     setupFilters();
     bindEvents();
     renderAll();
+    checkFeatureAnnouncement();
     // Defer background check for live updates so initial page load & images are 100% instant
     setTimeout(() => checkLiveNewReleases(true), 2500);
 
@@ -3510,6 +3511,46 @@
     `;
   }
 
+  // --- Feature Announcement Controller (Once Logged In) ---
+  const ANNOUNCEMENT_DISMISSED_KEY = 'mooncat_announcement_community_v1';
+
+  function checkFeatureAnnouncement(user = null) {
+    const banner = document.getElementById('feature-announcement-banner');
+    if (!banner) return;
+
+    const currentUser = user || ((window.MooncatAuth && window.MooncatAuth.getCurrentUser) ? window.MooncatAuth.getCurrentUser() : null);
+    
+    // Only display once the user is signed in to their account
+    if (!currentUser) {
+      banner.classList.add('hidden');
+      return;
+    }
+
+    const dismissedKey = `${ANNOUNCEMENT_DISMISSED_KEY}_${currentUser.uid}`;
+    const isDismissed = localStorage.getItem(dismissedKey) === 'true';
+
+    if (!isDismissed) {
+      banner.classList.remove('hidden');
+    } else {
+      banner.classList.add('hidden');
+    }
+  }
+
+  function dismissFeatureAnnouncement() {
+    const banner = document.getElementById('feature-announcement-banner');
+    if (banner) banner.classList.add('hidden');
+
+    const currentUser = (window.MooncatAuth && window.MooncatAuth.getCurrentUser) ? window.MooncatAuth.getCurrentUser() : null;
+    const key = currentUser ? `${ANNOUNCEMENT_DISMISSED_KEY}_${currentUser.uid}` : ANNOUNCEMENT_DISMISSED_KEY;
+    localStorage.setItem(key, 'true');
+    showToast("Announcement dismissed. You can explore Community Looks anytime in the top tab! ✨");
+  }
+
+  function exploreCommunityFeature() {
+    dismissFeatureAnnouncement();
+    switchTab('community');
+  }
+
   // --- Live Mooncat Store Sync & Product Classification ---
   const LIVE_CATALOG_CACHE_KEY = 'mooncat_live_catalog_cache_v2';
 
@@ -5189,6 +5230,9 @@
     handleShareLookSubmit,
     deleteCommunityLook,
     flagCommunityLook,
+    checkFeatureAnnouncement,
+    dismissFeatureAnnouncement,
+    exploreCommunityFeature,
     closeModal,
     onCloudDataLoaded,
     onCloudSignOut,

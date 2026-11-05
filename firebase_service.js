@@ -48,8 +48,13 @@ onAuthStateChanged(auth, async (user) => {
   if (user) {
     console.log("Logged in as:", user.displayName, user.email, user.uid);
     await loadUserDataFromFirestore(user);
+    if (window.MooncatApp && window.MooncatApp.checkFeatureAnnouncement) {
+      window.MooncatApp.checkFeatureAnnouncement(user);
+    }
   } else {
     console.log("User signed out, running in local mode.");
+    const banner = document.getElementById('feature-announcement-banner');
+    if (banner) banner.classList.add('hidden');
     if (window.MooncatApp && window.MooncatApp.onCloudSignOut) {
       window.MooncatApp.onCloudSignOut();
     }

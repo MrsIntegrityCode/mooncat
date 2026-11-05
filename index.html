@@ -69,6 +69,28 @@
     </nav>
   </header>
 
+  <!-- New Feature Announcement Banner (Shown once logged in) -->
+  <div id="feature-announcement-banner" class="feature-announcement-banner hidden">
+    <div class="announcement-content">
+      <div class="announcement-badge-row">
+        <span class="announcement-badge">✨ NEW FEATURE RELEASE</span>
+        <span class="announcement-badge-sub">The Catalog's Living Layer</span>
+      </div>
+      <h3 class="announcement-title">💅 Introducing the Community Showcase & Living Nail Art Layer!</h3>
+      <p class="announcement-desc">
+        Voluntary shares now have a lasting home! Share your own manicures and swatches with <strong>permanent creator attribution</strong>, tag Mooncat colors from our 304-shade catalog, and publish step-by-step <strong>reproduction recipes</strong> (magnet tool, horseshoe/wand style, coats, and timing). Heart looks to collect them on your <strong>Nail Art Loves</strong> board and instantly check them against your vault and wishlist!
+      </p>
+    </div>
+    <div class="announcement-actions">
+      <button class="btn-primary announcement-btn-cta" onclick="window.MooncatApp.exploreCommunityFeature()">
+        💅 Explore Community Looks →
+      </button>
+      <button class="btn-secondary announcement-btn-dismiss" onclick="window.MooncatApp.dismissFeatureAnnouncement()" title="Dismiss announcement">
+        ✕ Dismiss
+      </button>
+    </div>
+  </div>
+
   <main class="app-main">
     <!-- TAB 1: MAIN CATALOG -->
     <section id="tab-catalog" class="tab-content active">
