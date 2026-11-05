@@ -2336,4 +2336,438 @@ body {
   50% { opacity: 1; transform: translateY(-4px); }
 }
 
+/* ==========================================================================
+   Community Looks & Nail Art Loves Showcase
+   ========================================================================== */
+
+.community-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.community-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  position: relative;
+}
+
+.community-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(236, 72, 153, 0.5);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(236, 72, 153, 0.15);
+}
+
+.community-card-img-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: #0f0f14;
+}
+
+.community-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.35s ease;
+  cursor: pointer;
+}
+
+.community-card:hover .community-card-img {
+  transform: scale(1.03);
+}
+
+.community-creator-tag {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: rgba(15, 15, 20, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  backdrop-filter: blur(8px);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  z-index: 2;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.community-heart-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(15, 15, 20, 0.88);
+  border: 1px solid rgba(244, 114, 182, 0.4);
+  color: #f472b6;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 4px 11px;
+  border-radius: 20px;
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  z-index: 2;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+
+.community-heart-btn:hover {
+  background: rgba(236, 72, 153, 0.25);
+  border-color: #ec4899;
+  color: #fff;
+  transform: scale(1.08);
+}
+
+.community-heart-btn.active {
+  background: linear-gradient(135deg, #ec4899, #f43f5e);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 0 12px rgba(236, 72, 153, 0.5);
+}
+
+.community-card-body {
+  padding: 1rem 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.community-card-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+  line-height: 1.35;
+}
+
+.community-card-caption {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+  margin: 0;
+}
+
+/* Shade Pills */
+.community-shades-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 0.2rem;
+}
+
+.community-shade-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-subtle);
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.community-shade-pill:hover {
+  background: rgba(168, 85, 247, 0.2);
+  border-color: var(--accent-purple);
+  color: #d8b4fe;
+}
+
+.community-shade-pill.vault-owned {
+  border-color: rgba(16, 185, 129, 0.5);
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.12);
+}
+
+.community-shade-pill.vault-wishlist {
+  border-color: rgba(245, 158, 11, 0.5);
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.12);
+}
+
+.community-shade-pill.vault-retired {
+  border-color: rgba(239, 68, 68, 0.5);
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.12);
+}
+
+/* How to Reproduce (Mani Recipe) Card */
+.community-recipe-card {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  border-radius: 9px;
+  padding: 0.75rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  font-size: 0.82rem;
+}
+
+.community-recipe-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  color: #c084fc;
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.community-recipe-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.recipe-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(168, 85, 247, 0.15);
+  border: 1px solid rgba(168, 85, 247, 0.35);
+  color: #e9d5ff;
+}
+
+.recipe-badge.magnet {
+  background: rgba(6, 182, 212, 0.15);
+  border-color: rgba(6, 182, 212, 0.4);
+  color: #67e8f9;
+}
+
+.recipe-badge.style {
+  background: rgba(236, 72, 153, 0.15);
+  border-color: rgba(236, 72, 153, 0.4);
+  color: #f472b6;
+}
+
+.community-recipe-steps {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin-top: 2px;
+}
+
+/* Card Footer */
+.community-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 0.6rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+.community-card-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-card-quiet {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 0.75rem;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: color 0.2s ease;
+}
+
+.btn-card-quiet:hover {
+  color: #fff;
+}
+
+.btn-card-quiet.delete:hover {
+  color: #ef4444;
+}
+
+/* --- Share Look Modal Styles --- */
+.photo-drop-zone {
+  border: 2px dashed rgba(168, 85, 247, 0.45);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.photo-drop-zone:hover, .photo-drop-zone.dragover {
+  border-color: var(--accent-magenta);
+  background: rgba(236, 72, 153, 0.08);
+}
+
+.photo-preview-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.photo-preview-wrap img {
+  max-width: 100%;
+  max-height: 240px;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid var(--border-subtle);
+}
+
+.btn-change-photo {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--border-subtle);
+  color: #fff;
+  font-size: 0.8rem;
+  padding: 4px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-change-photo:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.shade-tagger-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.selected-shade-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 32px;
+}
+
+.shade-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(168, 85, 247, 0.2);
+  border: 1px solid rgba(168, 85, 247, 0.5);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 16px;
+}
+
+.shade-chip .btn-remove-chip {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0;
+  line-height: 1;
+}
+
+.shade-chip .btn-remove-chip:hover {
+  color: #ef4444;
+}
+
+.shade-tagger-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+  z-index: 100;
+  margin-top: 4px;
+}
+
+.shade-tagger-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.55rem 0.85rem;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  transition: background 0.15s ease;
+}
+
+.shade-tagger-item:hover {
+  background: rgba(168, 85, 247, 0.25);
+}
+
+.recipe-editor-box {
+  background: rgba(168, 85, 247, 0.08);
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+/* Detail Modal Community Gallery */
+.detail-community-section {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.detail-community-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.85rem;
+}
+
+.detail-community-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.detail-look-card {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-look-thumb {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  cursor: pointer;
+}
+
+.detail-look-info {
+  padding: 0.65rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+
 

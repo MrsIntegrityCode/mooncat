@@ -5,6 +5,7 @@
   // --- State ---
   const STORAGE_PROFILES_KEY = 'mooncat_vault_profiles_v3';
   const STORAGE_ACTIVE_PROFILE_KEY = 'mooncat_vault_active_profile_v3';
+  const STORAGE_COMMUNITY_LOOKS_KEY = 'mooncat_vault_community_looks_v1';
   let catalog = window.MOONCAT_CATALOG || [];
   
   let profiles = {};
@@ -14,7 +15,8 @@
   let userData = {
     inventory: {},
     wishlist: [],
-    wishlistRatings: {}
+    wishlistRatings: {},
+    heartedLooks: []
   };
 
   let activeTab = 'catalog';
@@ -26,12 +28,20 @@
   let ordersSortKey = 'purchase-desc';
   let wishlistSortKey = 'rating-desc';
 
+  // Community Looks & Loves State
+  let communityLooks = [];
+  let communityScope = 'all'; // 'all' or 'loves'
+  let communityShadeFilter = 'all';
+  let communityTechniqueFilter = 'all';
+  let selectedLookTaggerShades = [];
+
   // --- Initialize ---
   function init() {
     startLoadingPhrasesRotation();
     loadCachedLiveCatalog();
     ensureSetRelationshipCache();
     loadUserData();
+    loadCommunityLooks();
     syncSetsAndMembersState();
     setupProfileSelector();
     setupFilters();
@@ -39,6 +49,15 @@
     renderAll();
     // Defer background check for live updates so initial page load & images are 100% instant
     setTimeout(() => checkLiveNewReleases(true), 2500);
+
+    // Subscribe to real-time Cloud Firestore updates for community looks if available
+    if (window.MooncatAuth && window.MooncatAuth.subscribeToCommunityLooks) {
+      window.MooncatAuth.subscribeToCommunityLooks((cloudLooks) => {
+        if (Array.isArray(cloudLooks) && cloudLooks.length > 0) {
+          mergeCloudCommunityLooks(cloudLooks);
+        }
+      });
+    }
   }
 
   // --- Image Optimization Helper ---
@@ -620,6 +639,7 @@
       if (!userData.inventory) userData.inventory = {};
       if (!userData.wishlist) userData.wishlist = [];
       if (!userData.wishlistRatings) userData.wishlistRatings = {};
+      if (!userData.heartedLooks) userData.heartedLooks = [];
     } catch (e) {
       console.error('Failed to load user profiles from storage:', e);
       profiles = {
@@ -628,7 +648,8 @@
           name: 'Guest Vault',
           inventory: {},
           wishlist: [],
-          wishlistRatings: {}
+          wishlistRatings: {},
+          heartedLooks: []
         }
       };
       currentProfileId = 'guest';
@@ -989,6 +1010,7 @@
     if (tabId === 'catalog') renderCatalog();
     if (tabId === 'orders') renderOrders();
     if (tabId === 'wishlist') renderWishlist();
+    if (tabId === 'community') renderCommunityTab();
   }
 
   // --- Rendering ---
@@ -998,6 +1020,7 @@
     if (activeTab === 'catalog') renderCatalog();
     else if (activeTab === 'orders') renderOrders();
     else if (activeTab === 'wishlist') renderWishlist();
+    else if (activeTab === 'community') renderCommunityTab();
   }
 
   function updateHeaderStats() {
@@ -2555,6 +2578,8 @@
               View on Mooncat.com ↗
             </a>
           </div>
+
+          ${renderDetailCommunitySection(item)}
         </div>
       </div>
     `;
@@ -2728,6 +2753,761 @@
       clearTimeout(timeout);
       timeout = setTimeout(() => func.apply(this, args), wait);
     };
+  }
+
+  // ==========================================================================
+  // Community Looks & Nail Art Loves Showcase ("The Living Layer")
+  // ==========================================================================
+
+  const MAGNET_TYPE_LABELS = {
+    'none': 'Non-Magnetic',
+    'horseshoe_30': '🧲 30lb Horseshoe Magnet',
+    'horseshoe_50': '🧲 50lb Horseshoe Magnet',
+    'wand_mooncat': '🪄 Mooncat Magnetic Wand',
+    'wand_dual': '🪄 Dual Magnetic Wands',
+    'neodymium_bar': '🧲 Neodymium Bar Magnet',
+    'magnetic_ring': '💍 Magnetic Ring / Cylinder',
+    'other_magnet': '🧲 Custom Magnet'
+  };
+
+  const MAGNET_STYLE_LABELS = {
+    'na': 'Standard Swatch / Finish',
+    'velvet': '✨ Velvet Style (Horseshoe)',
+    'cateye_diagonal': '⚡ Cat Eye (Diagonal)',
+    'cateye_vertical': '⚡ Cat Eye (Center)',
+    'aura_circle': '💫 Aura / Center Ring',
+    'glass_bead': '🔮 Glass Bead / Repelled Center',
+    'french_tip': '💅 Magnetic French Tip',
+    'custom_effect': '✨ Custom Effect'
+  };
+
+  const INITIAL_SEED_COMMUNITY_LOOKS = [
+    {
+      id: "look_seed_paola_1",
+      creatorName: "Paola Var",
+      creatorHandle: "Claw Club Member",
+      creatorUid: "seed_paola",
+      title: "Lazy gradient of Murraya's Melody, Kattermanjaro & Light of Your Ninth Life",
+      caption: "Celebrating the ACOSH release with a soft lazy gradient and Amazon star stickers! The colors melt together so softly.",
+      photoUrl: "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_remedy_MURRAYA_SMELODY_14.jpg?v=1748373321",
+      shadeIds: [15050889527456, 15827731644576, 15827852918944],
+      recipe: {
+        magnetType: "none",
+        magnetStyle: "na",
+        coats: "1 coat primer, 2 sponge passes of shades, Speed Demon Top Coat",
+        steps: "Applied primer. Painted stripes of Murraya's Melody, Kattermanjaro, and Light of Your Ninth Life onto a cosmetic sponge wedge. Dabbed onto nails in 2 thin passes to blend smoothly. Applied Amazon holographic star stickers and sealed with Speed Demon Top Coat.",
+        extras: "Cosmetic sponge wedge, Amazon holographic star stickers"
+      },
+      hearts: 18,
+      createdAt: "2026-10-24T18:00:00.000Z",
+      flagged: false
+    },
+    {
+      id: "look_seed_velvet_2",
+      creatorName: "Sarah B.",
+      creatorHandle: "@mooncatvelvet",
+      creatorUid: "seed_sarah",
+      title: "Multidimensional Velvet Sorcery",
+      caption: "Millennia magnetized in a 30lb horseshoe magnet for that unbelievable all-over velvet sheen!",
+      photoUrl: "https://cdn.shopify.com/s/files/1/0571/6957/6096/products/mooncat_pdp_MILLENNIA_2.jpg?v=1663857764",
+      shadeIds: [7060230832288],
+      recipe: {
+        magnetType: "horseshoe_30",
+        magnetStyle: "velvet",
+        coats: "Hardcore Base Coat, 2 coats Millennia, Speed Demon Top Coat",
+        steps: "Rested finger inside the curve of a 30lb horseshoe magnet for 60 seconds per wet coat. Applied Speed Demon Top Coat and immediately re-magnetized in the horseshoe for 60 seconds so the velvet effect stays crisp and doesn't disperse.",
+        extras: "30lb Horseshoe Magnet"
+      },
+      hearts: 25,
+      createdAt: "2026-10-28T14:15:00.000Z",
+      flagged: false
+    },
+    {
+      id: "look_seed_hades_3",
+      creatorName: "Elena K.",
+      creatorHandle: "Claw Club Member",
+      creatorUid: "seed_elena",
+      title: "Deep Blue Underworld Glow",
+      caption: "House Of Hades in direct indoor lighting with a glossy top coat. You can never go wrong with this mythical blue shimmer!",
+      photoUrl: "https://cdn.shopify.com/s/files/1/0571/6957/6096/files/mooncat_pdp_UNDERWORLD_HOUSE_OF_HADES_14_NEW.jpg?v=1689820979",
+      shadeIds: [9886925226144],
+      recipe: {
+        magnetType: "none",
+        magnetStyle: "na",
+        coats: "Getting Even Nail Primer, 2 coats House Of Hades, Speed Demon Top Coat",
+        steps: "Two smooth, thin coats. Let dry 2 minutes between coats. The blue micro-shimmer lights up under any direct lamp or sunlight.",
+        extras: "Speed Demon Top Coat"
+      },
+      hearts: 21,
+      createdAt: "2026-11-01T20:30:00.000Z",
+      flagged: false
+    }
+  ];
+
+  function loadCommunityLooks() {
+    try {
+      const stored = localStorage.getItem(STORAGE_COMMUNITY_LOOKS_KEY);
+      if (stored) {
+        communityLooks = JSON.parse(stored);
+      } else {
+        communityLooks = [...INITIAL_SEED_COMMUNITY_LOOKS];
+        localStorage.setItem(STORAGE_COMMUNITY_LOOKS_KEY, JSON.stringify(communityLooks));
+      }
+    } catch (e) {
+      console.error("Failed to load community looks:", e);
+      communityLooks = [...INITIAL_SEED_COMMUNITY_LOOKS];
+    }
+  }
+
+  function saveCommunityLooks() {
+    try {
+      localStorage.setItem(STORAGE_COMMUNITY_LOOKS_KEY, JSON.stringify(communityLooks));
+    } catch (e) {
+      console.error("Failed to save community looks:", e);
+    }
+  }
+
+  function mergeCloudCommunityLooks(cloudLooks) {
+    if (!Array.isArray(cloudLooks)) return;
+    const map = new Map();
+    communityLooks.forEach(l => map.set(l.id, l));
+    cloudLooks.forEach(l => {
+      if (l && l.id) map.set(l.id, { ...(map.get(l.id) || {}), ...l });
+    });
+    communityLooks = Array.from(map.values());
+    saveCommunityLooks();
+    if (activeTab === 'community') renderCommunityTab();
+  }
+
+  function setCommunityScope(scope) {
+    communityScope = scope;
+    const btnAll = document.getElementById('community-scope-all');
+    const btnLoves = document.getElementById('community-scope-loves');
+    if (btnAll && btnLoves) {
+      btnAll.classList.toggle('active', scope === 'all');
+      btnLoves.classList.toggle('active', scope === 'loves');
+    }
+    renderCommunityTab();
+  }
+
+  function setCommunityShadeFilter(shadeId) {
+    communityShadeFilter = shadeId;
+    renderCommunityTab();
+  }
+
+  function setCommunityTechniqueFilter(tech) {
+    communityTechniqueFilter = tech;
+    renderCommunityTab();
+  }
+
+  function renderCommunityTab() {
+    const gridEl = document.getElementById('community-grid');
+    if (!gridEl) return;
+
+    const shadeFilterSelect = document.getElementById('community-shade-filter');
+    if (shadeFilterSelect && shadeFilterSelect.options.length <= 1) {
+      const usedShadeIds = new Set();
+      communityLooks.forEach(l => {
+        (l.shadeIds || []).forEach(id => usedShadeIds.add(id));
+      });
+      const shadeOptions = [];
+      usedShadeIds.forEach(id => {
+        const item = catalog.find(i => i.id === id);
+        if (item) shadeOptions.push(item);
+      });
+      shadeOptions.sort((a, b) => a.name.localeCompare(b.name));
+      shadeOptions.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.textContent = `${s.name} (${s.type})`;
+        shadeFilterSelect.appendChild(opt);
+      });
+      if ([...shadeFilterSelect.options].some(o => o.value === communityShadeFilter)) {
+        shadeFilterSelect.value = communityShadeFilter;
+      }
+    }
+
+    const heartedSet = new Set(userData.heartedLooks || []);
+    const totalAllCount = communityLooks.filter(l => !l.flagged).length;
+    const totalLovesCount = communityLooks.filter(l => !l.flagged && heartedSet.has(l.id)).length;
+
+    const countAllEl = document.getElementById('community-count-all');
+    const countLovesEl = document.getElementById('community-count-loves');
+    if (countAllEl) countAllEl.textContent = totalAllCount;
+    if (countLovesEl) countLovesEl.textContent = totalLovesCount;
+
+    let filtered = communityLooks.filter(look => !look.flagged);
+
+    if (communityScope === 'loves') {
+      filtered = filtered.filter(look => heartedSet.has(look.id));
+    }
+
+    if (communityShadeFilter !== 'all') {
+      const targetId = Number(communityShadeFilter);
+      filtered = filtered.filter(look => (look.shadeIds || []).includes(targetId));
+    }
+
+    if (communityTechniqueFilter !== 'all') {
+      filtered = filtered.filter(look => {
+        const r = look.recipe || {};
+        const magnet = (r.magnetType || '').toLowerCase();
+        const extras = (r.extras || '').toLowerCase();
+        const title = (look.title || '').toLowerCase();
+        const cap = (look.caption || '').toLowerCase();
+
+        if (communityTechniqueFilter === 'horseshoe') {
+          return magnet.includes('horseshoe');
+        } else if (communityTechniqueFilter === 'wand') {
+          return magnet.includes('wand');
+        } else if (communityTechniqueFilter === 'magnetic_any') {
+          return magnet !== 'none' && magnet !== '';
+        } else if (communityTechniqueFilter === 'gradient') {
+          return title.includes('gradient') || cap.includes('gradient') || (look.shadeIds && look.shadeIds.length > 1);
+        } else if (communityTechniqueFilter === 'stickers_art') {
+          return extras.includes('sticker') || title.includes('sticker') || (r.steps || '').toLowerCase().includes('sticker') || title.includes('art');
+        } else if (communityTechniqueFilter === 'swatch') {
+          return magnet === 'none' || magnet === '';
+        }
+        return true;
+      });
+    }
+
+    filtered.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
+    const emptyAllEl = document.getElementById('community-empty-state');
+    const emptyLovesEl = document.getElementById('community-loves-empty-state');
+
+    if (filtered.length === 0) {
+      gridEl.innerHTML = '';
+      if (communityScope === 'loves') {
+        if (emptyLovesEl) emptyLovesEl.classList.remove('hidden');
+        if (emptyAllEl) emptyAllEl.classList.add('hidden');
+      } else {
+        if (emptyAllEl) emptyAllEl.classList.remove('hidden');
+        if (emptyLovesEl) emptyLovesEl.classList.add('hidden');
+      }
+      return;
+    }
+
+    if (emptyAllEl) emptyAllEl.classList.add('hidden');
+    if (emptyLovesEl) emptyLovesEl.classList.add('hidden');
+
+    const currentUser = (window.MooncatAuth && window.MooncatAuth.getCurrentUser) ? window.MooncatAuth.getCurrentUser() : null;
+    const currentUid = currentUser ? currentUser.uid : currentProfileId;
+
+    gridEl.innerHTML = filtered.map(look => {
+      const isHearted = heartedSet.has(look.id);
+      const isOwner = look.creatorUid === currentUid || look.creatorUid === currentProfileId;
+      const shadeObjects = (look.shadeIds || []).map(id => catalog.find(i => i.id === id)).filter(Boolean);
+
+      const r = look.recipe || {};
+      const magnetLabel = MAGNET_TYPE_LABELS[r.magnetType] || '';
+      const styleLabel = MAGNET_STYLE_LABELS[r.magnetStyle] || '';
+
+      return `
+        <div class="community-card" id="card-${escapeHtml(look.id)}">
+          <div class="community-card-img-wrap">
+            <img class="community-card-img" src="${escapeHtml(look.photoUrl)}" alt="${escapeHtml(look.title || look.creatorName)}" onclick="window.MooncatApp.openDetail(${shadeObjects[0] ? shadeObjects[0].id : 0})">
+            
+            <span class="community-creator-tag">
+              <span>🎨 Look by <strong>${escapeHtml(look.creatorName)}</strong></span>
+              ${look.creatorHandle ? `<small style="opacity: 0.75;">(${escapeHtml(look.creatorHandle)})</small>` : ''}
+            </span>
+
+            <button class="community-heart-btn ${isHearted ? 'active' : ''}" onclick="window.MooncatApp.toggleHeartLook('${escapeHtml(look.id)}')" title="${isHearted ? 'Hearted! Click to remove from Loves' : 'Heart this look to save to Loves and check your vault'}">
+              <span>${isHearted ? '❤️' : '🤍'}</span>
+              <span>${look.hearts || 0}</span>
+            </button>
+          </div>
+
+          <div class="community-card-body">
+            ${look.title ? `<h3 class="community-card-title">${escapeHtml(look.title)}</h3>` : ''}
+            ${look.caption ? `<p class="community-card-caption">${escapeHtml(look.caption)}</p>` : ''}
+
+            <!-- Tagged Mooncat Shades -->
+            <div>
+              <div style="font-size: 0.75rem; font-weight: 700; color: var(--accent-magenta); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px;">
+                💅 Mooncat Shades Used:
+              </div>
+              <div class="community-shades-row">
+                ${shadeObjects.map(shade => {
+                  const ownedQty = getOwnedQty(shade);
+                  const isOwned = ownedQty > 0;
+                  const inWishlist = userData.wishlist && userData.wishlist.includes(shade.id);
+                  const isRetired = shade.status === 'Dearly Departed';
+
+                  let badgeClass = '';
+                  let badgeText = '';
+
+                  if (isOwned) {
+                    badgeClass = 'vault-owned';
+                    badgeText = '✓ In Vault';
+                  } else if (inWishlist) {
+                    badgeClass = 'vault-wishlist';
+                    badgeText = '💫 Wishlisted';
+                  } else if (isRetired) {
+                    badgeClass = 'vault-retired';
+                    badgeText = '⚰️ Retired Archive';
+                  } else {
+                    badgeText = '+ Wishlist';
+                  }
+
+                  return `
+                    <span class="community-shade-pill ${badgeClass}" onclick="window.MooncatApp.openDetail(${shade.id})" title="Click to view details for ${escapeHtml(shade.name)}">
+                      ${shade.status === 'Dearly Departed' ? '⚰️' : '💅'}
+                      <strong>${escapeHtml(shade.name)}</strong>
+                      <small class="community-vault-tag">${badgeText}</small>
+                    </span>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+
+            <!-- Reproduction Recipe Card -->
+            ${(r.magnetType !== 'none' || r.coats || r.steps || r.extras) ? `
+              <div class="community-recipe-card">
+                <div class="community-recipe-header">
+                  <span>🧪 How to Reproduce</span>
+                  ${r.magnetType && r.magnetType !== 'none' ? `<span class="recipe-badge magnet">${escapeHtml(magnetLabel)}</span>` : ''}
+                </div>
+
+                <div class="community-recipe-tags">
+                  ${r.magnetStyle && r.magnetStyle !== 'na' ? `<span class="recipe-badge style">${escapeHtml(styleLabel)}</span>` : ''}
+                  ${r.coats ? `<span class="recipe-badge">Coats: ${escapeHtml(r.coats)}</span>` : ''}
+                  ${r.extras ? `<span class="recipe-badge">Extras: ${escapeHtml(r.extras)}</span>` : ''}
+                </div>
+
+                ${r.steps ? `
+                  <div class="community-recipe-steps">
+                    <strong>Steps & Timing:</strong> ${escapeHtml(r.steps)}
+                  </div>
+                ` : ''}
+              </div>
+            ` : ''}
+
+            <!-- Card Footer -->
+            <div class="community-card-footer">
+              <span>📅 ${new Date(look.createdAt || Date.now()).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+              <div class="community-card-actions">
+                ${isOwner ? `
+                  <button class="btn-card-quiet" onclick="window.MooncatApp.openShareLookModal('${escapeHtml(look.id)}')">✏️ Edit</button>
+                  <button class="btn-card-quiet delete" onclick="window.MooncatApp.deleteCommunityLook('${escapeHtml(look.id)}')">🗑 Delete</button>
+                ` : `
+                  <button class="btn-card-quiet" onclick="window.MooncatApp.flagCommunityLook('${escapeHtml(look.id)}')">⚐ Flag</button>
+                `}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function toggleHeartLook(lookId) {
+    const look = communityLooks.find(l => l.id === lookId);
+    if (!look) return;
+
+    if (!userData.heartedLooks) userData.heartedLooks = [];
+    const index = userData.heartedLooks.indexOf(lookId);
+
+    if (index === -1) {
+      userData.heartedLooks.push(lookId);
+      look.hearts = (look.hearts || 0) + 1;
+
+      const unownedMissing = (look.shadeIds || [])
+        .map(id => catalog.find(i => i.id === id))
+        .filter(s => s && getOwnedQty(s) === 0 && !userData.wishlist.includes(s.id) && s.status !== 'Dearly Departed');
+
+      const retiredShades = (look.shadeIds || [])
+        .map(id => catalog.find(i => i.id === id))
+        .filter(s => s && s.status === 'Dearly Departed');
+
+      if (unownedMissing.length > 0) {
+        const names = unownedMissing.map(s => `"${s.name}"`).join(', ');
+        unownedMissing.forEach(s => {
+          if (!userData.wishlist.includes(s.id)) {
+            userData.wishlist.push(s.id);
+          }
+        });
+        saveUserData();
+        showToast(`💖 Added to Loves & auto-linked ${names} to your Wishlist as inspiration! ✨`);
+      } else if (retiredShades.length > 0) {
+        showToast(`💖 Saved to Loves! Includes retired archive shade(s) (${retiredShades.map(s => s.name).join(', ')}) for stash-hunt inspiration.`);
+      } else {
+        showToast(`💖 Saved to your Nail Art Loves! You already have these shades in your vault—time to paint! ✨`);
+      }
+    } else {
+      userData.heartedLooks.splice(index, 1);
+      look.hearts = Math.max(0, (look.hearts || 1) - 1);
+      showToast("Removed look from your Nail Art Loves.");
+    }
+
+    saveUserData();
+    saveCommunityLooks();
+
+    if (window.MooncatAuth && window.MooncatAuth.saveCommunityLookToFirestore) {
+      window.MooncatAuth.saveCommunityLookToFirestore(look);
+    }
+
+    renderCommunityTab();
+  }
+
+  // --- Share Modal Controller ---
+  function openShareLookModal(editLookId = null) {
+    const modal = document.getElementById('share-look-modal');
+    if (!modal) return;
+
+    selectedLookTaggerShades = [];
+    const editIdInput = document.getElementById('share-look-edit-id');
+    const titleEl = document.getElementById('share-modal-title');
+    const photoDataInput = document.getElementById('share-photo-data');
+    const photoPreviewWrap = document.getElementById('photo-preview-wrap');
+    const photoUploadPrompt = document.getElementById('photo-upload-prompt');
+    const previewImg = document.getElementById('photo-preview-img');
+
+    if (editLookId) {
+      const look = communityLooks.find(l => l.id === editLookId);
+      if (look) {
+        if (editIdInput) editIdInput.value = look.id;
+        if (titleEl) titleEl.textContent = "Edit Your Mani / Swatch";
+        document.getElementById('share-creator-name').value = look.creatorName || '';
+        document.getElementById('share-creator-handle').value = look.creatorHandle || '';
+        document.getElementById('share-look-title').value = look.title || '';
+        document.getElementById('share-look-caption').value = look.caption || '';
+        if (photoDataInput) photoDataInput.value = look.photoUrl || '';
+        if (previewImg) previewImg.src = look.photoUrl || '';
+        if (photoPreviewWrap) photoPreviewWrap.classList.remove('hidden');
+        if (photoUploadPrompt) photoUploadPrompt.classList.add('hidden');
+
+        const r = look.recipe || {};
+        document.getElementById('share-magnet-type').value = r.magnetType || 'none';
+        document.getElementById('share-magnet-style').value = r.magnetStyle || 'na';
+        document.getElementById('share-recipe-coats').value = r.coats || '';
+        document.getElementById('share-recipe-extras').value = r.extras || '';
+        document.getElementById('share-recipe-steps').value = r.steps || '';
+
+        selectedLookTaggerShades = [...(look.shadeIds || [])];
+      }
+    } else {
+      if (editIdInput) editIdInput.value = '';
+      if (titleEl) titleEl.textContent = "Share Your Mani / Swatch";
+
+      const currentUser = (window.MooncatAuth && window.MooncatAuth.getCurrentUser) ? window.MooncatAuth.getCurrentUser() : null;
+      const defaultName = currentUser && currentUser.displayName 
+        ? currentUser.displayName 
+        : (userData.name && userData.name !== 'Guest Vault' ? userData.name : '');
+
+      document.getElementById('share-creator-name').value = defaultName;
+      document.getElementById('share-creator-handle').value = '';
+      document.getElementById('share-look-title').value = '';
+      document.getElementById('share-look-caption').value = '';
+      if (photoDataInput) photoDataInput.value = '';
+      if (photoPreviewWrap) photoPreviewWrap.classList.add('hidden');
+      if (photoUploadPrompt) photoUploadPrompt.classList.remove('hidden');
+
+      document.getElementById('share-magnet-type').value = 'none';
+      document.getElementById('share-magnet-style').value = 'na';
+      document.getElementById('share-recipe-coats').value = '';
+      document.getElementById('share-recipe-extras').value = '';
+      document.getElementById('share-recipe-steps').value = '';
+    }
+
+    renderSelectedShadeChips();
+    modal.classList.remove('hidden');
+  }
+
+  function openShareLookModalWithShade(shadeId) {
+    openShareLookModal();
+    if (shadeId && !selectedLookTaggerShades.includes(shadeId)) {
+      selectedLookTaggerShades.push(shadeId);
+      renderSelectedShadeChips();
+    }
+  }
+
+  function closeShareLookModal() {
+    const modal = document.getElementById('share-look-modal');
+    if (modal) modal.classList.add('hidden');
+    const dropdown = document.getElementById('shade-tagger-results');
+    if (dropdown) dropdown.classList.add('hidden');
+  }
+
+  function renderSelectedShadeChips() {
+    const container = document.getElementById('selected-shade-chips');
+    if (!container) return;
+
+    if (selectedLookTaggerShades.length === 0) {
+      container.innerHTML = `<span style="font-size: 0.82rem; color: var(--text-dim); font-style: italic;">No shades tagged yet. Type below to search Mooncat colors!</span>`;
+      return;
+    }
+
+    container.innerHTML = selectedLookTaggerShades.map(id => {
+      const shade = catalog.find(i => i.id === id);
+      if (!shade) return '';
+      return `
+        <span class="shade-chip">
+          <span>💅 ${escapeHtml(shade.name)}</span>
+          <button type="button" class="btn-remove-chip" onclick="window.MooncatApp.removeTaggerShade(${shade.id})" title="Remove shade">✕</button>
+        </span>
+      `;
+    }).join('');
+  }
+
+  function filterShadeTagger(query) {
+    const dropdown = document.getElementById('shade-tagger-results');
+    if (!dropdown) return;
+
+    const q = (query || '').trim().toLowerCase();
+    if (!q) {
+      dropdown.classList.add('hidden');
+      dropdown.innerHTML = '';
+      return;
+    }
+
+    const matches = catalog.filter(item => {
+      if (selectedLookTaggerShades.includes(item.id)) return false;
+      const n = (item.name || '').toLowerCase();
+      const t = (item.type || '').toLowerCase();
+      const c = (item.color || '').toLowerCase();
+      return n.includes(q) || t.includes(q) || c.includes(q);
+    }).slice(0, 8);
+
+    if (matches.length === 0) {
+      dropdown.innerHTML = `<div style="padding: 0.65rem 0.85rem; font-size: 0.8rem; color: var(--text-dim);">No matching Mooncat shades found</div>`;
+      dropdown.classList.remove('hidden');
+      return;
+    }
+
+    dropdown.innerHTML = matches.map(item => `
+      <div class="shade-tagger-item" onclick="window.MooncatApp.addTaggerShade(${item.id})">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <img src="${escapeHtml(item.image_url)}" alt="${escapeHtml(item.name)}" style="width: 28px; height: 28px; border-radius: 4px; object-fit: cover;">
+          <div>
+            <div style="font-weight: 700; font-size: 0.85rem; color: #fff;">${escapeHtml(item.name)}</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted);">${escapeHtml(item.type)} • ${escapeHtml(item.color)}</div>
+          </div>
+        </div>
+        <span style="font-size: 0.78rem; color: var(--accent-magenta); font-weight: 600;">+ Tag</span>
+      </div>
+    `).join('');
+
+    dropdown.classList.remove('hidden');
+  }
+
+  function addTaggerShade(shadeId) {
+    if (!selectedLookTaggerShades.includes(shadeId)) {
+      selectedLookTaggerShades.push(shadeId);
+      renderSelectedShadeChips();
+    }
+    const input = document.getElementById('shade-search-input');
+    if (input) input.value = '';
+    const dropdown = document.getElementById('shade-tagger-results');
+    if (dropdown) dropdown.classList.add('hidden');
+  }
+
+  function removeTaggerShade(shadeId) {
+    selectedLookTaggerShades = selectedLookTaggerShades.filter(id => id !== shadeId);
+    renderSelectedShadeChips();
+  }
+
+  function handlePhotoFileSelected(files) {
+    if (!files || files.length === 0) return;
+    const file = files[0];
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload a valid image file (JPG, PNG, WebP).');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = new Image();
+      img.onload = function() {
+        const maxDim = 1200;
+        let w = img.width;
+        let h = img.height;
+        if (w > maxDim || h > maxDim) {
+          if (w > h) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          } else {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+
+        const dataInput = document.getElementById('share-photo-data');
+        if (dataInput) dataInput.value = compressedDataUrl;
+
+        const previewImg = document.getElementById('photo-preview-img');
+        if (previewImg) previewImg.src = compressedDataUrl;
+
+        const photoPreviewWrap = document.getElementById('photo-preview-wrap');
+        const photoUploadPrompt = document.getElementById('photo-upload-prompt');
+        if (photoPreviewWrap) photoPreviewWrap.classList.remove('hidden');
+        if (photoUploadPrompt) photoUploadPrompt.classList.add('hidden');
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function handleShareLookSubmit() {
+    const creatorName = (document.getElementById('share-creator-name').value || '').trim();
+    const photoData = (document.getElementById('share-photo-data').value || '').trim();
+
+    if (!creatorName) {
+      alert('Please enter your creator name for permanent attribution.');
+      return;
+    }
+
+    if (!photoData) {
+      alert('Please select or upload a photo of your manicure or swatch.');
+      return;
+    }
+
+    if (selectedLookTaggerShades.length === 0) {
+      alert('Please tag at least 1 Mooncat shade used in this look.');
+      return;
+    }
+
+    const editId = (document.getElementById('share-look-edit-id').value || '').trim();
+    const currentUser = (window.MooncatAuth && window.MooncatAuth.getCurrentUser) ? window.MooncatAuth.getCurrentUser() : null;
+    const currentUid = currentUser ? currentUser.uid : currentProfileId;
+
+    const lookData = {
+      id: editId || `look_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+      creatorName,
+      creatorHandle: (document.getElementById('share-creator-handle').value || '').trim(),
+      creatorUid: currentUid,
+      title: (document.getElementById('share-look-title').value || '').trim(),
+      caption: (document.getElementById('share-look-caption').value || '').trim(),
+      photoUrl: photoData,
+      shadeIds: [...selectedLookTaggerShades],
+      recipe: {
+        magnetType: document.getElementById('share-magnet-type').value || 'none',
+        magnetStyle: document.getElementById('share-magnet-style').value || 'na',
+        coats: (document.getElementById('share-recipe-coats').value || '').trim(),
+        extras: (document.getElementById('share-recipe-extras').value || '').trim(),
+        steps: (document.getElementById('share-recipe-steps').value || '').trim()
+      },
+      hearts: editId ? (communityLooks.find(l => l.id === editId)?.hearts || 0) : 0,
+      createdAt: editId ? (communityLooks.find(l => l.id === editId)?.createdAt || new Date().toISOString()) : new Date().toISOString(),
+      flagged: false
+    };
+
+    if (editId) {
+      const idx = communityLooks.findIndex(l => l.id === editId);
+      if (idx !== -1) communityLooks[idx] = lookData;
+    } else {
+      communityLooks.unshift(lookData);
+    }
+
+    saveCommunityLooks();
+
+    if (window.MooncatAuth && window.MooncatAuth.saveCommunityLookToFirestore) {
+      window.MooncatAuth.saveCommunityLookToFirestore(lookData);
+    }
+
+    closeShareLookModal();
+    switchTab('community');
+    showToast(`✨ Thank you for sharing your art with the community! Look published with attribution. 💅💖`);
+  }
+
+  function deleteCommunityLook(lookId) {
+    if (!confirm('Are you sure you want to remove your shared look? This will delete it permanently.')) return;
+    communityLooks = communityLooks.filter(l => l.id !== lookId);
+    saveCommunityLooks();
+
+    if (window.MooncatAuth && window.MooncatAuth.deleteCommunityLookFromFirestore) {
+      window.MooncatAuth.deleteCommunityLookFromFirestore(lookId);
+    }
+
+    renderCommunityTab();
+    showToast('Look removed from community showcase.');
+  }
+
+  function flagCommunityLook(lookId) {
+    const look = communityLooks.find(l => l.id === lookId);
+    if (!look) return;
+    if (confirm('Flag this look for founder review? (Our policy is gentle, quiet moderation without public shaming).')) {
+      look.flagged = true;
+      saveCommunityLooks();
+      renderCommunityTab();
+      showToast('Thank you. Look has been submitted for quiet founder review.');
+    }
+  }
+
+  function renderDetailCommunitySection(item) {
+    const matchingLooks = communityLooks.filter(l => !l.flagged && (l.shadeIds || []).includes(item.id));
+
+    if (matchingLooks.length === 0) {
+      return `
+        <div class="detail-community-section">
+          <div style="background: rgba(168, 85, 247, 0.08); border: 1px dashed rgba(168, 85, 247, 0.35); border-radius: 10px; padding: 1.25rem; text-align: center;">
+            <span style="font-size: 1.8rem; display: block; margin-bottom: 0.35rem;">💅✨</span>
+            <strong style="color: #fff; font-size: 0.95rem;">Be the First to Share a Mani with ${escapeHtml(item.name)}!</strong>
+            <p style="color: var(--text-muted); font-size: 0.82rem; margin: 0.35rem 0 0.85rem 0;">
+              Have you swatched or painted a look using this color? Share it to give it a permanent home on this shade's living page.
+            </p>
+            <button class="btn-primary" style="background: linear-gradient(135deg, #ec4899, #8b5cf6); border: none; font-size: 0.82rem; padding: 0.45rem 1rem;" onclick="window.MooncatApp.closeModal(); window.MooncatApp.openShareLookModalWithShade(${item.id})">
+              ✨ Share Your Mani / Swatch
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    return `
+      <div class="detail-community-section">
+        <div class="detail-community-header">
+          <h3 style="font-size: 1.05rem; color: #fff; margin: 0; display: flex; align-items: center; gap: 8px;">
+            <span>💅 Community Manis & Swatches Using ${escapeHtml(item.name)} (${matchingLooks.length})</span>
+          </h3>
+          <button class="btn-secondary" style="font-size: 0.78rem; padding: 3px 10px;" onclick="window.MooncatApp.closeModal(); window.MooncatApp.openShareLookModalWithShade(${item.id})">
+            + Share Your Look with this Shade
+          </button>
+        </div>
+        <div class="detail-community-grid">
+          ${matchingLooks.map(look => {
+            const r = look.recipe || {};
+            const magnetLabel = MAGNET_TYPE_LABELS[r.magnetType] || '';
+            const otherShades = (look.shadeIds || [])
+              .filter(id => id !== item.id)
+              .map(id => catalog.find(i => i.id === id))
+              .filter(Boolean);
+
+            return `
+              <div class="detail-look-card">
+                <img class="detail-look-thumb" src="${escapeHtml(look.photoUrl)}" alt="${escapeHtml(look.title || look.creatorName)}">
+                <div class="detail-look-info">
+                  <div style="font-size: 0.78rem; font-weight: 700; color: #fff;">
+                    By ${escapeHtml(look.creatorName)}
+                  </div>
+                  ${r.magnetType && r.magnetType !== 'none' ? `<span class="recipe-badge magnet" style="align-self: flex-start; font-size: 0.7rem;">${escapeHtml(magnetLabel)}</span>` : ''}
+                  ${otherShades.length > 0 ? `
+                    <div style="font-size: 0.72rem; color: var(--text-dim);">
+                      Paired with: ${otherShades.map(s => escapeHtml(s.name)).join(', ')}
+                    </div>
+                  ` : ''}
+                  ${r.steps ? `
+                    <div style="font-size: 0.73rem; color: var(--text-muted); line-height: 1.35; margin-top: 2px;">
+                      ${escapeHtml(r.steps)}
+                    </div>
+                  ` : ''}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `;
   }
 
   // --- Live Mooncat Store Sync & Product Classification ---
@@ -4394,6 +5174,22 @@
     copyCuratedHaulNames,
     setWishlistSort,
     setWishlistRating,
+    renderCommunityTab,
+    setCommunityScope,
+    setCommunityShadeFilter,
+    setCommunityTechniqueFilter,
+    toggleHeartLook,
+    openShareLookModal,
+    openShareLookModalWithShade,
+    closeShareLookModal,
+    filterShadeTagger,
+    addTaggerShade,
+    removeTaggerShade,
+    handlePhotoFileSelected,
+    handleShareLookSubmit,
+    deleteCommunityLook,
+    flagCommunityLook,
+    closeModal,
     onCloudDataLoaded,
     onCloudSignOut,
     getCurrentUserData: () => userData,

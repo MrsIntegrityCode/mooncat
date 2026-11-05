@@ -63,6 +63,9 @@
       <button class="nav-tab" data-tab="wishlist">
         <span class="tab-icon">💫</span> Wishlist
       </button>
+      <button class="nav-tab" data-tab="community">
+        <span class="tab-icon">💅</span> Community Looks & Loves
+      </button>
     </nav>
   </header>
 
@@ -355,6 +358,78 @@
         <button class="btn-primary" onclick="document.querySelector('[data-tab=catalog]').click()">Browse Main Catalog</button>
       </div>
     </section>
+
+    <!-- TAB 4: COMMUNITY LOOKS & LOVES -->
+    <section id="tab-community" class="tab-content">
+      <div class="section-banner">
+        <div>
+          <h2>💅 Community Looks & Nail Art Loves</h2>
+          <p class="section-desc">Voluntary community swatches and manicures tagged with Mooncat shades. Heart looks to save them to your inspiration board, check your vault, or view the creator's exact magnet & technique recipe to reproduce at home!</p>
+        </div>
+        <div class="banner-buttons">
+          <button id="btn-open-share-modal" class="btn-primary" style="background: linear-gradient(135deg, #ec4899, #8b5cf6); border: none; font-weight: 600;" onclick="window.MooncatApp.openShareLookModal()">
+            ✨ Share a Mani / Swatch
+          </button>
+        </div>
+      </div>
+
+      <!-- Community Toolbar -->
+      <div class="community-toolbar" style="margin-bottom: 1.25rem; background: var(--bg-surface); padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+          <div class="view-toggle" data-view-group="community-scope">
+            <button class="btn-toggle active" id="community-scope-all" onclick="window.MooncatApp.setCommunityScope('all')">
+              ✨ All Community Looks (<span id="community-count-all">0</span>)
+            </button>
+            <button class="btn-toggle" id="community-scope-loves" onclick="window.MooncatApp.setCommunityScope('loves')">
+              💖 My Hearted Loves (<span id="community-count-loves">0</span>)
+            </button>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+          <div class="filter-group">
+            <label for="community-shade-filter">Filter by Shade:</label>
+            <select id="community-shade-filter" onchange="window.MooncatApp.setCommunityShadeFilter(this.value)">
+              <option value="all">All Mooncat Shades</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="community-technique-filter">Magnet / Technique:</label>
+            <select id="community-technique-filter" onchange="window.MooncatApp.setCommunityTechniqueFilter(this.value)">
+              <option value="all">All Techniques</option>
+              <option value="horseshoe">🧲 Horseshoe Magnet (Velvet)</option>
+              <option value="wand">🪄 Magnetic Wand (Cat Eye)</option>
+              <option value="magnetic_any">✨ Any Magnetic Look</option>
+              <option value="gradient">🌈 Gradient / Ombre</option>
+              <option value="stickers_art">⭐ Nail Art / Stickers</option>
+              <option value="swatch">💅 Swatch & Finish</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Community Grid -->
+      <div id="community-grid" class="community-grid">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Empty State for All Looks -->
+      <div id="community-empty-state" class="empty-state hidden">
+        <div class="empty-icon">💅✨</div>
+        <h3>No Community Looks Found</h3>
+        <p>No community looks match your current shade or technique filter. Be the first to share your manicure or clear your filters!</p>
+        <button class="btn-primary" onclick="window.MooncatApp.openShareLookModal()">+ Share Your First Look</button>
+      </div>
+
+      <!-- Empty State for My Loves -->
+      <div id="community-loves-empty-state" class="empty-state hidden">
+        <div class="empty-icon">💖✨</div>
+        <h3>No Hearted Looks Yet</h3>
+        <p>Browse through community manicures and tap the heart on looks you love! They will be collected here on your personal inspiration board and checked against your vault.</p>
+        <button class="btn-primary" onclick="window.MooncatApp.setCommunityScope('all')">Browse All Community Looks</button>
+      </div>
+    </section>
   </main>
 
   <!-- Detail Modal -->
@@ -567,6 +642,172 @@ Speed Demon Top Coat"></textarea>
       <div id="wizard-step-content" class="wizard-body">
         <!-- Rendered dynamically -->
       </div>
+    </div>
+  </div>
+
+  <!-- Share Look / Mani Studio Modal -->
+  <div id="share-look-modal" class="modal-backdrop hidden">
+    <div class="modal-card share-look-card" style="max-width: 760px;">
+      <button class="modal-close" id="share-look-close-btn" onclick="window.MooncatApp.closeShareLookModal()">&times;</button>
+      
+      <div style="margin-bottom: 1.25rem;">
+        <span class="wizard-badge" style="background: rgba(236, 72, 153, 0.2); border-color: rgba(236, 72, 153, 0.5); color: #f472b6;">
+          💅 COMMUNITY SHOWCASE
+        </span>
+        <h2 id="share-modal-title" style="margin-top: 0.5rem; font-size: 1.5rem; color: #fff;">Share Your Mani / Swatch</h2>
+        <p style="color: var(--text-muted); font-size: 0.88rem; margin-top: 0.25rem; line-height: 1.45;">
+          Give your manicure a permanent home! Tag the Mooncat shades you used and share your exact recipe & magnet technique so fellow polish lovers can reproduce it.
+        </p>
+      </div>
+
+      <form id="share-look-form" onsubmit="event.preventDefault(); window.MooncatApp.handleShareLookSubmit();">
+        <input type="hidden" id="share-look-edit-id" value="">
+
+        <!-- Creator Attribution Row -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+          <div>
+            <label for="share-creator-name" style="font-size: 0.85rem; font-weight: 700; color: #fff; display: block; margin-bottom: 0.35rem;">
+              Creator Name (Permanent Attribution) *
+            </label>
+            <input type="text" id="share-creator-name" required placeholder="e.g. Paola Var" style="width: 100%; padding: 0.6rem 0.75rem; border-radius: 8px; border: 1px solid var(--border-subtle); background: var(--bg-deep); color: #fff;">
+          </div>
+          <div>
+            <label for="share-creator-handle" style="font-size: 0.85rem; font-weight: 700; color: #fff; display: block; margin-bottom: 0.35rem;">
+              Handle / Note (Optional)
+            </label>
+            <input type="text" id="share-creator-handle" placeholder="e.g. @paola.nails or Claw Club Member" style="width: 100%; padding: 0.6rem 0.75rem; border-radius: 8px; border: 1px solid var(--border-subtle); background: var(--bg-deep); color: #fff;">
+          </div>
+        </div>
+
+        <!-- Photo Upload Box -->
+        <div style="margin-bottom: 1.25rem;">
+          <label style="font-size: 0.85rem; font-weight: 700; color: #fff; display: block; margin-bottom: 0.35rem;">
+            Photo of Your Mani / Swatch *
+          </label>
+          <div id="photo-drop-zone" class="photo-drop-zone" onclick="document.getElementById('share-photo-file').click()">
+            <input type="file" id="share-photo-file" accept="image/*" style="display: none;" onchange="window.MooncatApp.handlePhotoFileSelected(this.files)">
+            <div id="photo-upload-prompt" class="photo-upload-prompt">
+              <span style="font-size: 2.2rem; display: block; margin-bottom: 0.35rem;">📸</span>
+              <strong style="color: #fff; font-size: 0.95rem;">Click to upload or drag & drop photo</strong>
+              <p style="color: var(--text-muted); font-size: 0.8rem; margin-top: 0.2rem;">Light guidelines: your own work, shades clearly visible, natural or honest lighting</p>
+            </div>
+            <div id="photo-preview-wrap" class="photo-preview-wrap hidden">
+              <img id="photo-preview-img" src="" alt="Photo Preview">
+              <button type="button" class="btn-change-photo" onclick="event.stopPropagation(); document.getElementById('share-photo-file').click()">
+                🔄 Replace Photo
+              </button>
+            </div>
+          </div>
+          <input type="hidden" id="share-photo-data" value="" required>
+        </div>
+
+        <!-- Tag Shades from 304 Catalog (Multi-select) -->
+        <div style="margin-bottom: 1.25rem;">
+          <label style="font-size: 0.85rem; font-weight: 700; color: #fff; display: block; margin-bottom: 0.35rem;">
+            Tag Mooncat Shades Used * <span style="font-size: 0.75rem; font-weight: normal; color: var(--accent-cyan);">(Search and pick all shades in this look)</span>
+          </label>
+          <div class="shade-tagger-container">
+            <div id="selected-shade-chips" class="selected-shade-chips">
+              <!-- Selected shade chips rendered dynamically -->
+            </div>
+            <div style="position: relative;">
+              <input type="text" id="shade-search-input" placeholder="Type a shade name (e.g. Murraya's Melody, House of Hades...)" autocomplete="off" oninput="window.MooncatApp.filterShadeTagger(this.value)" onfocus="window.MooncatApp.filterShadeTagger(this.value)">
+              <div id="shade-tagger-results" class="shade-tagger-dropdown hidden"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mani Title & Caption -->
+        <div style="margin-bottom: 1.25rem;">
+          <label for="share-look-title" style="font-size: 0.85rem; font-weight: 700; color: #fff; display: block; margin-bottom: 0.35rem;">
+            Look Title (Optional)
+          </label>
+          <input type="text" id="share-look-title" placeholder="e.g. Lazy gradient with star stickers for ACOSH release" style="width: 100%; padding: 0.6rem 0.75rem; border-radius: 8px; border: 1px solid var(--border-subtle); background: var(--bg-deep); color: #fff; margin-bottom: 0.75rem;">
+
+          <label for="share-look-caption" style="font-size: 0.85rem; font-weight: 700; color: #fff; display: block; margin-bottom: 0.35rem;">
+            Caption & Thoughts (Optional)
+          </label>
+          <textarea id="share-look-caption" rows="2" placeholder="Tell the community about your manicure, color shifts in sunlight, or why you paired these shades..." style="width: 100%; padding: 0.6rem 0.75rem; border-radius: 8px; border: 1px solid var(--border-subtle); background: var(--bg-deep); color: #fff; resize: vertical;"></textarea>
+        </div>
+
+        <!-- Reproduction Recipe (Technique & Magnet Specifics) -->
+        <div class="recipe-editor-box">
+          <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 0.75rem;">
+            <span style="font-size: 1.1rem;">🧪</span>
+            <strong style="color: #c084fc; font-size: 0.95rem;">Instructions to Reproduce (Mani Recipe)</strong>
+            <span style="font-size: 0.78rem; color: var(--text-muted);">(Help others replicate your magic!)</span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 0.85rem;">
+            <div>
+              <label for="share-magnet-type" style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">
+                🧲 Magnet Tool:
+              </label>
+              <select id="share-magnet-type" style="width: 100%; padding: 0.5rem 0.65rem; border-radius: 6px; border: 1px solid var(--border-subtle); background: var(--bg-deep); color: #fff; font-size: 0.85rem;">
+                <option value="none">None / Non-Magnetic Look</option>
+                <option value="horseshoe_30">30lb Horseshoe Magnet</option>
+                <option value="horseshoe_50">50lb Horseshoe Magnet</option>
+                <option value="wand_mooncat">Mooncat Magnetic Wand</option>
+                <option value="wand_dual">Dual Wands (Cross / X-pattern)</option>
+                <option value="neodymium_bar">Neodymium Bar Magnet</option>
+                <option value="magnetic_ring">Magnetic Ring / Cylinder</option>
+                <option value="other_magnet">Other Custom Magnet</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="share-magnet-style" style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">
+                ✨ Magnetic Style / Effect:
+              </label>
+              <select id="share-magnet-style" style="width: 100%; padding: 0.5rem 0.65rem; border-radius: 6px; border: 1px solid var(--border-subtle); background: var(--bg-deep); color: #fff; font-size: 0.85rem;">
+                <option value="na">N/A (Standard Swatch / Non-Magnetic)</option>
+                <option value="velvet">Velvet Effect (Horseshoe immersion)</option>
+                <option value="cateye_diagonal">Cat Eye: Diagonal Line</option>
+                <option value="cateye_vertical">Cat Eye: Straight Center</option>
+                <option value="aura_circle">Aura / Center Ring</option>
+                <option value="glass_bead">Glass Bead / Repelled Center</option>
+                <option value="french_tip">Magnetic French Tip</option>
+                <option value="custom_effect">Custom Effect</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; margin-bottom: 0.85rem;">
+            <div>
+              <label for="share-recipe-coats" style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">
+                Coats & Base/Top Coat:
+              </label>
+              <input type="text" id="share-recipe-coats" placeholder="e.g. 1 coat primer, 2 coats color, Speed Demon Top Coat" style="width: 100%; padding: 0.5rem 0.65rem; border-radius: 6px; border: 1px solid var(--border-subtle); background: var(--bg-deep); color: #fff; font-size: 0.85rem;">
+            </div>
+            <div>
+              <label for="share-recipe-extras" style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">
+                Extras & Tools (Optional):
+              </label>
+              <input type="text" id="share-recipe-extras" placeholder="e.g. Cosmetic wedge sponge, Amazon star stickers" style="width: 100%; padding: 0.5rem 0.65rem; border-radius: 6px; border: 1px solid var(--border-subtle); background: var(--bg-deep); color: #fff; font-size: 0.85rem;">
+            </div>
+          </div>
+
+          <div>
+            <label for="share-recipe-steps" style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); display: block; margin-bottom: 0.25rem;">
+              Step-by-Step Instructions & Magnet Timing:
+            </label>
+            <textarea id="share-recipe-steps" rows="2" placeholder="e.g. Rested finger inside horseshoe magnet for 60s while wet. Applied top coat and re-magnetized for 60s to prevent line spread." style="width: 100%; padding: 0.5rem 0.65rem; border-radius: 6px; border: 1px solid var(--border-subtle); background: var(--bg-deep); color: #fff; font-size: 0.85rem; resize: vertical;"></textarea>
+          </div>
+        </div>
+
+        <!-- Voluntary Sharing Reminder -->
+        <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 0.65rem 0.85rem; margin-top: 1rem; font-size: 0.8rem; color: #a7f3d0; display: flex; align-items: center; gap: 8px;">
+          <span>💖</span>
+          <span><strong>Voluntary Community Sharing:</strong> You own your work. Your attribution stays with this look wherever it appears. You can edit or remove your look at any time.</span>
+        </div>
+
+        <div class="modal-actions" style="margin-top: 1.25rem; display: flex; justify-content: flex-end; gap: 0.75rem;">
+          <button type="button" class="btn-secondary" onclick="window.MooncatApp.closeShareLookModal()">Cancel</button>
+          <button type="submit" id="btn-submit-share-look" class="btn-primary" style="background: linear-gradient(135deg, #ec4899, #8b5cf6); border: none;">
+            ✨ Publish to Community Gallery
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 

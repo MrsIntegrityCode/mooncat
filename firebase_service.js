@@ -14,6 +14,9 @@ import {
   doc, 
   getDoc, 
   setDoc,
+  deleteDoc,
+  collection,
+  onSnapshot,
   serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
@@ -135,6 +138,7 @@ async function loadUserDataFromFirestore(user) {
         inventory: initialData.inventory || {},
         wishlist: initialData.wishlist || [],
         wishlistRatings: initialData.wishlistRatings || {},
+        heartedLooks: initialData.heartedLooks || [],
         updatedAt: serverTimestamp()
       });
 
@@ -170,6 +174,7 @@ function saveUserDataToFirestore(userData) {
         inventory: userData.inventory || {},
         wishlist: userData.wishlist || [],
         wishlistRatings: userData.wishlistRatings || {},
+        heartedLooks: userData.heartedLooks || [],
         updatedAt: serverTimestamp()
       }, { merge: true });
 
@@ -179,6 +184,50 @@ function saveUserDataToFirestore(userData) {
       updateSyncIndicator(false);
     }
   }, 800);
+}
+
+// --- Community Looks Firestore Integration ---
+async function saveCommunityLookToFirestore(lookData) {
+  try {
+    const lookDocRef = doc(db, "community_looks", lookData.id);
+    await setDoc(lookDocRef, {
+      ...lookData,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+    console.log("Synced community look to Firestore:", lookData.id);
+  } catch (err) {
+    console.warn("Could not sync community look to Firestore (operating locally):", err.message);
+  }
+}
+
+async function deleteCommunityLookFromFirestore(lookId) {
+  try {
+    const lookDocRef = doc(db, "community_looks", lookId);
+    await deleteDoc(lookDocRef);
+    console.log("Deleted community look from Firestore:", lookId);
+  } catch (err) {
+    console.warn("Could not delete community look from Firestore:", err.message);
+  }
+}
+
+function subscribeToCommunityLooks(onLooksUpdated) {
+  try {
+    const looksCollection = collection(db, "community_looks");
+    return onSnapshot(looksCollection, (snapshot) => {
+      const looks = [];
+      snapshot.forEach(docSnap => {
+        looks.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      if (typeof onLooksUpdated === 'function') {
+        onLooksUpdated(looks);
+      }
+    }, (error) => {
+      console.warn("Firestore community looks snapshot subscription error:", error.message);
+    });
+  } catch (err) {
+    console.warn("Could not set up Firestore community looks listener:", err.message);
+    return () => {};
+  }
 }
 
 // Update Header Auth UI
@@ -226,5 +275,8 @@ window.MooncatAuth = {
   signInWithGoogle,
   signOutUser,
   saveUserDataToFirestore,
+  saveCommunityLookToFirestore,
+  deleteCommunityLookFromFirestore,
+  subscribeToCommunityLooks,
   getCurrentUser: () => currentUser
 };
